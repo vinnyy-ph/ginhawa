@@ -139,8 +139,8 @@ export default function DoctorSchedulePage() {
       setToastMessage(`Slot marked as ${status.toLowerCase()}`);
     } catch (err) {
       console.error(err);
-      alert("Failed to update slot. Reverting.");
-      fetchSlots(profile.id);
+      setToastMessage("Failed to update slot. Changes reverted.");
+      await fetchSlots(profile.id);
     } finally {
       setUpdatingId(null);
     }
@@ -162,8 +162,8 @@ export default function DoctorSchedulePage() {
       setConfirmDeleteId(null);
     } catch (err) {
       console.error(err);
-      alert("Failed to delete slot.");
-      fetchSlots(profile.id);
+      setToastMessage("Failed to delete slot. Please try again.");
+      await fetchSlots(profile.id);
     } finally {
       setUpdatingId(null);
     }

@@ -23,6 +23,7 @@ export default function DoctorAppointmentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<FilterTab>("All");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAppointments();
@@ -45,28 +46,21 @@ export default function DoctorAppointmentsPage() {
 
   async function updateStatus(id: string, newStatus: AppointmentStatus) {
     if (!token) return;
-    
-    // Quick confirmation for Cancel
-    if (newStatus === "CANCELLED" && !window.confirm("Are you sure you want to cancel this appointment?")) {
-      return;
-    }
-    
+    setActionError(null);
+
     try {
       setUpdatingId(id);
-      
-      // Optimistic update
       setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
-      
+
       await apiRequest(`/appointments/${id}/status`, {
         method: "PATCH",
         token,
         body: { status: newStatus }
       });
-      
+
     } catch (err: any) {
       console.error("Failed to update status", err);
-      alert("Failed to update appointment status. Reverting changes.");
-      // Revert on failure
+      setActionError("Failed to update appointment status. Please try again.");
       fetchAppointments();
     } finally {
       setUpdatingId(null);
@@ -100,6 +94,20 @@ export default function DoctorAppointmentsPage() {
             <Link href="/doctor/schedule">Manage Schedule</Link>
           </Button>
         </div>
+
+        {/* Action error banner */}
+        {actionError && (
+          <div className="mb-4 flex items-center justify-between gap-4 bg-red-50 text-error px-5 py-3 rounded-lg border border-red-100 text-sm">
+            <span>{actionError}</span>
+            <button
+              onClick={() => setActionError(null)}
+              className="text-error hover:text-error/70 font-semibold shrink-0"
+              aria-label="Dismiss error"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2 mb-8 bg-surface-white p-2 rounded-xl shadow-sm border border-outline-variant/30 inline-flex">
