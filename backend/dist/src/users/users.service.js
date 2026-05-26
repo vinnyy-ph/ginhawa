@@ -52,13 +52,16 @@ let UsersService = class UsersService {
         this.prisma = prisma;
     }
     async create(createUserDto) {
-        const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-        return this.prisma.user.create({
+        const { password, ...userData } = createUserDto;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await this.prisma.user.create({
             data: {
-                ...createUserDto,
-                password: hashedPassword,
+                ...userData,
+                passwordHash: hashedPassword,
             },
         });
+        const { passwordHash, ...result } = user;
+        return result;
     }
     findAll() {
         return this.prisma.user.findMany();

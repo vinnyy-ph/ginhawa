@@ -10,15 +10,13 @@ export declare class AuthController {
         user: {
             id: any;
             email: any;
-            name: any;
         };
     }>;
     register(createUserDto: CreateUserDto): Promise<{
-        email: string;
-        password: string;
-        name: string | null;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
+        access_token: string;
+        user: {
+            id: any;
+            email: any;
+        };
     }>;
 }

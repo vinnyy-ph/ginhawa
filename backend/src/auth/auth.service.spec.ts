@@ -12,6 +12,7 @@ describe('AuthService', () => {
 
   const mockUsersService = {
     findByEmail: jest.fn(),
+    create: jest.fn(),
   };
 
   const mockJwtService = {
@@ -99,6 +100,33 @@ describe('AuthService', () => {
           email: user.email,
         },
       });
+    });
+  });
+
+  describe('register', () => {
+    it('should create a user and return login result', async () => {
+      const createUserDto = {
+        email: 'new@example.com',
+        password: 'password123',
+        role: 'PATIENT',
+      };
+      const user = {
+        id: '2',
+        email: 'new@example.com',
+      };
+      const loginResult = {
+        access_token: 'token',
+        user: { id: '2', email: 'new@example.com' },
+      };
+
+      mockUsersService.create.mockResolvedValue(user);
+      jest.spyOn(service, 'login').mockResolvedValue(loginResult);
+
+      const result = await service.register(createUserDto as any);
+
+      expect(usersService.create).toHaveBeenCalledWith(createUserDto);
+      expect(service.login).toHaveBeenCalledWith(user);
+      expect(result).toEqual(loginResult);
     });
   });
 });

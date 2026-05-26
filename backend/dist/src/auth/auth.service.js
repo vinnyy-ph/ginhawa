@@ -56,11 +56,15 @@ let AuthService = class AuthService {
     }
     async validateUser(email, pass) {
         const user = await this.usersService.findByEmail(email);
-        if (user && (await bcrypt.compare(pass, user.password))) {
-            const { password, ...result } = user;
+        if (user && (await bcrypt.compare(pass, user.passwordHash))) {
+            const { passwordHash, ...result } = user;
             return result;
         }
         return null;
+    }
+    async register(createUserDto) {
+        const user = await this.usersService.create(createUserDto);
+        return this.login(user);
     }
     async login(user) {
         const payload = { email: user.email, sub: user.id };
@@ -69,7 +73,6 @@ let AuthService = class AuthService {
             user: {
                 id: user.id,
                 email: user.email,
-                name: user.name,
             },
         };
     }

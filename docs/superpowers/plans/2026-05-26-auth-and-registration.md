@@ -17,7 +17,7 @@
 - Modify: `backend/src/users/users.service.ts`
 - Test: `backend/src/users/users.service.spec.ts`
 
-- [ ] **Step 1: Update CreateUserDto to include Role**
+- [x] **Step 1: Update CreateUserDto to include Role**
 
 ```typescript
 import { Role } from '@prisma/client';
@@ -38,7 +38,7 @@ export class CreateUserDto {
 }
 ```
 
-- [ ] **Step 2: Fix UsersService.create to use passwordHash**
+- [x] **Step 2: Fix UsersService.create to use passwordHash**
 
 ```typescript
 async create(createUserDto: CreateUserDto) {
@@ -53,12 +53,12 @@ async create(createUserDto: CreateUserDto) {
 }
 ```
 
-- [ ] **Step 3: Run unit tests for UsersService**
+- [x] **Step 3: Run unit tests for UsersService**
 
 Run: `npm run test backend/src/users/users.service.spec.ts`
 Expected: PASS (Ensure mock Prisma handles `passwordHash`)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add backend/src/users/dto/create-user.dto.ts backend/src/users/users.service.ts

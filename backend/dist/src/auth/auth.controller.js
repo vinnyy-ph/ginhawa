@@ -32,7 +32,7 @@ let AuthController = class AuthController {
         return this.authService.login(user);
     }
     async register(createUserDto) {
-        return this.usersService.create(createUserDto);
+        return this.authService.register(createUserDto);
     }
 };
 exports.AuthController = AuthController;
