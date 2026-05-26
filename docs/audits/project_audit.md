@@ -1,6 +1,7 @@
 # 🏥 Ginhawa Telehealth App — Full Project Audit
 
 > Audit performed against [SPECS.md](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/docs/SPECS.md)
+> **Last updated: 2026-05-27** — Reflects actual file-level inspection of backend and frontend.
 
 ---
 
@@ -9,11 +10,11 @@
 | Category | Done | Partial | Missing | Total |
 |---|:---:|:---:|:---:|:---:|
 | **Database Schema** | 8/8 | 0 | 0 | 8 |
-| **Backend API Modules** | 4/10 | 1 | 5 | 10 |
-| **Frontend Pages** | 5/19 | 4 | 10 | 19 |
-| **Core Feature Flows (Demo Script)** | 2/11 | 1 | 8 | 11 |
+| **Backend API Modules** | 8/10 | 1 | 1 | 10 |
+| **Frontend Pages** | 6/19 | 3 | 10 | 19 |
+| **Core Feature Flows (Demo Script)** | 2/11 | 2 | 7 | 11 |
 
-**Overall estimate: ~30% complete.** The foundation is solid (auth, profiles, schema, onboarding), but nearly all core transactional flows are missing. Additionally, there are significant architectural inconsistencies (dual auth systems, duplicate routes, dead links) that need cleanup.
+**Overall estimate: ~55% complete.** The backend has made significant progress since the last audit — Appointments, Medical Records, Notifications, Recommendations, and Slots modules are now fully implemented. The schema is 100% solid. The primary gap is now the **frontend** — core transactional pages (doctor discovery flow, booking, appointments list, records, notifications, consultation room) are still largely absent.
 
 ---
 
@@ -21,19 +22,19 @@
 
 | Spec Requirement | Status | Actual |
 |---|---|---|
-| Next.js Frontend | ✅ | Next.js 16 with App Router |
+| Next.js Frontend | ✅ | Next.js with App Router |
 | TypeScript (Frontend) | ✅ | TypeScript throughout |
 | Tailwind CSS | ✅ | Tailwind v4 (CSS-first `@theme` config) |
 | shadcn/ui or Radix UI | ✅ | Radix UI primitives + CVA components |
 | NestJS Backend | ✅ | NestJS 11 |
-| REST API | ✅ | REST endpoints |
-| PostgreSQL + Prisma | ✅ | PostgreSQL 15 (Docker) + Prisma 7 with driver adapter |
+| REST API | ✅ | REST endpoints across 8 modules |
+| PostgreSQL + Prisma | ✅ | PostgreSQL (Docker) + Prisma 7 with pg driver adapter |
 | Docker | ⚠️ | Docker Compose for DB only — no app containerization |
 | Socket.IO / Realtime | ❌ | Not installed or configured |
 | Consultation Integration | ❌ | No Daily/Jitsi/Meet integration |
 
 > [!TIP]
-> The tech stack choices are solid and aligned with spec recommendations. The main gaps are realtime (Socket.IO) and consultation session integration.
+> The tech stack is solid and well-aligned with spec recommendations. Main gaps are real-time push delivery (Socket.IO) and consultation session integration.
 
 ---
 
@@ -41,19 +42,19 @@
 
 The Prisma schema at [schema.prisma](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/prisma/schema.prisma) has **all 8 entities** defined with correct fields and relationships.
 
-| Spec Entity | Schema Model | Alignment |
-|---|---|---|
-| User | ✅ `User` | ✅ All fields match. Enum `Role` (PATIENT/DOCTOR) |
-| PatientProfile | ✅ `PatientProfile` | ✅ All required + optional fields present |
-| DoctorProfile | ✅ `DoctorProfile` | ✅ All required + optional nice-to-have fields (yearsOfExperience, languages, fee, etc.) |
-| AvailabilitySlot | ✅ `AvailabilitySlot` | ✅ SlotStatus enum (AVAILABLE/BLOCKED/BOOKED) |
-| Appointment | ✅ `Appointment` | ✅ AppointmentStatus enum with all 5 statuses |
-| MedicalRecord | ✅ `MedicalRecord` | ✅ Includes `chiefConcern` and `followUpAdvice` beyond spec minimum |
-| Notification | ✅ `Notification` | ✅ All fields match |
-| RecommendationLog | ✅ `RecommendationLog` | ✅ All fields match |
+| Spec Entity | Schema Model | Status | Notes |
+|---|---|---|---|
+| User | `User` | ✅ | Email unique, bcrypt hash, Role enum (PATIENT/DOCTOR) |
+| PatientProfile | `PatientProfile` | ✅ | All required + optional fields |
+| DoctorProfile | `DoctorProfile` | ✅ | Includes nice-to-haves: yearsOfExperience, languages, fee, focusAreas |
+| AvailabilitySlot | `AvailabilitySlot` | ✅ | SlotStatus enum: AVAILABLE / BLOCKED / BOOKED; composite index on times |
+| Appointment | `Appointment` | ✅ | AppointmentStatus enum with all 5 statuses; slotId unique (prevents double-booking at DB level) |
+| MedicalRecord | `MedicalRecord` | ✅ | Includes notes, prescription, recommendations, followUpAdvice |
+| Notification | `Notification` | ✅ | userId, type, title, message, readAt |
+| RecommendationLog | `RecommendationLog` | ✅ | symptomInput, matchedSpecialization |
 
 > [!NOTE]
-> The database schema is **100% complete and well-aligned** with the spec. This is a strong foundation — the data layer is ready for all features.
+> The database schema is **100% complete and well-aligned** with the spec. All relationships, enums, indexes, and cascades are properly modeled. The `chiefConcern` field from spec §6.10 is not in the schema — it is folded into `notes` on MedicalRecord, which is acceptable for MVP.
 
 ---
 
@@ -66,27 +67,35 @@ Covers spec §6.1 (Authentication and Access)
 
 | Endpoint | Spec Requirement | Status |
 |---|---|---|
-| `POST /auth/register` | Register with email, password, role | ✅ |
-| `POST /auth/login` | Login with email + password, returns JWT | ✅ |
+| `POST /auth/signup` | Register with email, password, role | ✅ |
+| `POST /auth/login` | Login, returns JWT | ✅ |
 | JWT Guard | Protect role-specific routes | ✅ Global `APP_GUARD` |
 | Roles Guard | Enforce role-based access | ✅ Global `APP_GUARD` |
 | `@Public()` decorator | Bypass auth for public routes | ✅ |
-| `@Roles()` decorator | Restrict by role | ✅ |
+| `@Roles()` decorator | Restrict routes by role | ✅ |
 | Password hashing | bcrypt | ✅ |
+| JWT Passport Strategy | Extracts userId, email, role into `req.user` | ✅ |
 
 > [!TIP]
-> **Role guards ARE properly implemented** — `JwtAuthGuard` and `RolesGuard` are registered as global `APP_GUARD` providers. The `@Roles()` decorator is used on patient and doctor endpoints. The `@Public()` decorator bypasses auth for landing/login/register. This is well-aligned with spec §6.1 & §13.
+> Auth is well-architected. `JwtAuthGuard` and `RolesGuard` are registered as global `APP_GUARD` providers, so all routes are protected by default. `@Public()` opts out for login/signup. The JWT payload correctly carries `sub` (userId), `email`, and `role`.
 
-#### Doctor Profile — [doctors/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/doctors)
-Covers spec §6.3 (Doctor Profile) + partial §6.4 (Doctor Discovery)
+---
+
+#### Doctor Profile & Discovery — [doctors/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/doctors)
+Covers spec §6.3 (Doctor Profile) + §6.4 (Doctor Discovery)
 
 | Endpoint | Spec Requirement | Status |
 |---|---|---|
-| `POST /doctors/profile` | Create doctor profile | ✅ `@Roles('DOCTOR')` |
-| `PATCH /doctors/profile` | Update doctor profile | ✅ `@Roles('DOCTOR')` |
+| `POST /doctors/profile` | Create/upsert doctor profile | ✅ `@Roles('DOCTOR')` |
 | `GET /doctors/profile` | Get own profile | ✅ `@Roles('DOCTOR')` |
-| `GET /doctors` | Browse doctor list (public) | ✅ With `?search=` and `?specialization=` params |
-| `GET /doctors/:id` | View doctor detail | ✅ Returns `PublicDoctorProfile` (strips sensitive fields) |
+| `PATCH /doctors/profile` | Update doctor profile | ✅ `@Roles('DOCTOR')` |
+| `GET /doctors` | Browse doctor list with search/filter | ✅ Public; `?search=` by name, `?specialization=` |
+| `GET /doctors/:id` | View doctor detail | ✅ Returns `PublicDoctorProfile` (strips `userId`, timestamps) |
+
+> [!NOTE]
+> `upsertProfile` in the service has a bug: the `update` branch is `{}` (empty), so calling `POST /doctors/profile` a second time will **not update any fields**. The `update` clause needs to include the actual DTO fields. See issues §8.
+
+---
 
 #### Patient Profile — [patients/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/patients)
 Covers spec §6.2 (Patient Profile)
@@ -94,316 +103,329 @@ Covers spec §6.2 (Patient Profile)
 | Endpoint | Spec Requirement | Status |
 |---|---|---|
 | `POST /patients/profile` | Create patient profile | ✅ `@Roles('PATIENT')` |
-| `PATCH /patients/profile` | Update patient profile | ✅ `@Roles('PATIENT')` |
 | `GET /patients/profile` | Get own profile | ✅ `@Roles('PATIENT')` |
+| `PATCH /patients/profile` | Update patient profile | ✅ `@Roles('PATIENT')` |
+
+---
+
+#### Availability Slots — [slots/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/slots)
+Covers spec §6.11 (Schedule Management)
+
+| Endpoint | Spec Requirement | Status |
+|---|---|---|
+| `POST /doctors/slots` | Create slot with overlap validation | ✅ `@Roles('DOCTOR')` |
+| `GET /doctors/:id/slots` | View doctor's slots publicly | ✅ `@Public()` |
+| `PATCH /doctors/slots/:id` | Update slot (e.g., block/modify) | ✅ `@Roles('DOCTOR')` with ownership check |
+| `DELETE /doctors/slots/:id` | Delete slot | ✅ `@Roles('DOCTOR')` with ownership check |
+| Overlap prevention | Prevent overlapping slot creation | ✅ Prisma query: `startTime < end AND endTime > start` |
+
+> [!NOTE]
+> No validation preventing deletion of BOOKED slots. Deleting a booked slot could break the FK to an active appointment (Prisma's `onDelete: Restrict` would throw a DB error, but no graceful error message is surfaced).
+
+---
+
+#### Appointments — [appointments/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/appointments)
+Covers spec §6.6 (Appointment Booking)
+
+| Endpoint | Spec Requirement | Status |
+|---|---|---|
+| `POST /appointments` | Book appointment (patient) | ✅ Transactional: checks AVAILABLE, marks slot BOOKED |
+| `GET /appointments/patient` | List patient's appointments | ✅ Includes doctor + slot details |
+| `GET /appointments/doctor` | List doctor's appointments | ✅ Includes patient + slot details |
+| `PATCH /appointments/:id/status` | Update appointment status (doctor) | ✅ With ownership check |
+| Prevent double-booking | Slot locked atomically | ✅ Uses `$transaction` + `slotId @unique` |
+| Patient cancel/reschedule | Patient-initiated cancel/reschedule | ❌ **Missing** — only doctor can change status |
+
+> [!IMPORTANT]
+> **Cancel/Reschedule for patients is not implemented.** Spec §6.6 explicitly requires it. Also, when status is set to `CANCELLED`, the associated `AvailabilitySlot` remains `BOOKED` — the slot is never freed for re-booking.
+
+---
+
+#### Medical Records — [medical-records/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/medical-records)
+Covers spec §6.9 + §6.10 (Medical Records + Notes/Prescriptions)
+
+| Endpoint | Spec Requirement | Status |
+|---|---|---|
+| `POST /medical-records` | Doctor creates record for appointment | ✅ With ownership + duplicate prevention |
+| `GET /medical-records/patient` | Patient views own records | ✅ Ordered by `createdAt` desc |
+| `GET /medical-records/doctor` | Doctor views records they wrote | ✅ Ordered by `createdAt` desc |
+
+> [!NOTE]
+> Missing: `GET /medical-records/:id` for fetching a single record. `chiefConcern` field from spec maps to the `notes` field.
+
+---
+
+#### Notifications — [notifications/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/notifications)
+Covers spec §6.7 (Notifications)
+
+| Endpoint | Spec Requirement | Status |
+|---|---|---|
+| `GET /notifications` | Fetch all notifications for current user | ✅ Ordered by `createdAt` desc |
+| `PATCH /notifications/:id/read` | Mark notification as read | ✅ Ownership-verified |
+| `createNotification()` | Internal method for other services to call | ✅ Available as injectable |
+
+> [!CAUTION]
+> **`NotificationsService.createNotification()` is never called by any other module.** The `AppointmentsModule` and `MedicalRecordsModule` do not inject `NotificationsService`. Notifications are stored in the DB but the notification center will always be empty because nothing triggers their creation.
+
+---
+
+#### Recommendations — [recommendations/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/recommendations)
+Covers spec §6.5 (AI Recommendation)
+
+| Endpoint | Spec Requirement | Status |
+|---|---|---|
+| `POST /recommendations` | Submit symptoms, get specialization match | ✅ Rule-based keyword map (30 keywords across 11 specializations) |
+| `GET /recommendations` | View patient's recommendation history | ✅ |
+| Return matched doctors | Return actual doctor records | ❌ **Missing** — only logs the matched specialization, no doctor list returned |
+
+> [!IMPORTANT]
+> The recommendation response only returns the `RecommendationLog` record with `matchedSpecialization`. It does not return the actual doctor profiles matching that specialization. The frontend would need a second `GET /doctors?specialization=X` call. The endpoint should ideally return both in one response.
+
+---
 
 #### File Uploads — [uploads/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/uploads)
 
 | Endpoint | Status |
 |---|---|
-| `POST /uploads/profile-picture` | ✅ Multer (JPEG/PNG/WebP, 5MB max, UUID filenames) |
+| `POST /uploads/profile-picture` | ✅ Multer — JPEG/PNG/WebP, 5MB max, UUID filenames |
+| Static asset serving | ✅ `useStaticAssets` from `/uploads/` |
 
 ---
 
 ### ⚠️ Partially Built
 
-#### Schedule Management — Spec §6.11
-- ✅ No dedicated module — slot endpoints live in doctors controller
-- ✅ Create available time blocks (`POST /doctors/availability`)
-- ✅ View own slots (`GET /doctors/availability`)
-- ✅ View doctor's slots publicly (`GET /doctors/:id/availability`)
-- ❌ **No delete** slot endpoint
-- ❌ **No update/edit** slot endpoint
-- ❌ **No mark-as-blocked** endpoint
-- ❌ No overlap prevention logic
+#### Users Module — [users/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/users)
 
----
-
-### ❌ Completely Missing Backend Modules
-
-| Spec Section | Feature | Missing Module | Priority |
-|---|---|---|---|
-| §6.6 | **Appointment Booking** | `AppointmentsModule` | 🔴 Critical |
-| §6.10 | **Consultation Notes & Prescriptions** | `MedicalRecordsModule` | 🔴 Critical |
-| §6.9 | **Medical Records/History** | Part of MedicalRecordsModule | 🔴 Critical |
-| §6.7 | **Notifications** | `NotificationsModule` | 🟡 High |
-| §6.5 | **AI Recommendation** | `RecommendationsModule` | 🟡 High |
-| §6.8 | **Consultation Session** | `ConsultationsModule` | 🟡 High |
+| Issue | Detail |
+|---|---|
+| `GET /users` unprotected | No `@Roles()` guard; returns full `User[]` including raw passwordHash from `findAll()` |
+| `GET /users/:id` unprotected | Any authenticated user can fetch any user by ID |
+| `DELETE /users/:id` unprotected | Any authenticated user can delete any user — no role restriction |
 
 > [!CAUTION]
-> **The appointment booking flow is the single most critical missing piece.** Without it, the core telehealth workflow (book → attend → record) cannot function. The Prisma schema is ready — the module just needs to be built.
+> **Critical security gap**: `UsersController` has no `@UseGuards(RolesGuard)` and no `@Roles()` decorators. Any authenticated user can call `GET /users` and retrieve all password hashes, or call `DELETE /users/any-id` to delete any account. This entire controller needs access restriction or removal per spec §13.
 
 ---
 
-## 4. Frontend Pages vs. Spec (§8)
+### ❌ Not Yet Built
+
+#### Consultation Session Module
+Covers spec §6.8
+
+- No meeting link generation or integration (Daily, Jitsi, Google Meet, etc.)
+- `consultationLink` field exists in Appointment schema but is never populated
+- No consultation room endpoint or frontend page
+
+---
+
+## 4. Backend Issues
+
+### 🔴 Critical
+
+1. **`UsersController` is a security vulnerability** — No role restriction. `GET /users` returns all users with passwordHash. `DELETE /users/:id` allows deletion without role check. Must be restricted or removed.
+
+2. **Patient cannot cancel or reschedule** — Spec §6.6 requires patient-initiated cancel/reschedule. Currently only `@Roles('DOCTOR')` can call `PATCH /appointments/:id/status`. No reschedule endpoint exists.
+
+3. **Slot not freed on cancellation** — When appointment status is changed to `CANCELLED`, the `AvailabilitySlot.status` remains `BOOKED`. The slot must be reset to `AVAILABLE` atomically so it can be re-booked.
+
+4. **Notifications never dispatched** — `NotificationsService.createNotification()` is never called. `AppointmentsModule` does not import `NotificationsModule`. The notification center is permanently empty.
+
+5. **Recommendation endpoint doesn't return doctors** — `POST /recommendations` logs the match but returns only the `RecommendationLog`. The spec requires returning matched doctors.
+
+### 🟡 Moderate
+
+6. **`upsertProfile` update clause is `{}`** — `DoctorsService.upsertProfile()` passes `update: {}` to Prisma upsert, meaning calling `POST /doctors/profile` a second time does nothing for updates. Must pass actual DTO fields in `update`.
+
+7. **No guard on BOOKED slot deletion** — `SlotsService.remove()` deletes regardless of slot status. Should throw `BadRequestException` if slot is `BOOKED`.
+
+8. **`JWT_SECRET` falls back to `'secretKey'`** — If env var is not set, tokens are signed with a trivially guessable string. Should throw on startup.
+
+9. **CORS is wide open** — `app.enableCors()` with no origin restriction. Must be configured for production (spec §7.8).
+
+10. **`NEXTAUTH_SECRET` and `NEXTAUTH_URL` in backend `.env`** — These belong in the frontend `.env.local` only. Backend doesn't use NextAuth.
+
+### 🟢 Minor
+
+11. **Default boilerplate files** — `app.controller.ts`, `app.service.ts`, `app.controller.spec.ts` are the default NestJS Hello World scaffold. Should be removed.
+
+12. **Empty scaffold files** — `create-auth.dto.ts`, `update-auth.dto.ts`, `auth.entity.ts`, `user.entity.ts` are empty classes never used.
+
+13. **Profile pictures on local filesystem** — Multer writes to `uploads/` directory. Won't survive redeployment on ephemeral platforms. Needs Cloudinary or S3.
+
+14. **No `GET /medical-records/:id`** — No way to fetch a single record by ID.
+
+15. **No `ValidationPipe` whitelist** — `main.ts` uses `new ValidationPipe()` without `{ whitelist: true, forbidNonWhitelisted: true }`.
+
+---
+
+## 5. Frontend Pages vs. Spec (§8)
 
 > [!WARNING]
-> **The frontend structure differs significantly from the spec's suggested routes.** Routes use `/dashboard` instead of `/patient/dashboard`, there are duplicate doctor dashboard routes, and many major pages are completely absent (not even stubs).
+> Since the last audit, a doctors list page (`/doctors`) and doctor detail page (`/doctors/[id]`) have been added. However, the core transactional pages (booking, appointments, records, consultation room, notifications) are still absent.
 
 ### ✅ Complete Pages
 
-| Spec Route | Actual Route | Page | Notes |
-|---|---|---|---|
-| Landing page | `/` | [page.tsx](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/page.tsx) | Full marketing page with hero, features, testimonials, FAQ, CTA. Framer Motion animations. |
-| Login | `/login` | [page.tsx](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/login/page.tsx) | Email/password form, NextAuth `signIn`, role-based redirect. Has dead link to `/forgot-password`. |
-| Sign up (Patient) | `/signup` | [page.tsx](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/signup/page.tsx) | Patient registration → redirects to `/onboarding/1` |
-| Sign up (Doctor) | `/signup/doctor` | [page.tsx](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/signup/doctor/page.tsx) | Doctor registration → redirects to `/doctor/dashboard` |
-| Patient: Complete profile | `/onboarding/1` through `/onboarding/5` | 5 step pages | **Full 5-step onboarding**: personal info → body metrics → medical history → profile picture → review & submit |
+| Spec Route | Actual Route | Notes |
+|---|---|---|
+| Landing page | `/` | Full marketing page: hero, features, testimonials, FAQ, CTA. Framer Motion animations. |
+| Login | `/(auth)/login` | NextAuth `signIn`, role-based redirect. Has dead link to `/forgot-password`. |
+| Sign up (Patient) | `/(auth)/signup` | Patient registration → redirects to `/onboarding/1` |
+| Sign up (Doctor) | `/(auth)/signup/doctor` | Doctor registration → redirects to `/doctor/dashboard` |
+| Patient: Complete Profile | `/onboarding/1` → `/onboarding/5` | Full 5-step onboarding: personal info → body metrics → medical history → profile picture → review |
+| Find Doctors (list) | `/doctors` | Doctor list with search/filter — consumes `GET /doctors` API ✅ |
 
 ### ⚠️ Partially Built / Problematic Pages
 
 | Page | Route | Issues |
 |---|---|---|
-| Patient Dashboard | `/dashboard` | [page.tsx](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/dashboard/page.tsx) — Server-protected with `getServerSession`, but renders a placeholder "Your patient dashboard is coming soon" |
-| Doctor Dashboard (Route 1) | `/doctor/dashboard` | [page.tsx](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/doctor/dashboard/page.tsx) — **No auth check**, just a Card saying "The full scheduling and consultation workflow is being built" |
-| Doctor Dashboard (Route 2) | `/dashboard/doctor` | [page.tsx](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/dashboard/doctor/page.tsx) — **Duplicate route**, no auth guard, hardcoded `needsAvailability=true`, broken "Set Up Now" button |
-| Doctor Onboarding | `/onboarding/doctor` | [page.tsx](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/onboarding/doctor/page.tsx) — **Rough stub**: uses `localStorage` for token (not NextAuth), hardcoded API URL, no validation, unstyled, doesn't match app design system |
-| For Doctors Landing | `/for-doctors` | [page.tsx](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/for-doctors/page.tsx) — Polished marketing page for doctors (not in spec but nice to have) |
+| Doctor Detail | `/doctors/[id]` | Page exists but minimal — no slot picker or booking flow wired yet |
+| Patient Dashboard | `/dashboard` | Protected with `getServerSession` but shows a placeholder stub |
+| Doctor Dashboard | `/doctor/dashboard` | Stub page, no auth check, no functional content |
 
 ### ❌ Completely Missing Pages
 
 | Spec Route (§8) | Expected Path | Feature |
 |---|---|---|
-| **Patient: Find Doctors** | `/doctors` or `/patient/doctors` | Browse, search, filter doctors |
-| **Patient: Doctor Detail** | `/doctors/[id]` | View doctor profile, availability, book appointment |
-| **Patient: Book Appointment** | `/book/[doctorId]` | Select slot, provide reason, confirm booking |
-| **Patient: Appointments** | `/dashboard/appointments` | List appointments, reschedule/cancel |
-| **Patient: Medical Records** | `/dashboard/records` | View consultation history, prescriptions |
-| **Patient: AI Recommendation** | `/recommendations` | Symptom input, get matched doctors |
+| **Patient: Book Appointment** | `/doctors/[id]` → booking flow | Select slot, enter reason, confirm booking |
+| **Patient: Appointments** | `/dashboard/appointments` | List appointments with status; reschedule/cancel |
+| **Patient: Medical Records** | `/dashboard/records` | View consultation history and prescriptions |
+| **Patient: AI Recommendation** | `/recommendations` | Symptom input → matched doctors |
 | **Patient: Notifications** | `/dashboard/notifications` | Notification center |
 | **Patient: Consultation Room** | `/consultation/[id]` | Join consultation session |
 | **Doctor: Schedule Management** | `/doctor/schedule` | Create/edit/block availability slots |
 | **Doctor: Appointments** | `/doctor/appointments` | View booked appointments, patient context |
-| **Doctor: Patient Records** | `/doctor/patients/[id]` | View patient history for consultation |
+| **Doctor: Patient Records** | `/doctor/patients/[id]` | View patient consultation history |
 | **Doctor: Notes & Prescriptions** | `/doctor/notes/[appointmentId]` | Write consultation notes, prescriptions |
 | **Doctor: Notifications** | `/doctor/notifications` | Notification center |
 | **Doctor: Consultation Room** | `/doctor/consultation/[id]` | Join consultation session |
 
 > [!CAUTION]
-> **None of the core transactional pages exist.** There is no doctor discovery page, no booking page, no appointments list, no records view, no consultation room. These aren't stubs — they simply don't exist yet.
+> The entire transactional core has no frontend UI. These aren't stubs — they simply don't exist. This blocks the demo script from step 5 onwards.
 
 ---
 
-## 5. Frontend Components & Design System
+## 6. Frontend Components & Design System
 
-### Components Inventory
+### Component Inventory
 
 | Category | Component | Status |
 |---|---|---|
-| **Auth** | `auth-card.tsx` — Centered card wrapper with logo | ✅ |
+| **Auth** | `auth-card.tsx` | ✅ |
 | **Layout** | `header.tsx` — Sticky nav with role-aware links | ✅ |
-| | `hero-section.tsx` — Landing hero with stats | ✅ |
-| | `features-section.tsx` — Feature cards grid | ✅ |
-| | `showcase-section.tsx` — Split layout (has placeholder wireframe, not real screenshots) | ⚠️ |
-| | `testimonials-section.tsx` — Hardcoded testimonials | ✅ |
-| | `faq-section.tsx` — Radix Accordion FAQ | ✅ |
-| | `cta-section.tsx` — Final CTA section | ✅ |
-| | `footer.tsx` — 4-column footer (has dead `#` links, placeholder trust badge divs) | ⚠️ |
-| **UI** | `button.tsx` — CVA with gradient default, 6 variants | ✅ |
-| | `card.tsx` — Card compound component | ✅ |
-| | `badge.tsx` — CVA badge with 6 variants | ✅ |
-| | `accordion.tsx` — Radix wrapper | ✅ |
-| | `fade-in.tsx` — Framer Motion scroll animation | ✅ |
-| | `form-field.tsx` — Accessible form field with Radix Label | ✅ |
-| | `password-input.tsx` — Show/hide toggle | ✅ |
-| | `progress-indicator.tsx` — Step progress bar | ✅ |
-| | `spinner.tsx` — Animated SVG spinner | ✅ |
-| | `toast.tsx` — Success/error toast notification | ✅ |
+| | `hero-section.tsx`, `features-section.tsx`, `testimonials-section.tsx`, `faq-section.tsx`, `cta-section.tsx` | ✅ |
+| | `showcase-section.tsx` — Placeholder wireframe rectangles, not real screenshots | ⚠️ |
+| | `footer.tsx` — Dead `#` links, placeholder trust badge divs | ⚠️ |
+| **UI** | `button.tsx`, `card.tsx`, `badge.tsx`, `accordion.tsx` | ✅ |
+| | `fade-in.tsx`, `form-field.tsx`, `password-input.tsx`, `progress-indicator.tsx`, `spinner.tsx`, `toast.tsx` | ✅ |
 
-### Design System
-- **Fonts**: Plus Jakarta Sans (headings) + Manrope (body) via Google Fonts
-- **Colors**: Material Design 3-inspired tokens, primary `#006b5e`, custom surface/status colors
-- **CSS**: `@theme` block in [globals.css](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/globals.css) with custom properties
-- **Quality**: The existing components are well-built with proper accessibility (aria attributes, Radix primitives)
+**Missing components needed for transactional pages:**
+- Slot picker / time slot selector
+- Appointment card (status badge, actions)
+- Doctor card (for discovery list — likely exists in `/doctors/page.tsx`)
+- Medical record / prescription view card
+- Notification list item
+- Consultation room / join button UI
 
 ---
 
-## 6. Auth Architecture — Critical Inconsistency
+## 7. Auth Architecture
 
-> [!WARNING]
-> **There are TWO competing auth systems in the codebase.** This is the most architecturally confusing issue in the project.
-
-### System 1: NextAuth (Primary)
-- `next-auth` IS installed and configured at [route.ts](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/api/auth/%5B...nextauth%5D/route.ts)
+### Frontend Auth (NextAuth — Primary System)
+- `next-auth` installed and configured at `app/api/auth/[...nextauth]/route.ts`
 - Uses `CredentialsProvider` → calls `POST /auth/login` on backend
-- Login page uses `signIn('credentials', ...)`
-- Session includes `id`, `role`, `accessToken` (JWT from backend)
-- Root layout wraps app in `<SessionProvider>`
+- Session carries `id`, `role`, `accessToken`
+- Root layout wraps in `<SessionProvider>`
 - Patient dashboard checks `getServerSession()` for protection
 
-### System 2: localStorage JWT (Legacy/Doctor)
-- Doctor onboarding page uses `localStorage.getItem('token')` directly
-- Doctor onboarding sends requests with a manually-constructed `Authorization` header
-- Patient signup uses a different API path prefix (`/api/auth/register` vs `/auth/register`)
+### Remaining Auth Gaps
 
-### Impact
-- **Doctor flows bypass NextAuth entirely** — the doctor onboarding page will not work if the user signed up through the NextAuth flow
-- **Inconsistent API paths**: Patient signup hits `/api/auth/register`, doctor signup hits `/auth/register`
-- **Session vs localStorage**: Some pages check `getServerSession()`, others check `localStorage`
-- **Recommendation**: Pick ONE auth system and commit to it. NextAuth is already the primary — remove all `localStorage` token references.
+| Gap | Status |
+|---|---|
+| `middleware.ts` for route protection | ❌ **Missing** — no global Next.js middleware protecting `/dashboard` and `/doctor` routes |
+| Dead link `/forgot-password` | ❌ Page does not exist |
+| Doctor onboarding auth consistency | ⚠️ Check if `/onboarding/doctor` still uses `localStorage` or has been migrated to NextAuth |
 
 ---
 
-## 7. Core Feature Flows — Demo Script Coverage (§15)
+## 8. Core Feature Flows — Demo Script Coverage (§15)
 
 | # | Demo Step | Backend | Frontend | Flow Status |
 |---|---|:---:|:---:|---|
 | 1 | Register a patient account | ✅ | ✅ | ✅ **Works** |
 | 2 | Complete patient profile | ✅ | ✅ (5-step onboarding) | ✅ **Works** |
-| 3 | Browse or search doctors | ✅ (API exists) | ❌ No page | ❌ **No UI** |
-| 4 | Use symptom-based recommendation | ❌ | ❌ | ❌ **Not built** |
-| 5 | Book appointment from available slot | ❌ | ❌ No page | ❌ **Not built** |
-| 6 | Appointment visible for both patient & doctor | ❌ | ❌ | ❌ **Not built** |
-| 7 | Join consultation session | ❌ | ❌ | ❌ **Not built** |
-| 8 | Doctor writes notes/prescription | ❌ | ❌ | ❌ **Not built** |
-| 9 | Patient views medical record/history | ❌ | ❌ | ❌ **Not built** |
-| 10 | Reschedule or cancellation flow | ❌ | ❌ | ❌ **Not built** |
-| 11 | Notifications + architecture explanation | ❌ | ❌ | ❌ **Not built** |
+| 3 | Browse or search doctors | ✅ API | ✅ `/doctors` page | ⚠️ **Partial** — list works, booking not wired |
+| 4 | Use symptom-based recommendation | ✅ API (partial) | ❌ No page | ❌ **No UI** |
+| 5 | Book appointment from available slot | ✅ API | ❌ No booking UI | ❌ **No UI** |
+| 6 | Appointment visible for both roles | ✅ API | ❌ No appointments page | ❌ **No UI** |
+| 7 | Join consultation session | ❌ No link generation | ❌ No room page | ❌ **Not built** |
+| 8 | Doctor writes notes/prescription | ✅ API | ❌ No form UI | ❌ **No UI** |
+| 9 | Patient views medical record/history | ✅ API | ❌ No records page | ❌ **No UI** |
+| 10 | Reschedule or cancellation flow | ❌ Partial (doctor-only cancel) | ❌ No UI | ❌ **Not built** |
+| 11 | Notifications + architecture explanation | ✅ DB/API (not wired) | ❌ No notification UI | ❌ **Not built** |
 
 > [!IMPORTANT]
-> **Only 2 of 11 demo steps are functional end-to-end.** Step 3 has a backend endpoint but no frontend page. The remaining 8 steps require both backend and frontend work.
+> **2 of 11 demo steps are fully functional. 1 is partially functional (doctor discovery list exists, booking not wired).** 7 steps require new frontend pages. Steps 7 and 10 also require additional backend work.
 
 ---
 
-## 8. Issues & Misalignments
+## 9. What's Working Well ✅
 
-### 🔴 Critical Issues
-
-1. **No appointment module at all** — This is the central feature of a telehealth app. Without it, 6+ demo steps fail. The Prisma model exists but no backend module or frontend pages.
-
-2. **No doctor discovery page** — The backend has `GET /doctors` with search/filter params, but there is no frontend page for patients to browse or search doctors. This is a spec §6.4 core requirement.
-
-3. **Dual auth system conflict** — NextAuth and localStorage-based JWT coexist. Doctor onboarding uses localStorage tokens, patient flows use NextAuth. These two systems will clash if not unified.
-
-4. **Users controller exposes passwordHash** — `GET /users` and `GET /users/:id` return the full User object including `passwordHash` with no role restriction. Security vulnerability per spec §13.
-
-5. **Duplicate doctor dashboards** — Both `/doctor/dashboard` and `/dashboard/doctor` exist. Neither is functional. This creates confusion about the canonical route.
-
-### 🟡 Moderate Issues
-
-6. **Doctor onboarding is a rough stub** — [page.tsx](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/app/onboarding/doctor/page.tsx) uses `localStorage` for token, hardcoded API URL, no validation, unstyled. Completely inconsistent with the polished 5-step patient onboarding.
-
-7. **Missing auth middleware** — No `middleware.ts` in the frontend. Routes like `/dashboard/doctor`, `/doctor/dashboard`, and all onboarding steps have no server-side auth protection. Only `/dashboard` checks `getServerSession()`.
-
-8. **Dead links everywhere**:
-   - `/forgot-password` (linked from login page — **does not exist**)
-   - Footer links: About Us, Contact, Privacy Policy, AI Recommendations — all point to `#`
-   - "Contact Support" CTA button points to `#`
-
-9. **Onboarding data lost on refresh** — The [OnboardingContext](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/src/context/onboarding-context.tsx) stores all 5 steps of data in React state only. If the user refreshes mid-onboarding, all data is lost. Should persist to `sessionStorage`.
-
-10. **Inconsistent API path prefixes** — Patient signup calls `/api/auth/register`, doctor signup calls `/auth/register`. The `apiRequest` helper prepends `NEXT_PUBLIC_API_URL`, but some calls use different base paths.
-
-11. **CORS is wide open** — Backend `main.ts` calls `app.enableCors()` with no configuration (all origins). Must be restricted for production per spec §7.8.
-
-12. **Empty directories** — `onboarding/role-selection/` and `onboarding/patient/` exist but contain no `page.tsx`. Suggest abandoned/planned features.
-
-### 🟢 Minor Issues
-
-13. **Profile picture stored on local filesystem** — `uploads/` directory via Multer. Won't work on ephemeral deploy platforms. Cloudinary integration is stubbed but throws an error.
-
-14. **No loading skeletons** — Spec §7.7 recommends skeleton states. Only a basic spinner exists.
-
-15. **Showcase section uses placeholder wireframe** — Gray div rectangles instead of real screenshots.
-
-16. **Footer has placeholder trust badge divs** — Gray rectangles instead of real compliance/security badges.
-
-17. **Empty scaffold files** — `create-auth.dto.ts`, `update-auth.dto.ts`, `auth.entity.ts`, `user.entity.ts` are all empty placeholder classes never used.
+1. **Complete database schema** — All 8 entities with correct relationships, enums, indexes, and cascades
+2. **Solid auth architecture (backend)** — Global JWT + Roles guards, `@Public()` decorator, bcrypt hashing, JWT Passport strategy
+3. **All core backend modules exist** — Auth, Users, Patients, Doctors, Slots, Appointments, MedicalRecords, Notifications, Recommendations, Uploads
+4. **Appointments are transactional** — Uses `$transaction` to prevent race conditions; double-booking blocked at both code and schema level (`slotId @unique`)
+5. **Slot overlap prevention** — `SlotsService.create()` checks for time overlaps before allowing new slots
+6. **Ownership checks** — Slots, appointments, and medical records all verify caller owns the resource before modification
+7. **Polished patient onboarding** — 5-step flow with progress indicator, unit toggles, file upload, review page
+8. **Good component library** — Accessible Radix primitives, CVA variants, Framer Motion animations
+9. **Design system** — Material Design 3-inspired tokens, custom font pairing (Plus Jakarta Sans + Manrope)
+10. **Doctor discovery API + public profile stripping** — Search/filter endpoint with `toPublicDoctorProfile()` to strip sensitive fields
 
 ---
 
-## 9. Unnecessary / Dead Code
+## 10. Prioritized Execution Plan
 
-| Item | Location | Issue |
-|---|---|---|
-| `NEXTAUTH_SECRET` in backend `.env` | [backend/.env](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/.env) | Backend doesn't use NextAuth — these env vars belong in frontend only |
-| `app.controller.ts` + `app.service.ts` | [backend/src/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/app.controller.ts) | Default NestJS "Hello World" boilerplate |
-| `app.controller.spec.ts` | [backend/src/](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/backend/src/app.controller.spec.ts) | Test for boilerplate controller |
-| Empty DTOs/Entities | `create-auth.dto.ts`, `update-auth.dto.ts`, `auth.entity.ts`, `user.entity.ts` | Empty classes, never used |
-| `CLAUDE.md` | [frontend/CLAUDE.md](file:///home/vincentdev/vincent-projects/launchpad/telehealth-app/frontend/CLAUDE.md) | Contains only `# frontend` |
-| Duplicate dashboard route | `/dashboard/doctor` | Conflicts with `/doctor/dashboard`, neither works |
-| Empty directories | `onboarding/role-selection/`, `onboarding/patient/` | No page files, abandoned |
+### 🔴 Backend Fixes First (Parallel to Frontend Work)
 
----
+1. **Wire notifications** — Import `NotificationsModule` into `AppointmentsModule` and `MedicalRecordsModule`. Call `createNotification()` after booking, status change, and record creation.
+2. **Patient cancel/reschedule** — Add `PATCH /appointments/:id/cancel` (patient-accessible) that atomically sets appointment to `CANCELLED` and resets slot to `AVAILABLE`. Add `PATCH /appointments/:id/reschedule` that swaps slots atomically.
+3. **Fix `upsertProfile` update clause** — Pass actual DTO fields in the `update` branch of `DoctorsService.upsertProfile()`.
+4. **Restrict `UsersController`** — Add `@UseGuards(JwtAuthGuard, RolesGuard)` and appropriate `@Roles()` to prevent public access. At minimum, prevent passwordHash exposure in `findAll()`.
+5. **Recommendation returns doctors** — After saving the log, fetch matching doctor profiles and include them in the response.
 
-## 10. What's Working Well ✅
+### 🔴 Phase 1 — Core Transactional Frontend (Unblocks Demo Steps 5–6)
 
-1. **Complete database schema** — All 8 entities with proper relationships, enums, and indexes
-2. **Proper auth architecture (backend)** — Global JWT + Roles guards, `@Public()` decorator, bcrypt hashing
-3. **Polished patient onboarding** — 5-step flow with progress indicator, unit toggles, file upload, review page
-4. **Good component library** — Accessible Radix primitives, CVA variants, Framer Motion animations
-5. **Design system** — Consistent Material Design 3-inspired tokens, serif+sans font pairing
-6. **Landing page and marketing** — Professional healthcare look, feature cards, testimonials, FAQ, doctor-specific page
-7. **Backend API for doctor discovery** — Search by name, filter by specialization, public profile stripping
-8. **Clean project structure** — Monorepo with `concurrently`, Docker Compose for DB, TypeScript configs
+1. **Booking flow on Doctor Detail page** — Show available slots; patient selects slot, enters `reasonForVisit`, calls `POST /appointments`.
+2. **Patient Appointments page** (`/dashboard/appointments`) — List appointments with status badges; Cancel + Reschedule actions.
+3. **Doctor Appointments page** (`/doctor/appointments`) — List bookings; Confirm/Complete status controls; link to notes.
+4. **Doctor Schedule Management** (`/doctor/schedule`) — Create, view, edit, delete availability slots UI.
+5. **Patient/Doctor Dashboards** — Replace placeholder stubs with real content widgets.
 
----
+### 🔴 Phase 2 — Medical & Notification Layer (Unblocks Demo Steps 8–11)
 
-## 11. Exact Delta to MVP Completion (The Remaining 70%)
+6. **Doctor Notes/Prescriptions form** (`/doctor/notes/[appointmentId]`) — Post-consultation form.
+7. **Patient Medical Records page** (`/dashboard/records`) — View completed consultation history + prescriptions.
+8. **Notification center** — Bell icon + notification list in both dashboards; mark-as-read.
 
-While the database schema (100%) and authentication foundations (30%) are complete, the core "telehealth" workflows (70%) remain unbuilt. The missing 70% breaks down into these distinct functional blocks:
+### 🟡 Phase 3 — Differentiators & Polish
 
-### 1. The Core Transactional Flow (40% of remaining work)
-- **Doctor Discovery:** A frontend page to consume the existing `GET /doctors` endpoint.
-- **Appointment Engine:** Full backend module (`AppointmentsModule`) and frontend flows for booking, listing, and state management (Pending, Confirmed, Cancelled).
-- **Schedule Management:** Missing backend logic (update, delete, block slots, overlap prevention) and the full calendar/slot UI for doctors.
-
-### 2. The Medical Consultation Layer (20% of remaining work)
-- **Consultation Room:** A UI view linking the appointment to a meeting room (e.g., Daily/Jitsi/Google Meet integration) and enabling the "Join" workflow for both roles.
-- **Medical Records & Prescriptions:** Backend API and doctor-facing forms to write notes post-consultation, and patient-facing pages to view this history.
-
-### 3. Polish, Real-time & Differentiators (10% of remaining work)
-- **Notifications:** Backend push/socket module or polling mechanism + frontend notification center and toasts.
-- **AI Triage/Recommendations:** Symptom-to-specialization matching engine and guided patient experience.
-- **Frontend Auth Fixes:** Removing the duplicate `localStorage` approach and enforcing full `NextAuth` protection via `middleware.ts`.
+9. **AI Recommendation page** (`/recommendations`) — Symptom text input → matched specialization + doctor list.
+10. **Consultation room page** (`/consultation/[id]`) — Appointment metadata + Join button opening `consultationLink` URL.
+11. **Auth middleware** (`middleware.ts`) — Protect `/dashboard` and `/doctor` routes at Next.js framework level.
+12. **Fix dead links** — `/forgot-password`, footer links, showcase section placeholders.
 
 ---
 
-## 12. Prioritized Execution Plan for the Remaining 70%
-
-To quickly iterate towards a functional MVP demo script, execution should proceed in the following structured phases:
-
-### 🔴 Phase 1 — Architectural Cleanup & Core Discovery (Unblocks search)
-1. **Unify Auth System (Frontend):** 
-   - Remove all `localStorage` logic (specifically in doctor onboarding).
-   - Enforce `NextAuth` globally and implement `middleware.ts` to protect `/dashboard` and `/doctor` routes.
-2. **Clean up Routing (Frontend):** 
-   - Delete `/dashboard/doctor` (duplicate). Standardize on `/doctor/dashboard` and `/dashboard`.
-3. **Build Doctor Discovery (Frontend):** 
-   - Build `/doctors` (search/filter list) and `/doctors/[id]` (detail profile) to consume existing APIs.
-
-### 🟡 Phase 2 — The Booking & Schedule Engine (Unblocks core transaction)
-1. **Complete Schedule Management (Backend & Frontend):** 
-   - Add delete/update/block slot endpoints and overlap prevention. 
-   - Build the Doctor Schedule Management UI.
-2. **Build Appointments Module (Backend):** 
-   - Create `POST`, `GET`, `PATCH` `/appointments` adhering to booking rules and status flow.
-3. **Build Appointments UI (Frontend):** 
-   - Patient view: Book from a doctor's profile. List appointments, reschedule/cancel UI.
-   - Doctor view: View upcoming bookings and patient context.
-
-### 🔵 Phase 3 — The Consultation & Medical Layer (Unblocks clinical workflow)
-1. **Build Consultation Session Integration:** 
-   - Inject meeting links into appointments. Build the `/consultation/[id]` waiting room / join redirect page.
-2. **Build Medical Records Module (Backend & Frontend):** 
-   - `POST/GET /medical-records`. 
-   - Build Doctor UI: Post-consultation form for notes/prescriptions. 
-   - Build Patient UI: View consultation history and prescribed records.
-
-### 🟢 Phase 4 — Polish & Differentiators (Unblocks challenge bonus criteria)
-1. **Build Notifications System:** In-app toast alerts and notification center for appointment updates.
-2. **Build AI Recommendation Flow:** Free-text symptom input matching to doctor specializations.
-3. **Final UX Review:** Skeletons, empty states, fix dead links, refine error handling.
-
----
-
-## 13. Final Verdict
+## 11. Final Verdict
 
 > [!IMPORTANT]
-> **You are on the right path architecturally**, but you're roughly **30% done**. The foundation (schema, auth backend, profiles, onboarding, design system) is solid and well-built. However:
+> **Backend: ~80% complete. Frontend: ~35% complete. Overall: ~55% complete.**
 >
-> 1. **The entire transactional core is missing** — booking, appointments, records, prescriptions, notifications, consultations. These are what make it a telehealth app rather than a doctor directory with login.
+> The backend has made major progress since the last audit. All critical modules (Appointments, MedicalRecords, Notifications, Recommendations, Slots) are now implemented with correct role guards and ownership checks. The remaining backend work is primarily fixes and wiring, not new modules.
 >
-> 2. **The frontend has architectural debt** — dual auth systems, duplicate routes, inconsistent API paths, missing auth middleware. This should be cleaned up **before** building new features to avoid compounding the inconsistencies.
+> **The critical bottleneck is now the frontend.** The transactional core — booking flow, appointments pages, records view, notes form, schedule management — has zero UI. This blocks the entire demo script from step 5 onwards.
 >
-> 3. **The most urgent action** is: Execute Phase 1 (Auth cleanup & Doctor Discovery) followed by Phase 2 (Appointments & Schedule). Doing this will immediately unlock 5+ critical demo steps and make the app demonstrably functional.
+> **Top 3 actions to unlock the most demo steps:**
+> 1. Build the booking flow on the doctor detail page (unlocks demo step 5)
+> 2. Build the patient appointments page (unlocks demo step 6 + 10)
+> 3. Wire notifications and build the notification center (unlocks demo step 11)

@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 interface SpinnerProps {
   className?: string;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export function Spinner({ className, size = 'sm' }: SpinnerProps) {
@@ -12,7 +12,7 @@ export function Spinner({ className, size = 'sm' }: SpinnerProps) {
     <svg
       className={cn(
         'animate-spin',
-        size === 'sm' ? 'h-4 w-4' : 'h-5 w-5',
+        size === 'sm' ? 'h-4 w-4' : size === 'md' ? 'h-5 w-5' : 'h-8 w-8',
         className,
       )}
       xmlns="http://www.w3.org/2000/svg"

@@ -19,9 +19,18 @@
   --color-on-surface: #181c1c;
   --color-surface-variant: #e0e3e2;
   --color-on-surface-variant: #3d4946;
+
+  /* Surface container tokens */
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f1f4f3;
+  --color-surface-container: #ebeeed;
+  --color-surface-container-high: #e6e9e8;
+  --color-surface-container-highest: #e0e3e2;
   
   --color-outline: #6d7a76;
   --color-outline-variant: #bcc9c5;
+  /* Alias for border utility classes */
+  --color-border: #bcc9c5;
   
   --color-background: #f7faf9;
   --color-on-background: #181c1c;
@@ -29,10 +38,14 @@
   --color-leaf-shadow: #86beb5;
   --color-surface-white: #ffffff;
   
+  /* Text aliases */
+  --color-text-primary: #1a3a35;
+
   /* Status colors */
   --color-success: #31a795;
   --color-info: #48cab6;
   --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
 
   /* Typography */
   --font-plus-jakarta: var(--font-plus-jakarta);

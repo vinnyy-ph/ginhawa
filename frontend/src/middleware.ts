@@ -4,8 +4,10 @@ export default withAuth;
 
 export const config = {
   matcher: [
-    "/dashboard",
-    "/doctor/dashboard",
-    "/onboarding/:path*"
+    "/dashboard/:path*",
+    "/doctor/:path*",
+    "/recommendations/:path*",
+    "/onboarding/:path*",
+    "/consultation/:path*",
   ],
 };

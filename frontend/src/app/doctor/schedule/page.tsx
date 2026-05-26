@@ -1,0 +1,368 @@
+"use client";
+
+import React, { useEffect, useState, useMemo } from "react";
+import { useSession } from "next-auth/react";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { apiRequest } from "@/lib/api-client";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { ClockIcon, PlusIcon, TrashIcon, CheckCircledIcon } from "@radix-ui/react-icons";
+import { cn } from "@/lib/utils";
+import type { AvailabilitySlot, DoctorProfile, SlotStatus } from "@/types/api";
+
+export default function DoctorSchedulePage() {
+  const { data: session } = useSession();
+  const token = session?.user?.accessToken;
+
+  const [profile, setProfile] = useState<DoctorProfile | null>(null);
+  const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
+  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formDate, setFormDate] = useState("");
+  const [formStartTime, setFormStartTime] = useState("09:00");
+  const [formEndTime, setFormEndTime] = useState("10:00");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function init() {
+      if (!token) return;
+      try {
+        setLoading(true);
+        // 1. Get profile to get doctor's UUID
+        const profileData = await apiRequest<DoctorProfile>("/doctors/profile", { token });
+        setProfile(profileData);
+        
+        // 2. Fetch slots using doctor's UUID
+        if (profileData && profileData.id) {
+          await fetchSlots(profileData.id);
+        }
+      } catch (err: any) {
+        setError("Failed to load your schedule.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    init();
+  }, [token]);
+
+  async function fetchSlots(doctorId: string) {
+    const data = await apiRequest<AvailabilitySlot[]>(`/doctors/${doctorId}/slots`);
+    // Sort chronologically
+    data.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    setSlots(data);
+  }
+
+  // Handle Toast
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
+  async function handleAddSlot(e: React.FormEvent) {
+    e.preventDefault();
+    if (!token || !profile || !formDate || !formStartTime || !formEndTime) return;
+    
+    // Validate times
+    const startObj = new Date(`${formDate}T${formStartTime}:00`);
+    const endObj = new Date(`${formDate}T${formEndTime}:00`);
+    
+    if (endObj <= startObj) {
+      setFormError("End time must be after start time");
+      return;
+    }
+    
+    try {
+      setIsSubmitting(true);
+      setFormError(null);
+      
+      const startIso = startObj.toISOString();
+      const endIso = endObj.toISOString();
+      
+      await apiRequest("/doctors/slots", {
+        method: "POST",
+        token,
+        body: {
+          startTime: startIso,
+          endTime: endIso
+        }
+      });
+      
+      setToastMessage("Slot added successfully");
+      setShowAddForm(false);
+      // Reset form somewhat but keep date
+      setFormStartTime("09:00");
+      setFormEndTime("10:00");
+      
+      // Refresh slots
+      await fetchSlots(profile.id);
+      
+    } catch (err: any) {
+      setFormError(err.message || "Failed to add slot");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleUpdateStatus(id: string, status: SlotStatus) {
+    if (!token || !profile) return;
+    try {
+      setUpdatingId(id);
+      // Optimistic
+      setSlots(prev => prev.map(s => s.id === id ? { ...s, status } : s));
+      
+      await apiRequest(`/doctors/slots/${id}`, {
+        method: "PATCH",
+        token,
+        body: { status }
+      });
+      
+      setToastMessage(`Slot marked as ${status.toLowerCase()}`);
+    } catch (err) {
+      alert("Failed to update slot. Reverting.");
+      fetchSlots(profile.id);
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  async function handleDeleteSlot(id: string) {
+    if (!token || !profile) return;
+    try {
+      setUpdatingId(id);
+      
+      await apiRequest(`/doctors/slots/${id}`, {
+        method: "DELETE",
+        token
+      });
+      
+      // Optimistic delete
+      setSlots(prev => prev.filter(s => s.id !== id));
+      setToastMessage("Slot deleted");
+      setConfirmDeleteId(null);
+    } catch (err) {
+      alert("Failed to delete slot.");
+      fetchSlots(profile.id);
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  // Group slots by date string
+  const slotsByDate = useMemo(() => {
+    const groups: Record<string, AvailabilitySlot[]> = {};
+    slots.forEach(slot => {
+      const dateStr = new Date(slot.startTime).toLocaleDateString('en-PH', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      if (!groups[dateStr]) groups[dateStr] = [];
+      groups[dateStr].push(slot);
+    });
+    return groups;
+  }, [slots]);
+
+  return (
+    <DashboardLayout role="doctor">
+      <div className="animate-in fade-in duration-500 relative">
+        
+        {/* Toast */}
+        {toastMessage && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
+            <div className="bg-success text-white px-6 py-3 rounded-lg shadow-lifted flex items-center gap-3">
+              <CheckCircledIcon className="w-5 h-5" />
+              <span className="font-medium">{toastMessage}</span>
+            </div>
+          </div>
+        )}
+        
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold font-serif text-text-primary mb-2">My Schedule</h1>
+            <p className="text-on-surface-variant font-sans">
+              Manage your availability slots for patient bookings.
+            </p>
+          </div>
+          <Button onClick={() => setShowAddForm(!showAddForm)} className="shrink-0 gap-2">
+            {showAddForm ? "Cancel" : <><PlusIcon className="w-4 h-4" /> Add Availability Slot</>}
+          </Button>
+        </div>
+
+        {/* Add Slot Form */}
+        {showAddForm && (
+          <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden mb-8 animate-in slide-in-from-top-4 fade-in duration-300">
+            <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30 flex items-center gap-2">
+              <PlusIcon className="w-5 h-5 text-primary" />
+              <h3 className="font-serif text-lg font-bold text-text-primary">Create New Slot</h3>
+            </div>
+            <div className="p-6">
+              <form onSubmit={handleAddSlot} className="flex flex-col md:flex-row gap-6 items-end">
+                <div className="w-full md:w-auto flex-1">
+                  <label className="block text-sm font-semibold text-text-primary mb-1">Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={formDate}
+                    min={new Date().toISOString().split('T')[0]} // Cannot be in the past
+                    onChange={(e) => setFormDate(e.target.value)}
+                    className="w-full rounded-md border border-outline-variant px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface"
+                  />
+                </div>
+                
+                <div className="w-full md:w-auto flex-1">
+                  <label className="block text-sm font-semibold text-text-primary mb-1">Start Time</label>
+                  <input
+                    type="time"
+                    required
+                    value={formStartTime}
+                    onChange={(e) => setFormStartTime(e.target.value)}
+                    className="w-full rounded-md border border-outline-variant px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface"
+                  />
+                </div>
+                
+                <div className="w-full md:w-auto flex-1">
+                  <label className="block text-sm font-semibold text-text-primary mb-1">End Time</label>
+                  <input
+                    type="time"
+                    required
+                    value={formEndTime}
+                    onChange={(e) => setFormEndTime(e.target.value)}
+                    className="w-full rounded-md border border-outline-variant px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface"
+                  />
+                </div>
+                
+                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto min-w-[120px]">
+                  {isSubmitting ? "Saving..." : "Add Slot"}
+                </Button>
+              </form>
+              
+              {formError && (
+                <p className="text-error text-sm mt-4">{formError}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Content */}
+        {loading ? (
+          <div className="py-20 flex justify-center">
+            <Spinner size="lg" />
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 text-error p-6 rounded-lg border border-red-100 text-center">
+            {error}
+          </div>
+        ) : slots.length === 0 ? (
+          <div className="bg-surface-white rounded-xl shadow-soft p-12 text-center border border-outline-variant/30 max-w-2xl mx-auto">
+            <div className="w-20 h-20 rounded-full bg-surface-container mx-auto mb-6 flex items-center justify-center">
+              <ClockIcon className="w-10 h-10 text-on-surface-variant/50" />
+            </div>
+            <h3 className="font-bold font-serif text-2xl text-text-primary mb-3">Your schedule is empty</h3>
+            <p className="text-on-surface-variant mb-8 max-w-md mx-auto">
+              Add availability slots to let patients know when they can book appointments with you.
+            </p>
+            <Button onClick={() => setShowAddForm(true)} className="gap-2">
+              <PlusIcon className="w-4 h-4" /> Add your first slot
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {Object.entries(slotsByDate).map(([date, daySlots]) => (
+              <div key={date}>
+                <h3 className="text-lg font-bold font-serif text-text-primary mb-4 pb-2 border-b border-outline-variant/50 sticky top-0 bg-surface z-10 pt-2">
+                  {date}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {daySlots.map(slot => {
+                    const timeStr = `${new Date(slot.startTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })} – ${new Date(slot.endTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}`;
+                    const isBooked = slot.status === "BOOKED";
+                    const isAvailable = slot.status === "AVAILABLE";
+                    const isBlocked = slot.status === "BLOCKED";
+                    const isUpdating = updatingId === slot.id;
+                    const isConfirmingDelete = confirmDeleteId === slot.id;
+                    
+                    return (
+                      <div 
+                        key={slot.id} 
+                        className={cn(
+                          "bg-surface-white rounded-lg shadow-sm border p-4 flex flex-col justify-between transition-all relative overflow-hidden",
+                          isBooked ? "border-info/30 bg-info/5" : 
+                          isBlocked ? "border-outline-variant/50 opacity-75" : 
+                          "border-primary/20 hover:border-primary/50 hover:shadow-soft",
+                          isUpdating && "opacity-50 pointer-events-none"
+                        )}
+                      >
+                        {isBooked && (
+                          <div className="absolute top-0 left-0 w-1 h-full bg-info" />
+                        )}
+                        
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="font-mono text-sm font-semibold text-text-primary">
+                            {timeStr}
+                          </div>
+                          <Badge variant={
+                            isBooked ? "info" : 
+                            isAvailable ? "success" : 
+                            "secondary"
+                          }>
+                            {slot.status}
+                          </Badge>
+                        </div>
+                        
+                        <div className="mt-auto pt-4 border-t border-outline-variant/30 flex justify-between items-center h-10">
+                          {isBooked ? (
+                            <p className="text-xs text-on-surface-variant italic w-full text-center">
+                              Cannot edit booked slot
+                            </p>
+                          ) : isConfirmingDelete ? (
+                            <div className="flex w-full items-center justify-between gap-2 text-xs font-semibold">
+                              <span className="text-error">Delete this slot?</span>
+                              <div className="flex gap-1">
+                                <button onClick={() => handleDeleteSlot(slot.id)} className="px-2 py-1 bg-error text-white rounded shadow-sm hover:bg-error/90">Yes</button>
+                                <button onClick={() => setConfirmDeleteId(null)} className="px-2 py-1 bg-surface-container text-on-surface-variant rounded hover:bg-surface-variant">No</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <button 
+                                onClick={() => handleUpdateStatus(slot.id, isAvailable ? "BLOCKED" : "AVAILABLE")}
+                                className="text-xs font-semibold text-primary hover:underline"
+                              >
+                                {isAvailable ? "Block slot" : "Unblock slot"}
+                              </button>
+                              <button 
+                                onClick={() => setConfirmDeleteId(slot.id)}
+                                className="text-on-surface-variant hover:text-error transition-colors p-1.5 rounded hover:bg-error/10"
+                                aria-label="Delete slot"
+                              >
+                                <TrashIcon className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}
