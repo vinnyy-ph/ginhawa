@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { DashboardClient } from './dashboard-client';
+import { apiRequest } from '@/lib/api-client';
 
 export default async function PatientDashboard() {
   const session = await getServerSession(authOptions);
@@ -13,13 +14,11 @@ export default async function PatientDashboard() {
   let hasProfile = false;
   if (token) {
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/patients/profile`,
-        { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' },
-      );
-      hasProfile = res.ok;
+      await apiRequest('/patients/profile', { token });
+      hasProfile = true;
     } catch {
-      // network error — let dashboard render, user can retry
+      // network error or 404 — let dashboard render or redirect to onboarding
+      hasProfile = false;
     }
   }
 
