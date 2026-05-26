@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type { Notification } from "@/types/api";
 
 export default function DoctorNotificationsPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const token = session?.user?.accessToken;
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -19,8 +19,13 @@ export default function DoctorNotificationsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (status === 'loading') return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     fetchNotifications();
-  }, [token]);
+  }, [token, status]);
 
   async function fetchNotifications() {
     if (!token) return;

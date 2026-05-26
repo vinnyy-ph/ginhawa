@@ -15,7 +15,7 @@ import { AppointmentCard } from "@/components/appointment-card";
 type FilterTab = "All" | "Pending" | "Confirmed" | "Completed" | "Cancelled";
 
 export default function DoctorAppointmentsPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const token = session?.user?.accessToken;
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -26,8 +26,13 @@ export default function DoctorAppointmentsPage() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (status === 'loading') return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     fetchAppointments();
-  }, [token]);
+  }, [token, status]);
 
   async function fetchAppointments() {
     if (!token) return;
