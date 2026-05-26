@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Query, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
@@ -14,7 +24,10 @@ export class DoctorsController {
   @Post('profile')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DOCTOR')
-  create(@Request() req: { user: { id: string } }, @Body() createDoctorDto: CreateDoctorDto) {
+  create(
+    @Request() req: { user: { id: string } },
+    @Body() createDoctorDto: CreateDoctorDto,
+  ) {
     return this.doctorsService.create(req.user.id, createDoctorDto);
   }
 
@@ -28,13 +41,22 @@ export class DoctorsController {
   @Patch('profile')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DOCTOR')
-  update(@Request() req: { user: { id: string } }, @Body() updateDoctorDto: UpdateDoctorDto) {
+  update(
+    @Request() req: { user: { id: string } },
+    @Body() updateDoctorDto: UpdateDoctorDto,
+  ) {
     return this.doctorsService.update(req.user.id, updateDoctorDto);
   }
 
   @Get()
-  async findAll(@Query('search') search?: string, @Query('specialization') specialization?: string) {
-    const profiles = await this.doctorsService.searchAll(search, specialization);
+  async findAll(
+    @Query('search') search?: string,
+    @Query('specialization') specialization?: string,
+  ) {
+    const profiles = await this.doctorsService.searchAll(
+      search,
+      specialization,
+    );
     return profiles.map(toPublicDoctorProfile);
   }
 

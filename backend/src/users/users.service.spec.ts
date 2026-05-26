@@ -8,7 +8,6 @@ jest.mock('bcrypt');
 
 describe('UsersService', () => {
   let service: UsersService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     user: {
@@ -32,7 +31,6 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -53,7 +51,7 @@ describe('UsersService', () => {
 
       const hashedPassword = 'hashedPassword';
       (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
-      
+
       const createdUser = {
         id: '1',
         email: createUserDto.email,
@@ -68,14 +66,14 @@ describe('UsersService', () => {
       const result = await service.create(createUserDto);
 
       expect(bcrypt.hash).toHaveBeenCalledWith(createUserDto.password, 10);
-      expect(prisma.user.create).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.create).toHaveBeenCalledWith({
         data: {
           email: createUserDto.email,
           passwordHash: hashedPassword,
           role: createUserDto.role,
         },
       });
-      expect((result as any).passwordHash).toBeUndefined();
+      expect(result).not.toHaveProperty('passwordHash');
       expect(result.email).toBe(createUserDto.email);
     });
   });

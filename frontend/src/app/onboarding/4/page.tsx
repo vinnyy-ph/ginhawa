@@ -16,10 +16,10 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 export default function OnboardingStep4() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { update } = useOnboarding();
+  const { data, update } = useOnboarding();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(data.profilePictureUrl ?? null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -47,8 +47,18 @@ export default function OnboardingStep4() {
   };
 
   const handleUploadAndContinue = async () => {
-    if (!selectedFile) return;
     setServerError(null);
+
+    if (!selectedFile) {
+      if (data.profilePictureUrl) {
+        router.push('/onboarding/5');
+        return;
+      }
+
+      setServerError('Please upload a profile picture to continue.');
+      return;
+    }
+
     setUploading(true);
 
     const token = session?.user?.accessToken;
@@ -71,11 +81,6 @@ export default function OnboardingStep4() {
     } finally {
       setUploading(false);
     }
-  };
-
-  const handleSkip = () => {
-    update({ profilePictureUrl: null });
-    router.push('/onboarding/5');
   };
 
   return (
@@ -142,21 +147,20 @@ export default function OnboardingStep4() {
       <div className="flex justify-between pt-2">
         <Button id="ob4-back" type="button" variant="outline" size="lg" onClick={() => router.push('/onboarding/3')}>← Back</Button>
         <div className="flex gap-3">
-          <Button id="ob4-skip" type="button" variant="ghost" size="lg" onClick={handleSkip}>
-            I&apos;ll add this later
-          </Button>
           <Button
             id="ob4-upload"
             type="button"
             size="lg"
             className="min-w-[160px]"
-            disabled={!selectedFile || uploading}
+            disabled={(!selectedFile && !data.profilePictureUrl) || uploading}
             onClick={handleUploadAndContinue}
           >
             {uploading ? (
               <span className="flex items-center gap-2"><Spinner /> Uploading…</span>
-            ) : (
+            ) : selectedFile ? (
               'Upload & Continue →'
+            ) : (
+              'Continue →'
             )}
           </Button>
         </div>

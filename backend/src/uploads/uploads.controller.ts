@@ -17,9 +17,7 @@ export class UploadsController {
 
   @Post('profile-picture')
   @UseInterceptors(FileInterceptor('file', multerLocalConfig))
-  async uploadProfilePicture(
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  async uploadProfilePicture(@UploadedFile() file: Express.Multer.File) {
     const url = await this.uploadsService.uploadFile(file);
     return { url };
   }

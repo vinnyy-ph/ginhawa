@@ -2,9 +2,9 @@ import {
   IsDateString,
   IsNotEmpty,
   IsNumber,
-  IsOptional,
   IsString,
   IsUrl,
+  Min,
 } from 'class-validator';
 
 export class CreatePatientDto {
@@ -17,22 +17,22 @@ export class CreatePatientDto {
   birthdate: string;
 
   @IsNumber()
-  @IsOptional()
-  weight?: number;
+  @Min(1)
+  weight: number;
 
   @IsNumber()
-  @IsOptional()
-  height?: number;
+  @Min(1)
+  height: number;
 
   @IsUrl({ require_tld: false })
-  @IsOptional()
-  profilePictureUrl?: string;
+  @IsNotEmpty()
+  profilePictureUrl: string;
 
   @IsString()
-  @IsOptional()
-  contactDetails?: string;
+  @IsNotEmpty()
+  contactDetails: string;
 
   @IsString()
-  @IsOptional()
-  medicalHistory?: string;
+  @IsNotEmpty()
+  medicalHistory: string;
 }

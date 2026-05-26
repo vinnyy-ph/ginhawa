@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsNumber, Min, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  Min,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateDoctorDto {
   @IsString()

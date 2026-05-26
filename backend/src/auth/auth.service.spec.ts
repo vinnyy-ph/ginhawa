@@ -2,13 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt');
 
 describe('AuthService', () => {
   let service: AuthService;
-  let usersService: UsersService;
 
   const mockUsersService = {
     findByEmail: jest.fn(),
@@ -35,7 +35,6 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    usersService = module.get<UsersService>(UsersService);
   });
 
   afterEach(() => {
@@ -63,7 +62,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         role: 'PATIENT',
       });
-      expect(result.passwordHash).toBeUndefined();
+      expect(result).not.toHaveProperty('passwordHash');
     });
 
     it('should return null if password is invalid', async () => {
@@ -85,16 +84,18 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should return access token and user info with role and without name', async () => {
+    it('should return access token and user info with role and without name', () => {
       const user = {
         id: '1',
         email: 'test@example.com',
-        role: 'DOCTOR',
+        role: Role.DOCTOR,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       const token = 'jwtToken';
       mockJwtService.sign.mockReturnValue(token);
 
-      const result = await service.login(user);
+      const result = service.login(user);
 
       expect(result.user).not.toHaveProperty('name');
       expect(result).toEqual({
@@ -102,7 +103,7 @@ describe('AuthService', () => {
         user: {
           id: user.id,
           email: user.email,
-          role: 'DOCTOR',
+          role: Role.DOCTOR,
         },
       });
       expect(mockJwtService.sign).toHaveBeenCalledWith({
@@ -118,25 +119,28 @@ describe('AuthService', () => {
       const createUserDto = {
         email: 'new@example.com',
         password: 'password123',
-        role: 'PATIENT',
+        role: Role.PATIENT,
       };
+
       const user = {
         id: '2',
         email: 'new@example.com',
-      };
-      const loginResult = {
-        access_token: 'token',
-        user: { id: '2', email: 'new@example.com', role: 'PATIENT' },
+        role: Role.PATIENT,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
+      const token = 'token';
       mockUsersService.create.mockResolvedValue(user);
-      jest.spyOn(service, 'login').mockResolvedValue(loginResult);
+      mockJwtService.sign.mockReturnValue(token);
 
-      const result = await service.register(createUserDto as any);
+      const result = await service.register(createUserDto);
 
-      expect(usersService.create).toHaveBeenCalledWith(createUserDto);
-      expect(service.login).toHaveBeenCalledWith(user);
-      expect(result).toEqual(loginResult);
+      expect(mockUsersService.create).toHaveBeenCalledWith(createUserDto);
+      expect(result).toEqual({
+        access_token: token,
+        user: { id: '2', email: 'new@example.com', role: Role.PATIENT },
+      });
     });
   });
 });

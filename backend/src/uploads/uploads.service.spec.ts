@@ -1,8 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UploadsService } from './uploads.service';
 import { ConfigModule } from '@nestjs/config';
-import * as fs from 'fs';
-import * as path from 'path';
 
 describe('UploadsService', () => {
   let service: UploadsService;
@@ -21,7 +19,7 @@ describe('UploadsService', () => {
   });
 
   describe('uploadFile', () => {
-    it('should save a file and return the path', async () => {
+    it('should return a local URL for the uploaded file', async () => {
       const mockFile = {
         originalname: 'test.jpg',
         filename: 'test.jpg',
@@ -31,7 +29,7 @@ describe('UploadsService', () => {
 
       const result = await service.uploadFile(mockFile);
 
-      expect(result).toContain('.jpg');
+      expect(result).toBe('http://localhost:3001/uploads/test.jpg');
     });
   });
 });

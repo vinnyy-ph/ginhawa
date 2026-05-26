@@ -1,14 +1,23 @@
 import { DoctorProfile } from '@prisma/client';
 
-export type PublicDoctorProfile = Omit<DoctorProfile, 'userId' | 'createdAt' | 'updatedAt'>;
+export type PublicDoctorProfile = Omit<
+  DoctorProfile,
+  'userId' | 'createdAt' | 'updatedAt'
+>;
 
-export function toPublicDoctorProfile(profile: DoctorProfile): PublicDoctorProfile {
+export function toPublicDoctorProfile(
+  profile: DoctorProfile,
+): PublicDoctorProfile {
   const {
-    userId,
-    createdAt,
-    updatedAt,
+    userId: _userId,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
     ...publicFields
   } = profile;
-  
+
+  void _userId;
+  void _createdAt;
+  void _updatedAt;
+
   return publicFields;
 }

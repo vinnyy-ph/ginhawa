@@ -40,6 +40,11 @@ describe('PatientsService', () => {
       const dto = {
         fullName: 'John Doe',
         birthdate: '1990-01-01',
+        weight: 70,
+        height: 175,
+        profilePictureUrl: 'http://localhost:3001/uploads/profile-picture.png',
+        contactDetails: 'john@example.com',
+        medicalHistory: 'Conditions: None\nAllergies: None',
       };
       const expectedResult = {
         id: 'profile123',
@@ -67,6 +72,11 @@ describe('PatientsService', () => {
       const dto = {
         fullName: 'John Doe',
         birthdate: '1990-01-01',
+        weight: 70,
+        height: 175,
+        profilePictureUrl: 'http://localhost:3001/uploads/profile-picture.png',
+        contactDetails: 'john@example.com',
+        medicalHistory: 'Conditions: None\nAllergies: None',
       };
       mockPrismaService.patientProfile.findUnique.mockResolvedValue({
         id: 'existing-profile',

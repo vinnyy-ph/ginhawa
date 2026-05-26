@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
@@ -40,11 +44,11 @@ export class DoctorsService {
 
   async searchAll(search?: string, specialization?: string) {
     const where: Prisma.DoctorProfileWhereInput = {};
-    
+
     if (search) {
       where.fullName = { contains: search, mode: 'insensitive' };
     }
-    
+
     if (specialization) {
       where.specialization = { contains: specialization, mode: 'insensitive' };
     }

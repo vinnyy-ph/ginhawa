@@ -5,7 +5,6 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 describe('UploadsController', () => {
   let controller: UploadsController;
-  let service: UploadsService;
 
   const mockUploadsService = {
     uploadFile: jest.fn(),
@@ -26,7 +25,6 @@ describe('UploadsController', () => {
       .compile();
 
     controller = module.get<UploadsController>(UploadsController);
-    service = module.get<UploadsService>(UploadsService);
   });
 
   it('should be defined', () => {
@@ -45,7 +43,7 @@ describe('UploadsController', () => {
 
       const result = await controller.uploadProfilePicture(mockFile);
 
-      expect(service.uploadFile).toHaveBeenCalledWith(mockFile);
+      expect(mockUploadsService.uploadFile).toHaveBeenCalledWith(mockFile);
       expect(result).toEqual({ url: expectedUrl });
     });
   });
