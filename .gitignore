@@ -57,3 +57,5 @@ sketch
 
 backend/uploads/*
 !backend/uploads/.gitkeep
+/.claude
+.superpowers/
