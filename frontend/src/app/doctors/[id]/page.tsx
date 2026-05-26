@@ -202,12 +202,12 @@ export default function DoctorProfilePage() {
                 )}
               </div>
               
-              {(doctor.languages || doctor.consultationFee !== undefined) && (
+              {(doctor.languagesSpoken || doctor.consultationFee !== undefined) && (
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-on-surface-variant bg-surface px-4 py-3 rounded-lg inline-flex">
-                  {doctor.languages && (
+                  {doctor.languagesSpoken && (
                     <div className="flex flex-col">
                       <span className="text-xs uppercase tracking-wider text-outline mb-0.5">Languages</span>
-                      <span className="font-medium text-on-surface">{doctor.languages}</span>
+                      <span className="font-medium text-on-surface">{doctor.languagesSpoken}</span>
                     </div>
                   )}
                   {doctor.consultationFee !== undefined && (
@@ -245,11 +245,11 @@ export default function DoctorProfilePage() {
               </div>
             </section>
             
-            {doctor.focusAreas && (
+            {doctor.consultationFocusAreas && (
               <section>
                 <h3 className="font-serif text-xl font-bold text-text-primary mb-3">Focus Areas</h3>
                 <div className="flex flex-wrap gap-2">
-                  {doctor.focusAreas.split(',').map((area, i) => (
+                  {doctor.consultationFocusAreas.split(',').map((area, i) => (
                     <span key={i} className="bg-surface-container px-3 py-1.5 rounded-md text-sm text-on-surface-variant">
                       {area.trim()}
                     </span>

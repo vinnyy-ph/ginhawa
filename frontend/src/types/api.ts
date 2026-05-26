@@ -22,9 +22,9 @@ export interface DoctorProfile {
   profilePictureUrl?: string;
   availabilitySummary?: string;
   yearsOfExperience?: number;
-  languages?: string;
+  languagesSpoken?: string;
   consultationFee?: number;
-  focusAreas?: string;
+  consultationFocusAreas?: string;
 }
 
 // ─── Availability Slot ───────────────────────────────────────────────────────
