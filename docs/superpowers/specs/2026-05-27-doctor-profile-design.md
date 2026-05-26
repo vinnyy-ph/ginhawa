@@ -19,7 +19,8 @@ To keep the initial barrier to entry low while ensuring data completeness, the f
 *   **Endpoint:** A dedicated `POST /api/doctors/profile` endpoint will be created in the NestJS backend to handle the profile form submission.
 *   **Authentication & Security:** The endpoint requires a valid JWT. The `userId` is extracted from the JWT payload to securely associate the `DoctorProfile` with the user, preventing profile spoofing.
 *   **Validation:** Strict validation will ensure `fullName`, `professionalTitle`, and `specialization` are provided.
-*   **Response Payload:** A successful submission returns a `201 Created` status with the profile data. Crucially, the response will include a `profileComplete: true` flag (or similar status indicator) so the frontend dashboard knows the profile is created but availability slots are pending.
+*   **Idempotency & State Handling:** If a DoctorProfile already exists for the requesting user (e.g., if the user accidentally visits the onboarding page again), the backend will return a `200 OK` with the existing profile rather than a `409 Conflict`.
+*   **Response Payload:** A successful submission returns a `201 Created` (or `200 OK` if already existing) status with the profile data. Crucially, the response will include a `profileComplete: true` flag (or similar status indicator) so the frontend dashboard knows the profile is created but availability slots are pending.
 
 ## 5. Post-Onboarding Availability
 *   **Dashboard Nudge:** Because availability slots are deferred, the doctor's dashboard will use the status returned from the backend to prominently nudge the user to "Set your availability". 
