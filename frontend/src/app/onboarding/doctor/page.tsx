@@ -45,7 +45,7 @@ export default function DoctorOnboarding() {
       const response = await apiRequest<{ profileComplete: boolean }>('/api/doctors/profile', {
         method: 'POST',
         body: formData,
-        token: session?.accessToken as string,
+        token: session?.user?.accessToken as string,
       });
 
       if (response.profileComplete) {

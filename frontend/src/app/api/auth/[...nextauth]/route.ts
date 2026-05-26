@@ -1,7 +1,6 @@
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiRequest, ApiError } from '@/lib/api-client';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,26 +13,30 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const res = await fetch(`${API_URL}/auth/login`, {
-          method: 'POST',
-          body: JSON.stringify({
-            email: credentials.email,
-            password: credentials.password,
-          }),
-          headers: { 'Content-Type': 'application/json' },
-        });
+        try {
+          const data = await apiRequest<{ access_token: string, user: { id: string, email: string, role: string } }>('/auth/login', {
+            method: 'POST',
+            body: {
+              email: credentials.email,
+              password: credentials.password,
+            },
+          });
 
-        const data = await res.json().catch(() => null);
-
-        if (res.ok && data?.access_token) {
-          return {
-            id: data.user.id as string,
-            email: data.user.email as string,
-            role: data.user.role as string,
-            accessToken: data.access_token as string,
-          };
+          if (data?.access_token) {
+            return {
+              id: data.user.id,
+              email: data.user.email,
+              role: data.user.role,
+              accessToken: data.access_token,
+            };
+          }
+          return null;
+        } catch (error) {
+          if (error instanceof ApiError) {
+            console.error('Login failed:', error.message);
+          }
+          return null;
         }
-        return null;
       },
     }),
   ],
