@@ -114,7 +114,7 @@ describe('AuthService', () => {
     });
   });
 
-  describe('register', () => {
+  describe('signup', () => {
     it('should create a user and return login result', async () => {
       const createUserDto = {
         email: 'new@example.com',
@@ -134,7 +134,7 @@ describe('AuthService', () => {
       mockUsersService.create.mockResolvedValue(user);
       mockJwtService.sign.mockReturnValue(token);
 
-      const result = await service.register(createUserDto);
+      const result = await service.signup(createUserDto);
 
       expect(mockUsersService.create).toHaveBeenCalledWith(createUserDto);
       expect(result).toEqual({
