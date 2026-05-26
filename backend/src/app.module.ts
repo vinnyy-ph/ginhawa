@@ -10,6 +10,7 @@ import { PatientsModule } from './patients/patients.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { DoctorsModule } from './doctors/doctors.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     AuthModule,
     PatientsModule,
     UploadsModule,
+    DoctorsModule,
   ],
   controllers: [AppController],
   providers: [
