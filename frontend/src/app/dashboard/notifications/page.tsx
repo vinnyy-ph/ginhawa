@@ -57,12 +57,7 @@ export default function PatientNotificationsPage() {
   async function markAllAsRead() {
     const unread = notifications.filter(n => !n.readAt);
     if (unread.length === 0) return;
-    
-    // Mark all sequentially since there's no bulk endpoint
-    // In a real app we'd have a bulk endpoint, but we'll work with what we have
-    for (const n of unread) {
-      await markAsRead(n.id);
-    }
+    await Promise.all(unread.map(n => markAsRead(n.id)));
   }
 
   const unreadCount = notifications.filter(n => !n.readAt).length;

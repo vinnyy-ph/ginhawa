@@ -62,10 +62,7 @@ export default function DoctorNotificationsPage() {
   async function markAllAsRead() {
     const unread = notifications.filter(n => !n.readAt);
     if (unread.length === 0) return;
-    
-    for (const n of unread) {
-      await markAsRead(n.id);
-    }
+    await Promise.all(unread.map(n => markAsRead(n.id)));
   }
 
   const unreadCount = notifications.filter(n => !n.readAt).length;
