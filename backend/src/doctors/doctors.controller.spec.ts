@@ -38,25 +38,24 @@ describe('DoctorsController', () => {
   });
 
   describe('create', () => {
-    it('should create a doctor profile', async () => {
-      const createDto: CreateDoctorDto = {
+    it('should create or update a doctor profile using upsertProfile', async () => {
+      const createDto: import('./dto/create-doctor-profile.dto').CreateDoctorProfileDto = {
         fullName: 'Dr. Test User',
         professionalTitle: 'MD',
         specialization: 'Cardiology',
         bio: 'Test bio',
-        consultationFee: 100,
       };
 
       const req = { user: { id: 'user-id' } };
-      mockDoctorsService.create.mockResolvedValue('mockProfile');
+      mockDoctorsService.upsertProfile = jest.fn().mockResolvedValue({ profileComplete: true });
 
       const result = await controller.create(req, createDto);
 
-      expect(mockDoctorsService.create).toHaveBeenCalledWith(
+      expect(mockDoctorsService.upsertProfile).toHaveBeenCalledWith(
         'user-id',
         createDto,
       );
-      expect(result).toBe('mockProfile');
+      expect(result).toEqual({ profileComplete: true });
     });
   });
 
