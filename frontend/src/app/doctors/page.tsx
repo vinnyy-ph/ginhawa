@@ -102,7 +102,7 @@ function DoctorCard({
         </div>
 
         {/* Stats row */}
-        {(doctor.yearsOfExperience || doctor.consultationFee !== undefined) && (
+        {(doctor.yearsOfExperience || doctor.consultationFee != null) && (
           <div className="flex items-center gap-4 mb-3 text-xs text-on-surface-variant">
             {doctor.yearsOfExperience && (
               <span className="flex items-center gap-1">
@@ -112,7 +112,7 @@ function DoctorCard({
                 yrs exp
               </span>
             )}
-            {doctor.consultationFee !== undefined && (
+            {doctor.consultationFee != null && (
               <span className="flex items-center gap-1 ml-auto">
                 <span className="font-bold text-primary">
                   ₱{doctor.consultationFee.toLocaleString()}

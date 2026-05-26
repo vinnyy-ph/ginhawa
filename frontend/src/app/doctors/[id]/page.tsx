@@ -202,7 +202,7 @@ export default function DoctorProfilePage() {
                 )}
               </div>
               
-              {(doctor.languagesSpoken || doctor.consultationFee !== undefined) && (
+              {(doctor.languagesSpoken || doctor.consultationFee != null) && (
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-on-surface-variant bg-surface px-4 py-3 rounded-lg inline-flex">
                   {doctor.languagesSpoken && (
                     <div className="flex flex-col">
@@ -210,7 +210,7 @@ export default function DoctorProfilePage() {
                       <span className="font-medium text-on-surface">{doctor.languagesSpoken}</span>
                     </div>
                   )}
-                  {doctor.consultationFee !== undefined && (
+                  {doctor.consultationFee != null && (
                     <div className="flex flex-col">
                       <span className="text-xs uppercase tracking-wider text-outline mb-0.5">Consultation Fee</span>
                       <span className="font-bold text-primary">₱{doctor.consultationFee.toLocaleString()}</span>
