@@ -21,7 +21,39 @@ async function main() {
 
   const passwordHash = await bcrypt.hash('123123123', 10);
 
-  // Seeding logic will go here
+  // Seeding Doctors
+  console.log('Seeding 20 doctors...');
+  const specializations = [
+    'Cardiology', 'Dermatology', 'Pediatrics', 'Psychiatry', 
+    'General Medicine', 'Orthopedics', 'Ophthalmology', 'Neurology',
+    'Gastroenterology', 'Endocrinology'
+  ];
+
+  for (let i = 1; i <= 20; i++) {
+    const email = `doctor${i}@example.com`;
+    const fullName = faker.person.fullName();
+    const specialization = faker.helpers.arrayElement(specializations);
+
+    await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        role: 'DOCTOR',
+        doctorProfile: {
+          create: {
+            fullName,
+            professionalTitle: faker.helpers.arrayElement(['Dr.', 'Senior Consultant', 'Associate Professor']),
+            specialization,
+            bio: faker.lorem.paragraph(),
+            yearsOfExperience: faker.number.int({ min: 1, max: 40 }),
+            languagesSpoken: faker.helpers.arrayElements(['English', 'Spanish', 'French', 'German', 'Mandarin'], { min: 1, max: 3 }).join(', '),
+            consultationFee: parseFloat(faker.commerce.price({ min: 50, max: 300 })),
+          },
+        },
+      },
+    });
+  }
+  console.log('Doctors seeded.');
 }
 
 main()
