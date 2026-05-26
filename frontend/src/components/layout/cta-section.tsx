@@ -20,9 +20,6 @@ export function CTASection() {
             <Button size="lg" className="rounded-full px-10" asChild>
               <Link href="/signup">Get Started Now</Link>
             </Button>
-            <Button size="lg" variant="outline" className="rounded-full px-10" asChild>
-              <Link href="#">Contact Support</Link>
-            </Button>
           </div>
         </FadeIn>
       </div>

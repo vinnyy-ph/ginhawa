@@ -1,5 +1,5 @@
 import { FadeIn } from "@/components/ui/fade-in";
-import Image from "next/image";
+import { Logo } from "@/components/ui/logo";
 
 export function ShowcaseSection() {
   return (
@@ -38,7 +38,7 @@ export function ShowcaseSection() {
                 <div className="bg-surface h-full w-full p-4 md:p-8">
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-2">
-                      <Image src="/logo.svg" alt="" width={24} height={24} />
+                      <Logo size={24} />
                       <div className="h-4 w-20 bg-primary/20 rounded-full" />
                     </div>
                     <div className="h-8 w-8 rounded-full bg-surface-container-high" />

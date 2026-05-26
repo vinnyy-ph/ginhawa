@@ -82,16 +82,7 @@ export default function LoginPage() {
           <PasswordInput autoComplete="current-password" placeholder="••••••••" {...register('password')} />
         </FormField>
 
-        <div className="flex justify-end -mt-2">
-          <Link
-            href="/forgot-password"
-            className="text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded font-manrope"
-          >
-            Forgot password?
-          </Link>
-        </div>
-
-        <Button id="login-submit" type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+        <Button id="login-submit" type="submit" size="lg" className="w-full mt-2" disabled={isSubmitting}>
           {isSubmitting ? (
             <span className="flex items-center gap-2">
               <Spinner /> Signing in…

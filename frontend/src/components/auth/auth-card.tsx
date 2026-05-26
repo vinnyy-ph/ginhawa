@@ -1,7 +1,7 @@
 // frontend/src/components/auth/auth-card.tsx
 import * as React from 'react';
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/ui/logo';
 
 interface AuthCardProps {
   title: string;
@@ -21,7 +21,7 @@ export function AuthCard({ title, subtitle, children, className }: AuthCardProps
         )}
       >
         <div className="mb-8 flex flex-col items-center gap-2">
-          <Image src="/logo.svg" alt="Ginhawa" width={40} height={40} />
+          <Logo size={40} />
           <span className="text-sm font-semibold text-primary font-plus-jakarta tracking-wide">
             Ginhawa
           </span>

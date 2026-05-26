@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 
 export function Header() {
   return (
@@ -8,13 +8,7 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-(--font-plus-jakarta) items-center justify-between px-4 sm:px-6 lg:px-8 max-w-[1200px]">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logo.svg"
-              alt="Ginhawa Logo"
-              width={32}
-              height={32}
-              className="h-8 w-auto"
-            />
+            <Logo size={32} className="h-8 w-auto" />
             <span className="text-xl font-bold tracking-tight text-text-primary font-serif">
               Ginhawa
             </span>
@@ -33,16 +27,10 @@ export function Header() {
           >
             For Doctors
           </Link>
-          <Link
-            href="#"
-            className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors"
-          >
-            About Us
-          </Link>
         </nav>
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/auth/login">Log in</Link>
+            <Link href="/login">Log in</Link>
           </Button>
           <Button size="sm" asChild>
             <Link href="/signup">Sign up</Link>
