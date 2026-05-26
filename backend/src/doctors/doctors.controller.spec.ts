@@ -39,15 +39,18 @@ describe('DoctorsController', () => {
 
   describe('create', () => {
     it('should create or update a doctor profile using upsertProfile', async () => {
-      const createDto: import('./dto/create-doctor-profile.dto').CreateDoctorProfileDto = {
-        fullName: 'Dr. Test User',
-        professionalTitle: 'MD',
-        specialization: 'Cardiology',
-        bio: 'Test bio',
-      };
+      const createDto: import('./dto/create-doctor-profile.dto').CreateDoctorProfileDto =
+        {
+          fullName: 'Dr. Test User',
+          professionalTitle: 'MD',
+          specialization: 'Cardiology',
+          bio: 'Test bio',
+        };
 
       const req = { user: { id: 'user-id' } };
-      mockDoctorsService.upsertProfile = jest.fn().mockResolvedValue({ profileComplete: true });
+      mockDoctorsService.upsertProfile = jest
+        .fn()
+        .mockResolvedValue({ profileComplete: true });
 
       const result = await controller.create(req, createDto);
 

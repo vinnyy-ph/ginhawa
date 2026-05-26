@@ -339,45 +339,65 @@ Covers spec §6.2 (Patient Profile)
 
 ---
 
-## 11. Priority Roadmap to Spec Completion
+## 11. Exact Delta to MVP Completion (The Remaining 70%)
 
-### 🔴 Phase 1 — Must-Have Core (Unblocks 8 demo steps)
+While the database schema (100%) and authentication foundations (30%) are complete, the core "telehealth" workflows (70%) remain unbuilt. The missing 70% breaks down into these distinct functional blocks:
 
-| Priority | Task | Backend | Frontend |
-|---|---|---|---|
-| **P0** | **Unify auth system** | — | Remove all `localStorage` token usage, use NextAuth everywhere, add `middleware.ts` for route protection |
-| **P0** | **Appointments Module** | Create `POST/GET/PATCH /appointments` with booking rules, slot validation, status management | Build appointments list page for both patient & doctor |
-| **P0** | **Doctor Discovery Page** | — (API exists) | Build `/doctors` browse/search page + `/doctors/[id]` detail page with booking trigger |
-| **P1** | **Medical Records Module** | Create `POST/GET /medical-records` (doctor creates, patient reads) | Build doctor notes form + patient records page |
-| **P1** | **Doctor Onboarding Rewrite** | — | Rewrite to match patient onboarding quality, use NextAuth session |
-| **P1** | **Remove duplicate dashboard** | — | Pick canonical routes, delete duplicates, build real dashboard content |
+### 1. The Core Transactional Flow (40% of remaining work)
+- **Doctor Discovery:** A frontend page to consume the existing `GET /doctors` endpoint.
+- **Appointment Engine:** Full backend module (`AppointmentsModule`) and frontend flows for booking, listing, and state management (Pending, Confirmed, Cancelled).
+- **Schedule Management:** Missing backend logic (update, delete, block slots, overlap prevention) and the full calendar/slot UI for doctors.
 
-### 🟡 Phase 2 — Required Polish
+### 2. The Medical Consultation Layer (20% of remaining work)
+- **Consultation Room:** A UI view linking the appointment to a meeting room (e.g., Daily/Jitsi/Google Meet integration) and enabling the "Join" workflow for both roles.
+- **Medical Records & Prescriptions:** Backend API and doctor-facing forms to write notes post-consultation, and patient-facing pages to view this history.
 
-| Priority | Task | Backend | Frontend |
-|---|---|---|---|
-| **P2** | Notifications Module | Create `POST/GET/PATCH /notifications` + event triggers | Build notification center + toast integration |
-| **P2** | AI Recommendations | Create `POST /recommendations` (keyword→specialization mapping) | Build symptom input + results page |
-| **P2** | Consultation Session | Add consultation link to appointments | Build consultation room page with "Join" button |
-| **P2** | Schedule Management | Add delete/update/block slot endpoints + overlap prevention | Build full schedule management UI |
-| **P2** | Reschedule/Cancel | Appointment status transition endpoints | Add action buttons to appointment cards |
-
-### 🟢 Phase 3 — Bonus Differentiators
-
-| Priority | Task |
-|---|---|
-| **P3** | AI triage with LLM integration |
-| **P3** | Doctor "best match" score explanation |
-| **P3** | Post-consultation care summary |
-| **P3** | Loading skeletons & empty states |
-| **P3** | Fix dead links (forgot-password, about, contact, privacy) |
-| **P3** | Persist onboarding data to sessionStorage |
-| **P3** | Restrict CORS to specific origins |
-| **P3** | Cleanup dead code |
+### 3. Polish, Real-time & Differentiators (10% of remaining work)
+- **Notifications:** Backend push/socket module or polling mechanism + frontend notification center and toasts.
+- **AI Triage/Recommendations:** Symptom-to-specialization matching engine and guided patient experience.
+- **Frontend Auth Fixes:** Removing the duplicate `localStorage` approach and enforcing full `NextAuth` protection via `middleware.ts`.
 
 ---
 
-## 12. Final Verdict
+## 12. Prioritized Execution Plan for the Remaining 70%
+
+To quickly iterate towards a functional MVP demo script, execution should proceed in the following structured phases:
+
+### 🔴 Phase 1 — Architectural Cleanup & Core Discovery (Unblocks search)
+1. **Unify Auth System (Frontend):** 
+   - Remove all `localStorage` logic (specifically in doctor onboarding).
+   - Enforce `NextAuth` globally and implement `middleware.ts` to protect `/dashboard` and `/doctor` routes.
+2. **Clean up Routing (Frontend):** 
+   - Delete `/dashboard/doctor` (duplicate). Standardize on `/doctor/dashboard` and `/dashboard`.
+3. **Build Doctor Discovery (Frontend):** 
+   - Build `/doctors` (search/filter list) and `/doctors/[id]` (detail profile) to consume existing APIs.
+
+### 🟡 Phase 2 — The Booking & Schedule Engine (Unblocks core transaction)
+1. **Complete Schedule Management (Backend & Frontend):** 
+   - Add delete/update/block slot endpoints and overlap prevention. 
+   - Build the Doctor Schedule Management UI.
+2. **Build Appointments Module (Backend):** 
+   - Create `POST`, `GET`, `PATCH` `/appointments` adhering to booking rules and status flow.
+3. **Build Appointments UI (Frontend):** 
+   - Patient view: Book from a doctor's profile. List appointments, reschedule/cancel UI.
+   - Doctor view: View upcoming bookings and patient context.
+
+### 🔵 Phase 3 — The Consultation & Medical Layer (Unblocks clinical workflow)
+1. **Build Consultation Session Integration:** 
+   - Inject meeting links into appointments. Build the `/consultation/[id]` waiting room / join redirect page.
+2. **Build Medical Records Module (Backend & Frontend):** 
+   - `POST/GET /medical-records`. 
+   - Build Doctor UI: Post-consultation form for notes/prescriptions. 
+   - Build Patient UI: View consultation history and prescribed records.
+
+### 🟢 Phase 4 — Polish & Differentiators (Unblocks challenge bonus criteria)
+1. **Build Notifications System:** In-app toast alerts and notification center for appointment updates.
+2. **Build AI Recommendation Flow:** Free-text symptom input matching to doctor specializations.
+3. **Final UX Review:** Skeletons, empty states, fix dead links, refine error handling.
+
+---
+
+## 13. Final Verdict
 
 > [!IMPORTANT]
 > **You are on the right path architecturally**, but you're roughly **30% done**. The foundation (schema, auth backend, profiles, onboarding, design system) is solid and well-built. However:
@@ -386,4 +406,4 @@ Covers spec §6.2 (Patient Profile)
 >
 > 2. **The frontend has architectural debt** — dual auth systems, duplicate routes, inconsistent API paths, missing auth middleware. This should be cleaned up **before** building new features to avoid compounding the inconsistencies.
 >
-> 3. **The most urgent action** is: unify auth → build Appointments Module → build Doctor Discovery page → build Appointments list page. This sequence would unlock 5+ demo steps and make the app demonstrably functional.
+> 3. **The most urgent action** is: Execute Phase 1 (Auth cleanup & Doctor Discovery) followed by Phase 2 (Appointments & Schedule). Doing this will immediately unlock 5+ critical demo steps and make the app demonstrably functional.

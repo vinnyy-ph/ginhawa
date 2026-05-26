@@ -24,7 +24,10 @@ export class DoctorsService {
     });
   }
 
-  async upsertProfile(userId: string, dto: import('./dto/create-doctor-profile.dto').CreateDoctorProfileDto) {
+  async upsertProfile(
+    userId: string,
+    dto: import('./dto/create-doctor-profile.dto').CreateDoctorProfileDto,
+  ) {
     const profile = await this.prisma.doctorProfile.upsert({
       where: { userId },
       update: {}, // idempotent update

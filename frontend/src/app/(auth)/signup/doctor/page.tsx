@@ -31,7 +31,7 @@ export default function DoctorSignupPage() {
     setServerError(null);
     try {
       await apiRequest<{ access_token: string; user: { id: string; email: string; role: string } }>(
-        '/api/auth/signup',
+        '/auth/signup',
         {
           method: 'POST',
           body: { email: values.email, password: values.password, role: 'DOCTOR' },

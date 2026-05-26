@@ -71,13 +71,20 @@ describe('DoctorsService', () => {
   describe('upsertProfile', () => {
     it('should create or return existing profile and set profileComplete', async () => {
       const userId = 'user-1';
-      const dto = { fullName: 'Dr. John', professionalTitle: 'MD', specialization: 'General', bio: 'Hello' };
-      
+      const dto = {
+        fullName: 'Dr. John',
+        professionalTitle: 'MD',
+        specialization: 'General',
+        bio: 'Hello',
+      };
+
       // Mock prisma.doctorProfile.upsert
-      mockPrismaService.doctorProfile.upsert = jest.fn().mockResolvedValue({ ...dto, userId, id: 'profile-1' });
+      mockPrismaService.doctorProfile.upsert = jest
+        .fn()
+        .mockResolvedValue({ ...dto, userId, id: 'profile-1' });
 
       const result = await service.upsertProfile(userId, dto);
-      
+
       expect(result.profileComplete).toBe(true);
       expect(result.profile.fullName).toBe('Dr. John');
       expect(mockPrismaService.doctorProfile.upsert).toHaveBeenCalledWith({

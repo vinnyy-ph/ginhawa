@@ -11,6 +11,11 @@ import { UploadsModule } from './uploads/uploads.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { DoctorsModule } from './doctors/doctors.module';
+import { AppointmentsModule } from './appointments/appointments.module';
+import { SlotsModule } from './slots/slots.module';
+import { RecommendationsModule } from './recommendations/recommendations.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { MedicalRecordsModule } from './medical-records/medical-records.module';
 
 @Module({
   imports: [
@@ -21,6 +26,11 @@ import { DoctorsModule } from './doctors/doctors.module';
     PatientsModule,
     UploadsModule,
     DoctorsModule,
+    AppointmentsModule,
+    SlotsModule,
+    RecommendationsModule,
+    NotificationsModule,
+    MedicalRecordsModule,
   ],
   controllers: [AppController],
   providers: [

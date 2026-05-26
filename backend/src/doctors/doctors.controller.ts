@@ -26,7 +26,8 @@ export class DoctorsController {
   @Roles('DOCTOR')
   create(
     @Request() req: { user: { id: string } },
-    @Body() createDoctorDto: import('./dto/create-doctor-profile.dto').CreateDoctorProfileDto,
+    @Body()
+    createDoctorDto: import('./dto/create-doctor-profile.dto').CreateDoctorProfileDto,
   ) {
     return this.doctorsService.upsertProfile(req.user.id, createDoctorDto);
   }

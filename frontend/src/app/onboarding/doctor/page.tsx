@@ -42,7 +42,7 @@ export default function DoctorOnboarding() {
     setToast(null);
 
     try {
-      const response = await apiRequest<{ profileComplete: boolean }>('/api/doctors/profile', {
+      const response = await apiRequest<{ profileComplete: boolean }>('/doctors/profile', {
         method: 'POST',
         body: formData,
         token: session?.user?.accessToken as string,
