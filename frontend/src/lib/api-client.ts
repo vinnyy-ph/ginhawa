@@ -2,9 +2,10 @@
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
-type FetchOptions = Omit<RequestInit, 'body'> & {
+type FetchOptions = Omit<RequestInit, 'body' | 'headers'> & {
   body?: unknown;
   token?: string;
+  headers?: Record<string, string>;
 };
 
 export class ApiError extends Error {
@@ -22,11 +23,11 @@ export async function apiRequest<T>(
   path: string,
   options: FetchOptions = {},
 ): Promise<T> {
-  const { body, token, headers: extraHeaders, ...rest } = options;
+  const { body, token, headers: extraHeaders = {}, ...rest } = options;
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(extraHeaders as Record<string, string>),
+    ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+    ...extraHeaders,
   };
 
   if (token) {

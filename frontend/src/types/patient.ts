@@ -47,9 +47,15 @@ export interface PatientProfile {
 export interface CreatePatientProfileBody {
   fullName: string;
   birthdate: string;
+  /** Weight in kilograms — maps from OnboardingData.weightKg */
   weight?: number;
+  /** Height in centimetres — maps from OnboardingData.heightCm */
   height?: number;
   profilePictureUrl?: string;
   contactDetails?: string;
+  /**
+   * Free-text medical history merged from three onboarding fields:
+   * "Conditions: ...\nAllergies: ...\nMedications: ..."
+   */
   medicalHistory?: string;
 }
