@@ -59,7 +59,6 @@ export default function DoctorProfilePage() {
   const id = params.id as string;
 
   const { data: session } = useSession();
-  const isPatient = session?.user?.role === "PATIENT";
   const isDoctor = session?.user?.role === "DOCTOR";
   const isAuthenticated = !!session;
 
@@ -218,7 +217,7 @@ export default function DoctorProfilePage() {
                 {doctor.fullName}
               </h1>
               <p className="text-white/75 text-base mb-4">
-                {doctor.professionalTitle || "General Practitioner"}
+                {doctor.specialization}
               </p>
               <div className="flex flex-wrap gap-2">
                 <span className="bg-white/20 text-white text-sm px-3 py-1 rounded-full font-medium">
