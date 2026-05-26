@@ -48,6 +48,7 @@ describe('AuthService', () => {
         id: '1',
         email: 'test@example.com',
         passwordHash: 'hashedPassword',
+        role: 'PATIENT',
       };
       const pass = 'password123';
 
@@ -60,6 +61,7 @@ describe('AuthService', () => {
       expect(result).toEqual({
         id: '1',
         email: 'test@example.com',
+        role: 'PATIENT',
       });
       expect(result.passwordHash).toBeUndefined();
     });
@@ -69,6 +71,7 @@ describe('AuthService', () => {
         id: '1',
         email: 'test@example.com',
         passwordHash: 'hashedPassword',
+        role: 'PATIENT',
       };
       const pass = 'wrongPassword';
 
@@ -82,10 +85,11 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should return access token and user info without name', async () => {
+    it('should return access token and user info with role and without name', async () => {
       const user = {
         id: '1',
         email: 'test@example.com',
+        role: 'DOCTOR',
       };
       const token = 'jwtToken';
       mockJwtService.sign.mockReturnValue(token);
@@ -98,7 +102,13 @@ describe('AuthService', () => {
         user: {
           id: user.id,
           email: user.email,
+          role: 'DOCTOR',
         },
+      });
+      expect(mockJwtService.sign).toHaveBeenCalledWith({
+        email: user.email,
+        sub: user.id,
+        role: user.role,
       });
     });
   });
