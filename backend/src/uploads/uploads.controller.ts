@@ -4,13 +4,11 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UploadsService } from './uploads.service';
+import { multerLocalConfig } from './multer.config';
 
 @Controller('uploads')
 @UseGuards(JwtAuthGuard)
@@ -18,19 +16,11 @@ export class UploadsController {
   constructor(private readonly uploadsService: UploadsService) {}
 
   @Post('profile-picture')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', multerLocalConfig))
   async uploadProfilePicture(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
-        ],
-      }),
-    )
-    file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File,
   ) {
-    const url = await this.uploadsService.saveFile(file);
+    const url = await this.uploadsService.uploadFile(file);
     return { url };
   }
 }

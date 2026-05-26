@@ -18,7 +18,7 @@ describe('UploadsService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('saveFile', () => {
+  describe('uploadFile', () => {
     it('should save a file and return the path', async () => {
       const mockFile = {
         originalname: 'test.jpg',
@@ -26,7 +26,7 @@ describe('UploadsService', () => {
         mimetype: 'image/jpeg',
       } as Express.Multer.File;
 
-      const result = await service.saveFile(mockFile);
+      const result = await service.uploadFile(mockFile);
 
       expect(result).toContain('.jpg');
       expect(fs.existsSync(path.join(process.cwd(), 'uploads', path.basename(result)))).toBe(true);

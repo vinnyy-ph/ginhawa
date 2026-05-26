@@ -75,7 +75,7 @@ describe('UsersService', () => {
           role: createUserDto.role,
         },
       });
-      expect(result.passwordHash).toBeUndefined();
+      expect((result as any).passwordHash).toBeUndefined();
       expect(result.email).toBe(createUserDto.email);
     });
   });

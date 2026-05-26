@@ -8,7 +8,7 @@ describe('UploadsController', () => {
   let service: UploadsService;
 
   const mockUploadsService = {
-    saveFile: jest.fn(),
+    uploadFile: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -41,11 +41,11 @@ describe('UploadsController', () => {
         mimetype: 'image/jpeg',
       } as Express.Multer.File;
       const expectedUrl = '/uploads/unique-id.jpg';
-      mockUploadsService.saveFile.mockResolvedValue(expectedUrl);
+      mockUploadsService.uploadFile.mockResolvedValue(expectedUrl);
 
       const result = await controller.uploadProfilePicture(mockFile);
 
-      expect(service.saveFile).toHaveBeenCalledWith(mockFile);
+      expect(service.uploadFile).toHaveBeenCalledWith(mockFile);
       expect(result).toEqual({ url: expectedUrl });
     });
   });

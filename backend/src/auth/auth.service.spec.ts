@@ -126,7 +126,7 @@ describe('AuthService', () => {
       };
       const loginResult = {
         access_token: 'token',
-        user: { id: '2', email: 'new@example.com' },
+        user: { id: '2', email: 'new@example.com', role: 'PATIENT' },
       };
 
       mockUsersService.create.mockResolvedValue(user);
