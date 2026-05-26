@@ -22,6 +22,12 @@ export function Header() {
             Features
           </Link>
           <Link
+            href="/doctors"
+            className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors"
+          >
+            Find a Doctor
+          </Link>
+          <Link
             href="/for-doctors"
             className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors"
           >
