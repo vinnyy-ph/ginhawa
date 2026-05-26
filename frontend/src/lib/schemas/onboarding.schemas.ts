@@ -25,7 +25,7 @@ export const step2Schema = z.object({
 export const step3Schema = z.object({
   conditions: z.string().min(1, 'Please list your medical conditions (or "None")'),
   allergies: z.string().min(1, 'Please list your allergies (or "None")'),
-  medications: z.string().optional().default(''),
+  medications: z.string().optional(),
 });
 
 export type Step1Schema = z.infer<typeof step1Schema>;
