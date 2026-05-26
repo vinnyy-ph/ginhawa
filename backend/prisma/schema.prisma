@@ -1,17 +1,169 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  PATIENT
+  DOCTOR
+}
+
 model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(PATIENT)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  patientProfile PatientProfile?
+  doctorProfile  DoctorProfile?
+  notifications  Notification[]
+
+  @@map("users")
+}
+
+model PatientProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique @map("user_id")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName          String   @map("full_name")
+  birthdate         DateTime
+  weight            Float?
+  height            Float?
+  profilePictureUrl String?  @map("profile_picture_url")
+  contactDetails    String?  @map("contact_details")
+  medicalHistory    String?  @map("medical_history")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  appointments      Appointment[]
+  medicalRecords    MedicalRecord[]
+  recommendationLogs RecommendationLog[]
+
+  @@map("patient_profiles")
+}
+
+model DoctorProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique @map("user_id")
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName            String   @map("full_name")
+  professionalTitle   String   @map("professional_title")
+  bio                 String?
+  specialization      String
+  profilePictureUrl   String?  @map("profile_picture_url")
+  availabilitySummary String?  @map("availability_summary")
+  yearsOfExperience   Int?     @map("years_of_experience")
+  languagesSpoken     String?  @map("languages_spoken")
+  consultationFocusAreas String? @map("consultation_focus_areas")
+  consultationFee     Float?   @map("consultation_fee")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  availabilitySlots   AvailabilitySlot[]
+  appointments        Appointment[]
+  medicalRecords      MedicalRecord[]
+
+  @@map("doctor_profiles")
+}
+
+enum SlotStatus {
+  AVAILABLE
+  BLOCKED
+  BOOKED
+}
+
+model AvailabilitySlot {
+  id        String     @id @default(cuid())
+  doctorId  String     @map("doctor_id")
+  doctor    DoctorProfile @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  startTime DateTime   @map("start_time")
+  endTime   DateTime   @map("end_time")
+  status    SlotStatus @default(AVAILABLE)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  appointment Appointment?
+
+  @@index([doctorId])
+  @@index([startTime, endTime])
+  @@map("availability_slots")
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  RESCHEDULED
+}
+
+model Appointment {
+  id               String            @id @default(cuid())
+  patientId        String            @map("patient_id")
+  patient          PatientProfile    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId         String            @map("doctor_id")
+  doctor           DoctorProfile     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  slotId           String            @unique @map("slot_id")
+  slot             AvailabilitySlot  @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  status           AppointmentStatus @default(PENDING)
+  reasonForVisit   String?           @map("reason_for_visit")
+  consultationLink String?           @map("consultation_link")
+  bookedAt         DateTime          @default(now()) @map("booked_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  medicalRecord    MedicalRecord?
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@map("appointments")
+}
+
+model MedicalRecord {
+  id             String         @id @default(cuid())
+  appointmentId  String         @unique @map("appointment_id")
+  appointment    Appointment    @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patientId      String         @map("patient_id")
+  patient        PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId       String         @map("doctor_id")
+  doctor         DoctorProfile  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  notes          String?
+  prescription   String?
+  recommendations String?
+  followUpAdvice String?        @map("follow_up_advice")
+  createdAt      DateTime       @default(now()) @map("created_at")
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@map("medical_records")
+}
+
+model Notification {
   id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model RecommendationLog {
+  id                    String         @id @default(cuid())
+  patientId             String         @map("patient_id")
+  patient               PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  symptomInput          String         @map("symptom_input")
+  matchedSpecialization String         @map("matched_specialization")
+  createdAt             DateTime       @default(now()) @map("created_at")
+
+  @@index([patientId])
+  @@map("recommendation_logs")
 }
