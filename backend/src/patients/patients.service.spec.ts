@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PatientsService } from './patients.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { PatientProfile } from '@prisma/client';
 
 describe('PatientsService', () => {
@@ -27,6 +27,7 @@ describe('PatientsService', () => {
     }).compile();
 
     service = module.get<PatientsService>(PatientsService);
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -46,6 +47,7 @@ describe('PatientsService', () => {
         ...dto,
         birthdate: new Date(dto.birthdate),
       };
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue(null);
       mockPrismaService.patientProfile.create.mockResolvedValue(expectedResult);
 
       const result = await service.create(userId, dto);
@@ -58,6 +60,21 @@ describe('PatientsService', () => {
         },
       });
       expect(result).toEqual(expectedResult);
+    });
+
+    it('should throw ConflictException if profile already exists', async () => {
+      const userId = 'user123';
+      const dto = {
+        fullName: 'John Doe',
+        birthdate: '1990-01-01',
+      };
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue({
+        id: 'existing-profile',
+      });
+
+      await expect(service.create(userId, dto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 

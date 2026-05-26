@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
@@ -8,6 +8,14 @@ export class PatientsService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, createPatientDto: CreatePatientDto) {
+    const existingProfile = await this.prisma.patientProfile.findUnique({
+      where: { userId },
+    });
+
+    if (existingProfile) {
+      throw new ConflictException('Patient profile already exists for this user');
+    }
+
     return this.prisma.patientProfile.create({
       data: {
         ...createPatientDto,
