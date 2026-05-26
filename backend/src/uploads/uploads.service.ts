@@ -1,26 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import * as fs from 'fs';
-import * as path from 'path';
-import { randomUUID } from 'crypto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UploadsService {
-  private readonly uploadDir = path.join(process.cwd(), 'uploads');
+  constructor(private configService: ConfigService) {}
 
-  constructor() {
-    if (!fs.existsSync(this.uploadDir)) {
-      fs.mkdirSync(this.uploadDir, { recursive: true });
+  async uploadFile(file: Express.Multer.File): Promise<string> {
+    if (this.configService.get('STORAGE') === 'cloudinary') {
+      return this.uploadToCloudinary(file);
     }
+    return this.uploadToLocal(file);
   }
 
-  async saveFile(file: Express.Multer.File): Promise<string> {
-    const fileExt = path.extname(file.originalname);
-    const fileName = `${randomUUID()}${fileExt}`;
-    const filePath = path.join(this.uploadDir, fileName);
+  private uploadToLocal(file: Express.Multer.File): string {
+    const baseUrl = this.configService.get('BASE_URL') ?? 'http://localhost:3001';
+    return `${baseUrl}/uploads/${file.filename}`;
+  }
 
-    fs.writeFileSync(filePath, file.buffer);
-
-    // Return a URL-friendly path
-    return `/uploads/${fileName}`;
+  private async uploadToCloudinary(file: Express.Multer.File): Promise<string> {
+    // Deferred to deployment time as per docs/STORAGE-SPECS.md
+    throw new Error('Cloudinary not configured yet.');
   }
 }
