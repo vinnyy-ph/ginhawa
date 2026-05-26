@@ -32,7 +32,7 @@ export default function SignupPage() {
     setServerError(null);
     try {
       await apiRequest<{ access_token: string; user: { id: string; email: string; role: string } }>(
-        '/auth/register',
+        '/api/auth/register',
         {
           method: 'POST',
           body: { email: values.email, password: values.password, role: 'PATIENT' },

@@ -14,7 +14,7 @@ export function CTASection() {
             Ready to experience <span className="text-primary">Ginhawa</span>?
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-on-surface-variant mb-10">
-            Join thousands of patients and doctors who are transforming healthcare in the Philippines. Register today and breathe a sigh of relief.
+            Join thousands of patients and doctors who are transforming healthcare in the Philippines. Sign Up today and breathe a sigh of relief.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button size="lg" className="rounded-full px-10" asChild>
