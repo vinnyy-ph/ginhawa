@@ -1,4 +1,5 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
@@ -37,8 +38,8 @@ export class DoctorsService {
     });
   }
 
-  async findAllPublic(search?: string, specialization?: string) {
-    const where: any = {};
+  async searchAll(search?: string, specialization?: string) {
+    const where: Prisma.DoctorProfileWhereInput = {};
     
     if (search) {
       where.fullName = { contains: search, mode: 'insensitive' };
@@ -51,7 +52,7 @@ export class DoctorsService {
     return this.prisma.doctorProfile.findMany({ where });
   }
 
-  async findOnePublic(id: string) {
+  async findById(id: string) {
     const profile = await this.prisma.doctorProfile.findUnique({
       where: { id },
     });
