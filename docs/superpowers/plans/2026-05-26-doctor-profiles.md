@@ -271,13 +271,13 @@ export class DoctorsController {
 
   @Get()
   async findAll(@Query('search') search?: string, @Query('specialization') specialization?: string) {
-    const profiles = await this.doctorsService.findAllPublic(search, specialization);
+    const profiles = await this.doctorsService.searchAll(search, specialization);
     return profiles.map(toPublicDoctorProfile);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const profile = await this.doctorsService.findOnePublic(id);
+    const profile = await this.doctorsService.findById(id);
     return toPublicDoctorProfile(profile);
   }
 }
