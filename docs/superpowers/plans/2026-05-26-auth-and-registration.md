@@ -73,7 +73,7 @@ git commit -m "feat(auth): update user creation logic to use passwordHash and ro
 - Modify: `backend/src/auth/auth.controller.ts`
 - Modify: `backend/src/auth/auth.service.ts`
 
-- [ ] **Step 1: Add register method to AuthService**
+- [x] **Step 1: Add register method to AuthService**
 
 ```typescript
 async register(createUserDto: CreateUserDto) {
@@ -82,7 +82,7 @@ async register(createUserDto: CreateUserDto) {
 }
 ```
 
-- [ ] **Step 2: Update validateUser to use passwordHash**
+- [x] **Step 2: Update validateUser to use passwordHash**
 
 ```typescript
 async validateUser(email: string, pass: string): Promise<any> {
@@ -95,7 +95,7 @@ async validateUser(email: string, pass: string): Promise<any> {
 }
 ```
 
-- [ ] **Step 3: Add register endpoint to AuthController**
+- [x] **Step 3: Add register endpoint to AuthController**
 
 ```typescript
 @Public() // Ensure you have a Public decorator if using Global Guards
@@ -105,7 +105,7 @@ async register(@Body() createUserDto: CreateUserDto) {
 }
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add backend/src/auth/auth.controller.ts backend/src/auth/auth.service.ts
@@ -117,54 +117,27 @@ git commit -m "feat(auth): add registration endpoint"
 ### Task 3: Implement Role-Based Access Control (RBAC)
 
 **Files:**
+- Create: `backend/src/auth/strategies/jwt.strategy.ts`
+- Create: `backend/src/auth/guards/jwt-auth.guard.ts`
 - Create: `backend/src/auth/decorators/roles.decorator.ts`
 - Create: `backend/src/auth/guards/roles.guard.ts`
+- Modify: `backend/src/auth/auth.service.ts`
+- Modify: `backend/src/auth/auth.module.ts`
 - Modify: `backend/src/app.module.ts`
 
-- [ ] **Step 1: Create Roles Decorator**
+- [ ] **Step 1: Update JWT payload in AuthService.login**
+Include `role` in the payload.
 
-```typescript
-import { SetMetadata } from '@nestjs/common';
-import { Role } from '@prisma/client';
+- [ ] **Step 2: Create JwtStrategy and JwtAuthGuard**
+Implement `JwtStrategy` to extract the payload and `JwtAuthGuard` to handle the `@Public()` decorator.
 
-export const ROLES_KEY = 'roles';
-export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
-```
+- [ ] **Step 3: Create Roles Decorator and Roles Guard**
+As originally planned.
 
-- [ ] **Step 2: Create Roles Guard**
+- [ ] **Step 4: Register everything in AppModule**
+Register `JwtAuthGuard` and `RolesGuard` as global guards.
 
-```typescript
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { Role } from '@prisma/client';
-import { ROLES_KEY } from '../decorators/roles.decorator';
-
-@Injectable()
-export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
-
-  canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-    if (!requiredRoles) {
-      return true;
-    }
-    const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.some((role) => user.role === role);
-  }
-}
-```
-
-- [ ] **Step 3: Register RolesGuard globally or in specific modules**
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add backend/src/auth/decorators/roles.decorator.ts backend/src/auth/guards/roles.guard.ts
-git commit -m "feat(auth): implement role-based access control guards"
-```
+- [ ] **Step 5: Commit**
 
 ---
 
