@@ -54,6 +54,36 @@ async function main() {
     });
   }
   console.log('Doctors seeded.');
+
+  // Seeding Patients
+  console.log('Seeding 15 patients...');
+  for (let i = 1; i <= 15; i++) {
+    const email = `patient${i}@example.com`;
+    
+    await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        role: 'PATIENT',
+        patientProfile: {
+          create: {
+            fullName: faker.person.fullName(),
+            birthdate: faker.date.birthdate({ min: 18, max: 80, mode: 'age' }),
+            weight: faker.number.float({ min: 45, max: 120, fractionDigits: 1 }),
+            height: faker.number.float({ min: 150, max: 200, fractionDigits: 1 }),
+            medicalHistory: faker.helpers.arrayElement([
+              'No known allergies.',
+              'History of mild asthma.',
+              'Type 2 Diabetes controlled by diet.',
+              'Hypertension, on medication.',
+              'Seasonal allergies.',
+            ]),
+          },
+        },
+      },
+    });
+  }
+  console.log('Patients seeded.');
 }
 
 main()
