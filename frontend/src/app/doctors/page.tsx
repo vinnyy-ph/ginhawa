@@ -7,7 +7,11 @@ import { useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MagnifyingGlassIcon, PersonIcon, ResetIcon } from "@radix-ui/react-icons";
+import {
+  MagnifyingGlassIcon,
+  PersonIcon,
+  ResetIcon,
+} from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import type { DoctorProfile } from "@/types/api";
 
@@ -15,8 +19,8 @@ import type { DoctorProfile } from "@/types/api";
 
 function SkeletonCard() {
   return (
-    <div className="animate-pulse bg-surface-white rounded-lg shadow-soft overflow-hidden">
-      <div className="h-2 bg-gradient-to-r from-[#48cab6]/30 to-[#31a795]/30 rounded-t-lg" />
+    <div className="animate-pulse bg-surface-white rounded-xl shadow-soft overflow-hidden">
+      <div className="h-1.5 bg-gradient-to-r from-[#48cab6]/30 to-[#31a795]/30" />
       <div className="p-5 space-y-3">
         <div className="flex gap-3 items-center">
           <div className="w-14 h-14 rounded-full bg-surface-container shrink-0" />
@@ -28,12 +32,11 @@ function SkeletonCard() {
         <div className="h-5 bg-surface-container rounded-full w-1/3" />
         <div className="h-3 bg-surface-container rounded" />
         <div className="h-3 bg-surface-container rounded w-5/6" />
-        <div className="h-3 bg-surface-container rounded w-2/3" />
-        <div className="flex justify-between items-center pt-2 border-t border-surface-container">
+        <div className="flex justify-between pt-2 border-t border-surface-container">
           <div className="h-3 bg-surface-container rounded w-1/3" />
           <div className="h-3 bg-surface-container rounded w-1/4" />
         </div>
-        <div className="h-9 bg-surface-container rounded-md w-full mt-1" />
+        <div className="h-9 bg-surface-container rounded-lg w-full" />
       </div>
     </div>
   );
@@ -56,12 +59,9 @@ function DoctorCard({
     .slice(0, 2);
 
   return (
-    <div className="bg-surface-white rounded-lg shadow-soft overflow-hidden flex flex-col hover:-translate-y-0.5 hover:shadow-lifted transition-all duration-200 border border-transparent hover:border-primary/10 group">
-      {/* Gradient accent bar */}
+    <div className="bg-surface-white rounded-xl shadow-soft overflow-hidden flex flex-col hover:-translate-y-0.5 hover:shadow-lifted transition-all duration-200 border border-transparent hover:border-primary/10 group">
       <div className="h-1.5 bg-gradient-to-r from-[#48cab6] to-[#31a795]" />
-
       <div className="p-5 flex flex-col flex-1">
-        {/* Header: avatar + name */}
         <div className="flex gap-4 items-start mb-3">
           <div className="shrink-0">
             {doctor.profilePictureUrl ? (
@@ -75,15 +75,12 @@ function DoctorCard({
                 className="w-14 h-14 rounded-full bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center ring-2 ring-primary/10"
                 aria-label={`Avatar for ${doctor.fullName}`}
               >
-                <span className="text-white font-bold text-lg font-serif">
-                  {initials}
-                </span>
+                <span className="text-white font-bold text-lg">{initials}</span>
               </div>
             )}
           </div>
-
           <div className="flex-1 min-w-0">
-            <h3 className="font-serif font-bold text-text-primary text-base leading-tight group-hover:text-primary transition-colors truncate">
+            <h3 className="font-bold text-base text-text-primary leading-tight group-hover:text-primary transition-colors truncate">
               {doctor.professionalTitle
                 ? `${doctor.professionalTitle} ${doctor.fullName}`
                 : doctor.fullName}
@@ -94,18 +91,19 @@ function DoctorCard({
           </div>
         </div>
 
-        {/* Specialization badge */}
         <div className="mb-3">
-          <Badge variant="outline" className="text-xs border-primary/40 text-primary font-medium">
+          <Badge
+            variant="outline"
+            className="text-xs border-primary/40 text-primary font-medium"
+          >
             {doctor.specialization}
           </Badge>
         </div>
 
-        {/* Stats row */}
         {(doctor.yearsOfExperience || doctor.consultationFee != null) && (
           <div className="flex items-center gap-4 mb-3 text-xs text-on-surface-variant">
             {doctor.yearsOfExperience && (
-              <span className="flex items-center gap-1">
+              <span>
                 <span className="font-bold text-text-primary">
                   {doctor.yearsOfExperience}+
                 </span>{" "}
@@ -113,7 +111,7 @@ function DoctorCard({
               </span>
             )}
             {doctor.consultationFee != null && (
-              <span className="flex items-center gap-1 ml-auto">
+              <span className="ml-auto">
                 <span className="font-bold text-primary">
                   ₱{doctor.consultationFee.toLocaleString()}
                 </span>{" "}
@@ -123,21 +121,16 @@ function DoctorCard({
           </div>
         )}
 
-        {/* Bio */}
         <p className="text-sm text-on-surface-variant line-clamp-2 flex-1 mb-4">
           {doctor.bio || "No biography available for this doctor."}
         </p>
 
-        {/* CTA */}
         <Link
           href={`/doctors/${doctor.id}`}
           className="block mt-auto"
           aria-label={`${isPatient ? "Book appointment with" : "View profile of"} ${doctor.fullName}`}
         >
-          <Button
-            className={cn("w-full", isPatient ? "" : "variant-outline")}
-            variant={isPatient ? "default" : "outline"}
-          >
+          <Button className="w-full" variant={isPatient ? "default" : "outline"}>
             {isPatient ? "Book Now" : "View Profile"}
           </Button>
         </Link>
@@ -154,9 +147,7 @@ function EmptyState({ onClearFilters }: { onClearFilters: () => void }) {
       <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-5">
         <PersonIcon className="w-10 h-10 text-on-surface-variant/50" />
       </div>
-      <h3 className="font-serif font-bold text-xl text-text-primary mb-2">
-        No doctors found
-      </h3>
+      <h3 className="font-bold text-xl text-text-primary mb-2">No doctors found</h3>
       <p className="text-on-surface-variant text-sm max-w-xs mb-6">
         We couldn't find any doctors matching your search or filter. Try a
         different keyword or specialization.
@@ -196,7 +187,7 @@ function ErrorState({
           />
         </svg>
       </div>
-      <h3 className="font-serif font-bold text-xl text-text-primary mb-2">
+      <h3 className="font-bold text-xl text-text-primary mb-2">
         Something went wrong
       </h3>
       <p className="text-on-surface-variant text-sm max-w-xs mb-6">{message}</p>
@@ -217,7 +208,7 @@ export default function DoctorsDiscoveryPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialization, setSelectedSpecialization] = useState(
-    () => searchParams.get('specialization') ?? ""
+    () => searchParams.get("specialization") ?? ""
   );
 
   async function fetchDoctors() {
@@ -263,31 +254,29 @@ export default function DoctorsDiscoveryPage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* ── Hero Header ─────────────────────────────────────────────────── */}
-      <div className="bg-surface-white border-b border-outline-variant">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+      {/* ── Gradient Hero ───────────────────────────────────────────────── */}
+      <div className="bg-gradient-to-br from-[#006b5e] via-[#31a795] to-[#48cab6]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div>
-              {/* Decorative teal accent */}
               <div className="inline-flex items-center gap-2 mb-3">
-                <div className="h-1 w-8 rounded-full bg-gradient-to-r from-[#48cab6] to-[#31a795]" />
-                <span className="text-xs font-semibold text-primary uppercase tracking-widest font-sans">
+                <div className="h-px w-8 bg-white/40" />
+                <span className="text-xs font-semibold text-white/70 uppercase tracking-widest">
                   Ginhawa Telehealth
                 </span>
               </div>
-              <h1 className="font-serif text-4xl md:text-5xl font-bold text-text-primary leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">
                 Find a Doctor
               </h1>
-              <p className="mt-2 text-on-surface-variant text-lg font-sans">
+              <p className="mt-2 text-white/75 text-lg">
                 Search and book consultations with top medical professionals —
                 from the comfort of your home.
               </p>
             </div>
-
             {!loading && !error && doctors.length > 0 && (
-              <div className="shrink-0">
-                <p className="text-sm text-on-surface-variant text-right">
-                  <span className="font-bold text-text-primary text-2xl">
+              <div className="shrink-0 text-right">
+                <p className="text-white/70 text-sm">
+                  <span className="font-bold text-white text-2xl">
                     {doctors.length}
                   </span>{" "}
                   doctors available
@@ -295,16 +284,14 @@ export default function DoctorsDiscoveryPage() {
               </div>
             )}
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* ── Search & Filters ──────────────────────────────────────────── */}
-        <div className="bg-surface-white rounded-lg shadow-soft p-5 mb-8">
-          {/* Search bar */}
-          <div className="relative mb-4">
+          {/* Search bar inside hero */}
+          <div className="relative mt-8">
             <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-              <MagnifyingGlassIcon className="w-5 h-5 text-on-surface-variant" aria-hidden="true" />
+              <MagnifyingGlassIcon
+                className="w-5 h-5 text-on-surface-variant"
+                aria-hidden="true"
+              />
             </div>
             <input
               id="doctor-search"
@@ -312,59 +299,63 @@ export default function DoctorsDiscoveryPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by name, specialization, or keyword…"
-              className="w-full pl-11 pr-4 py-3 rounded-lg border border-outline-variant bg-surface text-on-surface placeholder:text-on-surface-variant/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors font-sans"
+              className="w-full pl-11 pr-4 py-3.5 rounded-xl border-0 bg-white text-on-surface placeholder:text-on-surface-variant/60 text-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-white/60"
               aria-label="Search doctors"
             />
           </div>
+        </div>
+      </div>
 
-          {/* Specialization pills */}
-          {!loading && specializations.length > 0 && (
-            <div
-              className="flex flex-wrap gap-2"
-              role="group"
-              aria-label="Filter by specialization"
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ── Specialization Filter Pills ────────────────────────────────── */}
+        {!loading && specializations.length > 0 && (
+          <div
+            className="bg-surface-white rounded-xl shadow-soft p-4 mb-8 flex flex-wrap gap-2"
+            role="group"
+            aria-label="Filter by specialization"
+          >
+            <button
+              onClick={() => setSelectedSpecialization("")}
+              aria-pressed={selectedSpecialization === ""}
+              className={cn(
+                "px-4 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/40",
+                selectedSpecialization === ""
+                  ? "bg-primary text-white border-primary shadow-sm"
+                  : "bg-transparent text-on-surface-variant border-outline-variant hover:border-primary/50 hover:text-primary"
+              )}
             >
+              All
+            </button>
+            {specializations.map((spec) => (
               <button
-                onClick={() => setSelectedSpecialization("")}
-                aria-pressed={selectedSpecialization === ""}
+                key={spec}
+                onClick={() =>
+                  setSelectedSpecialization(
+                    spec === selectedSpecialization ? "" : spec
+                  )
+                }
+                aria-pressed={selectedSpecialization === spec}
                 className={cn(
                   "px-4 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/40",
-                  selectedSpecialization === ""
+                  selectedSpecialization === spec
                     ? "bg-primary text-white border-primary shadow-sm"
                     : "bg-transparent text-on-surface-variant border-outline-variant hover:border-primary/50 hover:text-primary"
                 )}
               >
-                All
+                {spec}
               </button>
-              {specializations.map((spec) => (
-                <button
-                  key={spec}
-                  onClick={() =>
-                    setSelectedSpecialization(
-                      spec === selectedSpecialization ? "" : spec
-                    )
-                  }
-                  aria-pressed={selectedSpecialization === spec}
-                  className={cn(
-                    "px-4 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/40",
-                    selectedSpecialization === spec
-                      ? "bg-primary text-white border-primary shadow-sm"
-                      : "bg-transparent text-on-surface-variant border-outline-variant hover:border-primary/50 hover:text-primary"
-                  )}
-                >
-                  {spec}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* ── Active filter indicator ───────────────────────────────────── */}
+        {/* ── Active filter indicator ────────────────────────────────────── */}
         {(searchTerm || selectedSpecialization) && !loading && (
           <div className="flex items-center gap-2 mb-5 text-sm text-on-surface-variant">
             <span>
               Showing{" "}
-              <strong className="text-text-primary">{filteredDoctors.length}</strong>{" "}
+              <strong className="text-text-primary">
+                {filteredDoctors.length}
+              </strong>{" "}
               result{filteredDoctors.length !== 1 ? "s" : ""}
             </span>
             <button
@@ -376,7 +367,7 @@ export default function DoctorsDiscoveryPage() {
           </div>
         )}
 
-        {/* ── Content ───────────────────────────────────────────────────── */}
+        {/* ── Grid / States ──────────────────────────────────────────────── */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
