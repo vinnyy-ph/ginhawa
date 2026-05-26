@@ -125,29 +125,29 @@ git commit -m "feat(auth): add registration endpoint"
 - Modify: `backend/src/auth/auth.module.ts`
 - Modify: `backend/src/app.module.ts`
 
-- [ ] **Step 1: Update JWT payload in AuthService.login**
+- [x] **Step 1: Update JWT payload in AuthService.login**
 Include `role` in the payload.
 
-- [ ] **Step 2: Create JwtStrategy and JwtAuthGuard**
+- [x] **Step 2: Create JwtStrategy and JwtAuthGuard**
 Implement `JwtStrategy` to extract the payload and `JwtAuthGuard` to handle the `@Public()` decorator.
 
-- [ ] **Step 3: Create Roles Decorator and Roles Guard**
+- [x] **Step 3: Create Roles Decorator and Roles Guard**
 As originally planned.
 
-- [ ] **Step 4: Register everything in AppModule**
+- [x] **Step 4: Register everything in AppModule**
 Register `JwtAuthGuard` and `RolesGuard` as global guards.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
 ### Task 4: End-to-End Verification
 
-- [ ] **Step 1: Start the backend server**
+- [x] **Step 1: Start the backend server**
 
 Run: `npm run start:dev` in `backend/`
 
-- [ ] **Step 2: Test Registration via CURL**
+- [x] **Step 2: Test Registration via CURL**
 
 ```bash
 curl -X POST http://localhost:3001/auth/register \
@@ -156,7 +156,7 @@ curl -X POST http://localhost:3001/auth/register \
 ```
 Expected: 201 Created with access_token.
 
-- [ ] **Step 3: Test Login via CURL**
+- [x] **Step 3: Test Login via CURL**
 
 ```bash
 curl -X POST http://localhost:3001/auth/login \
@@ -165,4 +165,4 @@ curl -X POST http://localhost:3001/auth/login \
 ```
 Expected: 200 OK with access_token.
 
-- [ ] **Step 4: Commit all remaining changes**
+- [x] **Step 4: Commit all remaining changes**
