@@ -24,7 +24,7 @@ export class CreatePatientDto {
   @IsOptional()
   height?: number;
 
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   @IsOptional()
   profilePictureUrl?: string;
 
