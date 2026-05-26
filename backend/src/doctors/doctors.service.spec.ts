@@ -68,6 +68,32 @@ describe('DoctorsService', () => {
     });
   });
 
+  describe('upsertProfile', () => {
+    it('should create or return existing profile and set profileComplete', async () => {
+      const userId = 'user-1';
+      const dto = { fullName: 'Dr. John', professionalTitle: 'MD', specialization: 'General', bio: 'Hello' };
+      
+      // Mock prisma.doctorProfile.upsert
+      mockPrismaService.doctorProfile.upsert = jest.fn().mockResolvedValue({ ...dto, userId, id: 'profile-1' });
+
+      const result = await service.upsertProfile(userId, dto);
+      
+      expect(result.profileComplete).toBe(true);
+      expect(result.profile.fullName).toBe('Dr. John');
+      expect(mockPrismaService.doctorProfile.upsert).toHaveBeenCalledWith({
+        where: { userId },
+        update: {},
+        create: {
+          userId,
+          fullName: dto.fullName,
+          professionalTitle: dto.professionalTitle,
+          specialization: dto.specialization,
+          bio: dto.bio,
+        },
+      });
+    });
+  });
+
   describe('findByUserId', () => {
     it('should return a profile by userId', async () => {
       const expected = { id: '1', userId: 'user-1' };

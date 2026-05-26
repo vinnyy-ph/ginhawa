@@ -24,6 +24,25 @@ export class DoctorsService {
     });
   }
 
+  async upsertProfile(userId: string, dto: import('./dto/create-doctor-profile.dto').CreateDoctorProfileDto) {
+    const profile = await this.prisma.doctorProfile.upsert({
+      where: { userId },
+      update: {}, // idempotent update
+      create: {
+        userId,
+        fullName: dto.fullName,
+        professionalTitle: dto.professionalTitle,
+        specialization: dto.specialization,
+        bio: dto.bio,
+      },
+    });
+
+    return {
+      profileComplete: true,
+      profile,
+    };
+  }
+
   async findByUserId(userId: string) {
     const profile = await this.prisma.doctorProfile.findUnique({
       where: { userId },
