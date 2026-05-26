@@ -28,16 +28,23 @@ export class DoctorsService {
     userId: string,
     dto: import('./dto/create-doctor-profile.dto').CreateDoctorProfileDto,
   ) {
+    const profileData = {
+      fullName: dto.fullName,
+      professionalTitle: dto.professionalTitle,
+      specialization: dto.specialization,
+      bio: dto.bio,
+      yearsOfExperience: dto.yearsOfExperience,
+      consultationFee: dto.consultationFee,
+      languagesSpoken: dto.languagesSpoken,
+      consultationFocusAreas: dto.consultationFocusAreas,
+      availabilitySummary: dto.availabilitySummary,
+      profilePictureUrl: dto.profilePictureUrl,
+    };
+
     const profile = await this.prisma.doctorProfile.upsert({
       where: { userId },
-      update: {}, // idempotent update
-      create: {
-        userId,
-        fullName: dto.fullName,
-        professionalTitle: dto.professionalTitle,
-        specialization: dto.specialization,
-        bio: dto.bio,
-      },
+      update: profileData,
+      create: { userId, ...profileData },
     });
 
     return {

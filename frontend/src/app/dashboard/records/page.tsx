@@ -31,7 +31,8 @@ export default function PatientRecordsPage() {
         // Sort descending by creation date
         data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setRecords(data);
-      } catch (err: any) {
+      } catch (err) {
+        console.error(err);
         setError("Failed to load your medical records.");
       } finally {
         setLoading(false);

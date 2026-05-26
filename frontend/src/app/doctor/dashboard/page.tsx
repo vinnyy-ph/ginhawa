@@ -168,7 +168,7 @@ export default function DoctorDashboard() {
           {/* Today's Schedule */}
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold font-serif text-text-primary">Today's Schedule</h2>
+              <h2 className="text-xl font-bold font-serif text-text-primary">Today&apos;s Schedule</h2>
               <Link href="/doctor/appointments" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
                 View all <ChevronRightIcon className="w-4 h-4" />
               </Link>

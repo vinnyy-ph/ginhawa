@@ -2,6 +2,7 @@ import {
   IsDateString,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   IsUrl,
   Min,
@@ -16,23 +17,25 @@ export class CreatePatientDto {
   @IsNotEmpty()
   birthdate: string;
 
+  @IsOptional()
   @IsNumber()
   @Min(1)
-  weight: number;
+  weight?: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(1)
-  height: number;
+  height?: number;
 
+  @IsOptional()
   @IsUrl({ require_tld: false })
-  @IsNotEmpty()
-  profilePictureUrl: string;
+  profilePictureUrl?: string;
 
   @IsString()
   @IsNotEmpty()
   contactDetails: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  medicalHistory: string;
+  medicalHistory?: string;
 }

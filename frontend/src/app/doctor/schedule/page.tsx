@@ -45,7 +45,8 @@ export default function DoctorSchedulePage() {
         if (profileData && profileData.id) {
           await fetchSlots(profileData.id);
         }
-      } catch (err: any) {
+      } catch (err) {
+        console.error(err);
         setError("Failed to load your schedule.");
       } finally {
         setLoading(false);
@@ -108,8 +109,9 @@ export default function DoctorSchedulePage() {
       // Refresh slots
       await fetchSlots(profile.id);
       
-    } catch (err: any) {
-      setFormError(err.message || "Failed to add slot");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to add slot";
+      setFormError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -130,6 +132,7 @@ export default function DoctorSchedulePage() {
       
       setToastMessage(`Slot marked as ${status.toLowerCase()}`);
     } catch (err) {
+      console.error(err);
       alert("Failed to update slot. Reverting.");
       fetchSlots(profile.id);
     } finally {
@@ -152,6 +155,7 @@ export default function DoctorSchedulePage() {
       setToastMessage("Slot deleted");
       setConfirmDeleteId(null);
     } catch (err) {
+      console.error(err);
       alert("Failed to delete slot.");
       fetchSlots(profile.id);
     } finally {

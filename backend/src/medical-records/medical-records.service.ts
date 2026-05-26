@@ -5,11 +5,15 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 
 @Injectable()
 export class MedicalRecordsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async create(userId: string, createMedicalRecordDto: CreateMedicalRecordDto) {
     const doctorProfile = await this.prisma.doctorProfile.findUnique({
@@ -44,7 +48,7 @@ export class MedicalRecordsService {
       );
     }
 
-    return this.prisma.medicalRecord.create({
+    const record = await this.prisma.medicalRecord.create({
       data: {
         appointmentId: appointment.id,
         patientId: appointment.patientId,
@@ -61,6 +65,20 @@ export class MedicalRecordsService {
         },
       },
     });
+
+    // Notify patient that a new medical record is available
+    if (record.patient?.userId) {
+      this.notifications
+        .createNotification(
+          record.patient.userId,
+          'MEDICAL_RECORD_CREATED',
+          'New Medical Record',
+          `${doctorProfile.fullName} has added consultation notes and a prescription to your records.`,
+        )
+        .catch(() => null);
+    }
+
+    return record;
   }
 
   async findAllForPatient(userId: string) {

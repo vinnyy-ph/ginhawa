@@ -76,7 +76,8 @@ export default function DoctorNotesPage() {
           setFollowUpAdvice(record.followUpAdvice || "");
         }
         
-      } catch (err: any) {
+      } catch (err) {
+        console.error(err);
         setError("Failed to load appointment details.");
       } finally {
         setLoading(false);
@@ -112,8 +113,9 @@ export default function DoctorNotesPage() {
         router.push("/doctor/appointments");
       }, 2000);
       
-    } catch (err: any) {
-      setFormError(err.message || "Failed to save medical record.");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to save medical record.";
+      setFormError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

@@ -16,6 +16,7 @@ import { toPublicDoctorProfile } from './dto/public-doctor.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('doctors')
 export class DoctorsController {
@@ -49,6 +50,7 @@ export class DoctorsController {
     return this.doctorsService.update(req.user.id, updateDoctorDto);
   }
 
+  @Public()
   @Get()
   async findAll(
     @Query('search') search?: string,
@@ -61,6 +63,7 @@ export class DoctorsController {
     return profiles.map(toPublicDoctorProfile);
   }
 
+  @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const profile = await this.doctorsService.findById(id);
