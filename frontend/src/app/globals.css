@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Colors from DESIGN.md */
+  --color-primary: #006b5e;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #31a795;
+  --color-on-primary-container: #00352e;
+  
+  --color-secondary: #006b5e;
+  --color-secondary-container: #78f4df;
+  --color-on-secondary-container: #006f62;
+  
+  --color-tertiary: #356761;
+  --color-tertiary-container: #6d9f98;
+  --color-on-tertiary-container: #003530;
+  
+  --color-surface: #f7faf9;
+  --color-on-surface: #181c1c;
+  --color-surface-variant: #e0e3e2;
+  --color-on-surface-variant: #3d4946;
+  
+  --color-outline: #6d7a76;
+  --color-outline-variant: #bcc9c5;
+  
+  --color-background: #f7faf9;
+  --color-on-background: #181c1c;
+  
+  --color-leaf-shadow: #86beb5;
+  --color-surface-white: #ffffff;
+  
+  /* Status colors */
+  --color-success: #31a795;
+  --color-info: #48cab6;
+  --color-error: #ba1a1a;
+
+  /* Typography */
+  --font-plus-jakarta: var(--font-plus-jakarta);
+  --font-manrope: var(--font-manrope);
+  --font-sans: var(--font-manrope);
+  --font-serif: var(--font-plus-jakarta);
+
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  
+  /* Custom Shadows */
+  --shadow-soft: 0 4px 20px -2px rgba(134, 190, 181, 0.15);
+  --shadow-lifted: 0 10px 30px -5px rgba(134, 190, 181, 0.2);
+
+  /* Animations */
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #f7faf9;
+  --foreground: #181c1c;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-tight;
+  }
 }
