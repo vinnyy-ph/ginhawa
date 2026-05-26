@@ -11,12 +11,14 @@ export class UsersService {
   async create(createUserDto: CreateUserDto) {
     const { password, ...userData } = createUserDto;
     const hashedPassword = await bcrypt.hash(password, 10);
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         ...userData,
         passwordHash: hashedPassword,
       },
     });
+    const { passwordHash, ...result } = user;
+    return result;
   }
 
   findAll() {
