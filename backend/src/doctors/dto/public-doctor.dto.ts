@@ -1,6 +1,8 @@
 import { DoctorProfile } from '@prisma/client';
 
-export function toPublicDoctorProfile(profile: DoctorProfile) {
+export type PublicDoctorProfile = Omit<DoctorProfile, 'userId' | 'createdAt' | 'updatedAt'>;
+
+export function toPublicDoctorProfile(profile: DoctorProfile): PublicDoctorProfile {
   const {
     userId,
     createdAt,
