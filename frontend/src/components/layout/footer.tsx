@@ -27,7 +27,7 @@ export function Footer() {
             <h4 className="text-sm font-bold text-text-primary mb-4 uppercase tracking-wider">Product</h4>
             <ul className="space-y-2 text-sm text-on-surface-variant">
               <li><Link href="#features" className="hover:text-primary transition-colors">Features</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">For Doctors</Link></li>
+              <li><Link href="/for-doctors" className="hover:text-primary transition-colors">For Doctors</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">AI Recommendations</Link></li>
             </ul>
           </div>

@@ -28,7 +28,7 @@ export function Header() {
             Features
           </Link>
           <Link
-            href="#"
+            href="/for-doctors"
             className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors"
           >
             For Doctors
@@ -45,7 +45,7 @@ export function Header() {
             <Link href="/auth/login">Log in</Link>
           </Button>
           <Button size="sm" asChild>
-            <Link href="/auth/register">Sign up</Link>
+            <Link href="/signup">Sign up</Link>
           </Button>
         </div>
       </div>

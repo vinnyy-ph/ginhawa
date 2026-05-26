@@ -18,7 +18,7 @@ export function CTASection() {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button size="lg" className="rounded-full px-10" asChild>
-              <Link href="/auth/register">Get Started Now</Link>
+              <Link href="/signup">Get Started Now</Link>
             </Button>
             <Button size="lg" variant="outline" className="rounded-full px-10" asChild>
               <Link href="#">Contact Support</Link>

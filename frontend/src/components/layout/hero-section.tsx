@@ -28,7 +28,7 @@ export function HeroSection() {
             
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="rounded-full" asChild>
-                <Link href="/auth/register">
+                <Link href="/signup">
                   Find a Doctor <ArrowRightIcon className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
