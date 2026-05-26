@@ -45,12 +45,11 @@ describe('DoctorsController', () => {
   describe('create', () => {
     it('should create a doctor profile', async () => {
       const createDto: CreateDoctorDto = {
-        specializations: ['Cardiology'],
-        qualifications: ['MD'],
+        fullName: 'Dr. Test User',
+        professionalTitle: 'MD',
+        specialization: 'Cardiology',
         bio: 'Test bio',
         consultationFee: 100,
-        availableDays: ['MONDAY'],
-        timeSlots: ['09:00-10:00']
       };
       
       const req = { user: { id: 'user-id' } };
