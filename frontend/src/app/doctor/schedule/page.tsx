@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, ApiError } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -14,6 +15,7 @@ import type { AvailabilitySlot, DoctorProfile, SlotStatus } from "@/types/api";
 export default function DoctorSchedulePage() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
+  const router = useRouter();
 
   const [profile, setProfile] = useState<DoctorProfile | null>(null);
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
@@ -47,6 +49,10 @@ export default function DoctorSchedulePage() {
         }
       } catch (err) {
         console.error(err);
+        if (err instanceof ApiError && err.status === 404) {
+          router.replace('/onboarding/doctor');
+          return;
+        }
         setError("Failed to load your schedule.");
       } finally {
         setLoading(false);
