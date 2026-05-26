@@ -1,3 +1,89 @@
+# Auth Architecture Unification Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Consolidate two competing auth systems in the frontend by creating middleware, rewriting doctor onboarding to use NextAuth, and removing duplicate/legacy code.
+
+**Architecture:** Use NextAuth with Next.js middleware for route protection. Ensure all API calls route through the standardized `apiRequest` utility with the NextAuth session token, removing any legacy `localStorage` usage.
+
+**Tech Stack:** Next.js 16 (App Router), TypeScript, NextAuth v4, Tailwind CSS v4, Radix UI
+
+---
+
+### Task 1: Create `frontend/src/middleware.ts`
+
+**Files:**
+- Create: `frontend/src/middleware.ts`
+
+- [ ] **Step 1: Write the middleware implementation**
+
+```typescript
+import { NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import type { NextRequest } from 'next/server';
+
+export async function middleware(req: NextRequest) {
+  const token = await getToken({ req });
+  const { pathname } = req.nextUrl;
+
+  // Public routes
+  if (
+    pathname === '/' ||
+    pathname === '/login' ||
+    pathname === '/signup' ||
+    pathname === '/signup/doctor' ||
+    pathname === '/for-doctors' ||
+    pathname.startsWith('/api/')
+  ) {
+    return NextResponse.next();
+  }
+
+  // Not authenticated
+  if (!token) {
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+
+  const role = token.role;
+
+  // Doctor-only routes
+  const isDoctorRoute = pathname === '/doctor/dashboard' || pathname.startsWith('/doctor/');
+  
+  // Patient-only routes
+  const isPatientRoute = 
+    pathname === '/dashboard' || 
+    pathname.startsWith('/dashboard/') || 
+    pathname.startsWith('/onboarding/') || 
+    pathname.startsWith('/book/') || 
+    pathname === '/doctors' || 
+    pathname.startsWith('/doctors/') || 
+    pathname.startsWith('/recommendations');
+
+  if (role === 'PATIENT' && isDoctorRoute) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
+
+  if (role === 'DOCTOR' && isPatientRoute) {
+    return NextResponse.redirect(new URL('/doctor/dashboard', req.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+};
+```
+
+---
+
+### Task 2: Rewrite Doctor Onboarding (`/onboarding/doctor`)
+
+**Files:**
+- Modify: `frontend/src/app/onboarding/doctor/page.tsx`
+
+- [ ] **Step 1: Replace the entire contents of the onboarding page with the NextAuth and design system compliant version**
+
+```tsx
 'use client';
 
 import { useState } from 'react';
@@ -12,7 +98,7 @@ import { Toast } from '@/components/ui/toast';
 
 export default function DoctorOnboarding() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -58,14 +144,6 @@ export default function DoctorOnboarding() {
       setIsSubmitting(false);
     }
   };
-
-  if (status === 'loading') {
-    return (
-      <div className="flex justify-center mt-20">
-        <Spinner />
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-md mx-auto mt-10 p-4">
@@ -134,3 +212,46 @@ export default function DoctorOnboarding() {
     </div>
   );
 }
+```
+
+---
+
+### Task 3: Fix Doctor Signup API Path (`/signup/doctor`)
+
+**Files:**
+- Modify: `frontend/src/app/signup/doctor/page.tsx`
+
+- [ ] **Step 1: Update API call path**
+Update `frontend/src/app/signup/doctor/page.tsx`. Find the `apiRequest` call that hits `/auth/register` and replace it with `/api/auth/register`.
+
+```typescript
+// Replace this block starting around line 33:
+      await apiRequest<{ access_token: string; user: { id: string; email: string; role: string } }>(
+        '/auth/register',
+        {
+          method: 'POST',
+          body: { email: values.email, password: values.password, role: 'DOCTOR' },
+        },
+      );
+
+// With:
+      await apiRequest<{ access_token: string; user: { id: string; email: string; role: string } }>(
+        '/api/auth/register',
+        {
+          method: 'POST',
+          body: { email: values.email, password: values.password, role: 'DOCTOR' },
+        },
+      );
+```
+
+---
+
+### Task 4: Delete Duplicate Doctor Dashboard
+
+**Files:**
+- Delete: `frontend/src/app/dashboard/doctor/`
+
+- [ ] **Step 1: Delete the duplicate doctor dashboard directory**
+```bash
+rm -rf frontend/src/app/dashboard/doctor/
+```
