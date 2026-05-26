@@ -8,25 +8,27 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('doctors')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}
 
   @Post('profile')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DOCTOR')
-  create(@Request() req: any, @Body() createDoctorDto: CreateDoctorDto) {
+  create(@Request() req: { user: { id: string } }, @Body() createDoctorDto: CreateDoctorDto) {
     return this.doctorsService.create(req.user.id, createDoctorDto);
   }
 
   @Get('profile')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DOCTOR')
-  getProfile(@Request() req: any) {
+  getProfile(@Request() req: { user: { id: string } }) {
     return this.doctorsService.findByUserId(req.user.id);
   }
 
   @Patch('profile')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DOCTOR')
-  update(@Request() req: any, @Body() updateDoctorDto: UpdateDoctorDto) {
+  update(@Request() req: { user: { id: string } }, @Body() updateDoctorDto: UpdateDoctorDto) {
     return this.doctorsService.update(req.user.id, updateDoctorDto);
   }
 
