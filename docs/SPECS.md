@@ -6,66 +6,66 @@
 Ginhawa
 
 ### 1.2 Product Type
-Minimal Viable Product (MVP) telehealth web application built for desktop-first responsive use.[file:2][file:3]
+Minimal Viable Product (MVP) telehealth web application built for desktop-first responsive use.
 
 ### 1.3 Objective
-Build a functional telehealth platform that allows patients to register, discover doctors, book consultations, receive recommendations based on symptoms, attend online consultations, and review basic medical records, while enabling doctors to manage schedules, conduct consultations, and issue notes or prescriptions.[file:2][file:3]
+Build a functional telehealth platform that allows patients to register, discover doctors, book consultations, receive recommendations based on symptoms, attend online consultations, and review basic medical records, while enabling doctors to manage schedules, conduct consultations, and issue notes or prescriptions.
 
 ### 1.4 Why This Product
-The product aims to reduce friction in accessing healthcare online by making the patient journey simple, guided, and trustworthy. It should also give doctors a clean workflow for schedule management, patient context review, and post-consultation documentation, which aligns with the builder round’s emphasis on user empathy, healthcare trust, and polished UX.[file:2]
+The product aims to reduce friction in accessing healthcare online by making the patient journey simple, guided, and trustworthy. It should also give doctors a clean workflow for schedule management, patient context review, and post-consultation documentation, which aligns with the builder round’s emphasis on user empathy, healthcare trust, and polished UX.
 
 ---
 
 ## 2. Goals
 
 ### 2.1 Primary Goals
-- Allow patients to create accounts and complete a usable health profile.[file:2][file:3]
-- Allow patients to find relevant doctors through browsing, filters, and symptom-based recommendations.[file:2][file:3]
-- Allow patients to book, reschedule, or cancel consultations based on doctor availability.[file:2][file:3]
-- Allow both patients and doctors to join an online consultation session without building a custom video engine from scratch.[file:2][file:3]
-- Allow doctors to manage schedules, review patient records, and write prescriptions or consultation notes.[file:2][file:3]
+- Allow patients to create accounts and complete a usable health profile.
+- Allow patients to find relevant doctors through browsing, filters, and symptom-based recommendations.
+- Allow patients to book, reschedule, or cancel consultations based on doctor availability.
+- Allow both patients and doctors to join an online consultation session without building a custom video engine from scratch.
+- Allow doctors to manage schedules, review patient records, and write prescriptions or consultation notes.
 
 ### 2.2 Success Criteria
-- All required builder round features are implemented end to end for both core roles.[file:2][file:3]
-- The app is complete enough to demonstrate a believable telehealth workflow from onboarding to consultation history.[file:2]
-- The UX feels safe, clear, and healthcare-appropriate rather than just technically functional.[file:2]
+- All required builder round features are implemented end to end for both core roles.
+- The app is complete enough to demonstrate a believable telehealth workflow from onboarding to consultation history.
+- The UX feels safe, clear, and healthcare-appropriate rather than just technically functional.
 
 ---
 
 ## 3. Users and Roles
 
 ### 3.1 Patient
-A patient is the end-user who creates an account, searches for doctors, books consultations, attends sessions, and reviews appointment history, records, and prescriptions.[file:2][file:3]
+A patient is the end-user who creates an account, searches for doctors, books consultations, attends sessions, and reviews appointment history, records, and prescriptions.
 
 ### 3.2 Doctor
-A doctor is the medical professional who creates a profile, defines specialization and availability, reviews patient context, joins consultations, and writes consultation notes or prescriptions.[file:2][file:3]
+A doctor is the medical professional who creates a profile, defines specialization and availability, reviews patient context, joins consultations, and writes consultation notes or prescriptions.
 
 ---
 
 ## 4. Core User Stories
 
 ### 4.1 Patient Stories
-- As a patient, I want to register with email and password so I can access the platform securely.[file:2][file:3]
-- As a patient, I want to add my personal and basic medical information so doctors can better understand my context.[file:2][file:3]
-- As a patient, I want to browse doctors and filter by specialization so I can find relevant care quickly.[file:2][file:3]
-- As a patient, I want to describe my symptoms and get doctor recommendations so I do not need to guess which specialist to choose.[file:2][file:3]
-- As a patient, I want to book, reschedule, or cancel an appointment so I can manage my consultation schedule.[file:2][file:3]
-- As a patient, I want to receive appointment notifications so I do not miss sessions or updates.[file:2][file:3]
-- As a patient, I want to join a consultation online and later view my consultation history and prescriptions.[file:2][file:3]
+- As a patient, I want to register with email and password so I can access the platform securely.
+- As a patient, I want to add my personal and basic medical information so doctors can better understand my context.
+- As a patient, I want to browse doctors and filter by specialization so I can find relevant care quickly.
+- As a patient, I want to describe my symptoms and get doctor recommendations so I do not need to guess which specialist to choose.
+- As a patient, I want to book, reschedule, or cancel an appointment so I can manage my consultation schedule.
+- As a patient, I want to receive appointment notifications so I do not miss sessions or updates.
+- As a patient, I want to join a consultation online and later view my consultation history and prescriptions.
 
 ### 4.2 Doctor Stories
-- As a doctor, I want to register and create a professional profile so patients can discover me.[file:2][file:3]
-- As a doctor, I want to define my specialization and availability so only valid time slots can be booked.[file:2][file:3]
-- As a doctor, I want to review a patient’s consultation history and records before or during an appointment.[file:2][file:3]
-- As a doctor, I want to receive notifications for bookings and schedule changes so I can manage my day properly.[file:2][file:3]
-- As a doctor, I want to join consultations and write notes or prescriptions after each session.[file:2][file:3]
+- As a doctor, I want to register and create a professional profile so patients can discover me.
+- As a doctor, I want to define my specialization and availability so only valid time slots can be booked.
+- As a doctor, I want to review a patient’s consultation history and records before or during an appointment.
+- As a doctor, I want to receive notifications for bookings and schedule changes so I can manage my day properly.
+- As a doctor, I want to join consultations and write notes or prescriptions after each session.
 
 ---
 
 ## 5. Scope
 
 ### 5.1 In Scope
-The MVP includes the required patient and doctor modules defined in the builder round: authentication, profile creation, doctor discovery, AI recommendation, appointment booking, schedule management, consultation joining, notifications, appointment history, and basic medical records or prescriptions.[file:2][file:3]
+The MVP includes the required patient and doctor modules defined in the builder round: authentication, profile creation, doctor discovery, AI recommendation, appointment booking, schedule management, consultation joining, notifications, appointment history, and basic medical records or prescriptions.
 
 ### 5.2 Out of Scope
 - Full EMR/EHR compliance workflows
@@ -76,7 +76,7 @@ The MVP includes the required patient and doctor modules defined in the builder 
 - Multi-clinic admin panels
 - Native mobile apps
 
-These are excluded to keep the build focused, complete, and realistic within the five-day challenge window, which explicitly favors a smaller polished solution over an unfinished ambitious one.[file:2]
+These are excluded to keep the build focused, complete, and realistic within the five-day challenge window, which explicitly favors a smaller polished solution over an unfinished ambitious one.
 
 ---
 
@@ -84,12 +84,12 @@ These are excluded to keep the build focused, complete, and realistic within the
 
 ### 6.1 Authentication and Access
 #### Patient
-- Register using email and password.[file:2][file:3]
+- Register using email and password.
 - Log in and log out.
 - Access only patient pages and records.
 
 #### Doctor
-- Register using email and password.[file:2][file:3]
+- Register using email and password.
 - Log in and log out.
 - Access only doctor-facing pages and patient records relevant to their consultations.
 
@@ -101,7 +101,7 @@ These are excluded to keep the build focused, complete, and realistic within the
 ---
 
 ### 6.2 Patient Profile
-Patients must be able to create and update a profile with the following fields, reflecting the required builder round details: name, birthday, weight, height, profile picture, contact details, and basic medical history.[file:2][file:3]
+Patients must be able to create and update a profile with the following fields, reflecting the required builder round details: name, birthday, weight, height, profile picture, contact details, and basic medical history.
 
 #### Required Fields
 - Full name
@@ -119,7 +119,7 @@ Patients must be able to create and update a profile with the following fields, 
 ---
 
 ### 6.3 Doctor Profile
-Doctors must be able to create and maintain a professional profile containing discovery-facing information and practice details, including profile details, bio, and specialization as explicitly required.[file:2][file:3]
+Doctors must be able to create and maintain a professional profile containing discovery-facing information and practice details, including profile details, bio, and specialization as explicitly required.
 
 #### Required Fields
 - Full name
@@ -138,7 +138,7 @@ Doctors must be able to create and maintain a professional profile containing di
 ---
 
 ### 6.4 Doctor Discovery
-Patients must be able to explore available doctors before booking, including browsing doctor availability, exploring based on symptoms or medical needs, and filtering or searching by specialization.[file:2][file:3]
+Patients must be able to explore available doctors before booking, including browsing doctor availability, exploring based on symptoms or medical needs, and filtering or searching by specialization.
 
 #### Required Capabilities
 - Browse a doctor list
@@ -156,7 +156,7 @@ Patients must be able to explore available doctors before booking, including bro
 ---
 
 ### 6.5 AI Recommendation
-Patients must be able to input symptoms or healthcare concerns and receive suggested doctors based on specialization or expertise, which is a required feature in the challenge brief.[file:2][file:3]
+Patients must be able to input symptoms or healthcare concerns and receive suggested doctors based on specialization or expertise, which is a required feature in the challenge brief.
 
 #### MVP Behavior
 - Patient enters free-text symptoms.
@@ -176,7 +176,7 @@ For the MVP, use a rule-based or LLM-assisted recommendation layer:
 ---
 
 ### 6.6 Appointment Booking
-Patients must be able to book consultations online and also reschedule or cancel them, which is a required core flow.[file:2][file:3]
+Patients must be able to book consultations online and also reschedule or cancel them, which is a required core flow.
 
 #### Required Capabilities
 - View doctor availability
@@ -202,7 +202,7 @@ Patients must be able to book consultations online and also reschedule or cancel
 ---
 
 ### 6.7 Notifications
-The brief requires real-time push notifications for booked appointments, upcoming appointments, and schedule updates for both patient and doctor workflows.[file:2][file:3]
+The brief requires real-time push notifications for booked appointments, upcoming appointments, and schedule updates for both patient and doctor workflows.
 
 #### MVP Interpretation
 If full push delivery is too heavy for the timeline, implement in-app real-time notifications plus optional email simulation. The important part is that schedule-changing events are visible immediately and demonstrably.
@@ -222,7 +222,7 @@ If full push delivery is too heavy for the timeline, implement in-app real-time 
 ---
 
 ### 6.8 Consultation Session
-Both patients and doctors must be able to join a consultation session, and the brief explicitly states that a fully custom-built video conferencing solution is not required.[file:2][file:3]
+Both patients and doctors must be able to join a consultation session, and the brief explicitly states that a fully custom-built video conferencing solution is not required.
 
 #### MVP Implementation Options
 - Embedded Google Meet or external meeting link
@@ -238,7 +238,7 @@ Both patients and doctors must be able to join a consultation session, and the b
 ---
 
 ### 6.9 Medical Records and History
-Patients must be able to view appointment history and basic medical records or prescriptions, while doctors must be able to access patient consultation history and previously issued records or prescriptions.[file:2][file:3]
+Patients must be able to view appointment history and basic medical records or prescriptions, while doctors must be able to access patient consultation history and previously issued records or prescriptions.
 
 #### Patient Side
 - View previous appointments
@@ -256,7 +256,7 @@ Records can be tied directly to completed appointments and displayed in a timeli
 ---
 
 ### 6.10 Consultation Notes and Prescriptions
-Doctors must be able to document findings, recommendations, prescriptions, and consultation summaries after an appointment.[file:2][file:3]
+Doctors must be able to document findings, recommendations, prescriptions, and consultation summaries after an appointment.
 
 #### Required Fields
 - Chief concern or reason for visit
@@ -273,7 +273,7 @@ Doctors must be able to document findings, recommendations, prescriptions, and c
 ---
 
 ### 6.11 Schedule Management
-Doctors must be able to manage consultation schedules and restrict unavailable slots, which is a required doctor workflow.[file:2][file:3]
+Doctors must be able to manage consultation schedules and restrict unavailable slots, which is a required doctor workflow.
 
 #### Required Capabilities
 - Create available time blocks
@@ -291,22 +291,22 @@ Doctors must be able to manage consultation schedules and restrict unavailable s
 ## 7. Non-Functional Requirements
 
 ### 7.1 Platform
-The app must be web-only and desktop-oriented while still being responsive, which is part of the stated technical expectations.[file:2][file:3]
+The app must be web-only and desktop-oriented while still being responsive, which is part of the stated technical expectations.
 
 ### 7.2 Frontend
-A React or Next.js app using TypeScript is a strong fit because the challenge prefers strongly typed languages and permits UI libraries such as Shadcn or Radix.[file:2]
+A React or Next.js app using TypeScript is a strong fit because the challenge prefers strongly typed languages and permits UI libraries such as Shadcn or Radix.
 
 ### 7.3 Backend
-Use custom APIs for the main backend logic, with Node.js or NestJS as the likely stack, since the brief prefers custom backend logic and discourages using BaaS as the primary database layer.[file:2]
+Use custom APIs for the main backend logic, with Node.js or NestJS as the likely stack, since the brief prefers custom backend logic and discourages using BaaS as the primary database layer.
 
 ### 7.4 Database
-Use a persistent database such as PostgreSQL, MySQL, or MongoDB, consistent with the allowed stacks.[file:2]
+Use a persistent database such as PostgreSQL, MySQL, or MongoDB, consistent with the allowed stacks.
 
 ### 7.5 Code Quality
-The codebase should be modular, documented, and include error handling, because these are explicit evaluation expectations for the technical track.[file:2]
+The codebase should be modular, documented, and include error handling, because these are explicit evaluation expectations for the technical track.
 
 ### 7.6 Deployment
-The app must be deployed to a public URL, and containerized deployment is preferred though not mandatory.[file:2]
+The app must be deployed to a public URL, and containerized deployment is preferred though not mandatory.
 
 ### 7.7 Performance
 - Main patient flows should load quickly on standard laptop connections.
@@ -465,23 +465,23 @@ Even if full regulatory compliance is outside MVP scope, the app should still co
 - Post-consultation care summary
 - Follow-up reminder workflow
 
-This prioritization fits the challenge guidance that a smaller but complete solution is preferred over an ambitious unfinished one.[file:2]
+This prioritization fits the challenge guidance that a smaller but complete solution is preferred over an ambitious unfinished one.
 
 ---
 
 ## 11. UX Principles
 
 ### 11.1 Trust First
-Healthcare UX should feel calm, clear, and reliable. Use clear labels, visible confirmations, and low-friction forms to support the brief’s emphasis on trust and user empathy.[file:2]
+Healthcare UX should feel calm, clear, and reliable. Use clear labels, visible confirmations, and low-friction forms to support the brief’s emphasis on trust and user empathy.
 
 ### 11.2 Reduce Decision Fatigue
-Patients may not know which specialization to choose, so the recommendation flow should guide them rather than making them guess.[file:2][file:3]
+Patients may not know which specialization to choose, so the recommendation flow should guide them rather than making them guess.
 
 ### 11.3 Clarity Over Cleverness
 Use familiar appointment, profile, and record patterns. Avoid novelty that makes core actions harder to understand.
 
 ### 11.4 Complete Key Journeys
-It is better to have one excellent end-to-end flow than several half-working screens, which directly aligns with the challenge advice.[file:2]
+It is better to have one excellent end-to-end flow than several half-working screens, which directly aligns with the challenge advice.
 
 ---
 
@@ -538,7 +538,7 @@ Each should have a friendly, human-readable message and a next-step CTA.
 - Render/Fly.io/Railway for backend + PostgreSQL
 - Docker if you want cleaner deployment story
 
-This stack fits the allowed technical expectations and keeps development practical within the builder round constraints.[file:2]
+This stack fits the allowed technical expectations and keeps development practical within the builder round constraints.
 
 ---
 
@@ -557,7 +557,7 @@ The final build should support this end-to-end demo:
 10. Show reschedule or cancellation flow.
 11. Show notifications and explain architecture choices.
 
-This demo path maps closely to the required feature set and will help with the required walkthrough video and evaluation on functionality and product sense.[file:2][file:3]
+This demo path maps closely to the required feature set and will help with the required walkthrough video and evaluation on functionality and product sense.
 
 ---
 
@@ -572,15 +572,15 @@ Instead of only being a booking app, the product’s differentiator is guided ma
 - The app explains why a doctor is being recommended.
 - The workflow is optimized for confidence and trust, especially for first-time telehealth users.
 
-This is a good fit for the bonus-feature guidance asking how the app differentiates itself and improves long-term patient and doctor journeys.[file:2]
+This is a good fit for the bonus-feature guidance asking how the app differentiates itself and improves long-term patient and doctor journeys.
 
 ---
 
 ## 17. Definition of Done
 
 The MVP is done when:
-- All required patient and doctor features are implemented in a working prototype.[file:2][file:3]
-- The app is deployed publicly.[file:2]
+- All required patient and doctor features are implemented in a working prototype.
+- The app is deployed publicly.
 - The core consultation workflow is fully demonstrable end to end.
 - The UI is responsive and polished enough to communicate healthcare trust.
-- The architecture and tradeoffs are clear enough to explain during pair programming and the recorded walkthrough.[file:2]
+- The architecture and tradeoffs are clear enough to explain during pair programming and the recorded walkthrough.
