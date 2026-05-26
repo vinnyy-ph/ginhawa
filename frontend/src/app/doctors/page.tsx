@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -209,12 +210,15 @@ function ErrorState({
 export default function DoctorsDiscoveryPage() {
   const { data: session } = useSession();
   const isPatient = session?.user?.role === "PATIENT";
+  const searchParams = useSearchParams();
 
   const [doctors, setDoctors] = useState<DoctorProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSpecialization, setSelectedSpecialization] = useState("");
+  const [selectedSpecialization, setSelectedSpecialization] = useState(
+    () => searchParams.get('specialization') ?? ""
+  );
 
   async function fetchDoctors() {
     try {
