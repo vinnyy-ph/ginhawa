@@ -32,7 +32,6 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
           aria-label={visible ? 'Hide password' : 'Show password'}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
           onClick={() => setVisible((v) => !v)}
-          tabIndex={0}
         >
           {visible ? (
             <EyeClosedIcon className="h-4 w-4" />

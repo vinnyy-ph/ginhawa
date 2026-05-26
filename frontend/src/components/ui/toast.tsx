@@ -22,8 +22,8 @@ export function Toast({ message, variant = 'success', onDismiss }: ToastProps) {
 
   return (
     <div
-      role="status"
-      aria-live="polite"
+      role={variant === 'error' ? 'alert' : 'status'}
+      aria-live={variant === 'error' ? 'assertive' : 'polite'}
       className={cn(
         'fixed bottom-6 left-1/2 z-50 -translate-x-1/2',
         'flex items-center gap-2 rounded-lg px-5 py-3',
