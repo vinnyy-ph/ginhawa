@@ -14,7 +14,7 @@ export type SlotStatus = 'AVAILABLE' | 'BOOKED' | 'BLOCKED';
 
 export interface DoctorProfile {
   id: string;
-  userId: string;
+  userId?: string;
   fullName: string;
   professionalTitle: string;
   specialization: string;

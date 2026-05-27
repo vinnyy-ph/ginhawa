@@ -165,19 +165,26 @@ describe('DoctorsService', () => {
   });
 
   describe('findById', () => {
+    const profileId = '550e8400-e29b-41d4-a716-446655440000';
+
     it('should return a profile by id', async () => {
-      const expected = { id: '1', userId: 'user-1' };
+      const expected = { id: profileId, userId: 'user-1' };
       mockPrismaService.doctorProfile.findUnique.mockResolvedValue(expected);
 
-      const result = await service.findById('1');
+      const result = await service.findById(profileId);
       expect(result).toEqual(expected);
       expect(mockPrismaService.doctorProfile.findUnique).toHaveBeenCalledWith({
-        where: { id: '1' },
+        where: { id: profileId },
       });
     });
 
     it('should throw NotFoundException if profile not found', async () => {
       mockPrismaService.doctorProfile.findUnique.mockResolvedValue(null);
+      await expect(service.findById(profileId)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException for non-UUID ids', async () => {
+      await expect(service.findById('profile')).rejects.toThrow(NotFoundException);
       await expect(service.findById('1')).rejects.toThrow(NotFoundException);
     });
   });

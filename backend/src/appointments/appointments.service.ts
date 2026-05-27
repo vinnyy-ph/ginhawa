@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -111,6 +112,33 @@ export class AppointmentsService {
         slot: true,
       },
     });
+  }
+
+  async findOne(userId: string, appointmentId: string) {
+    const doctorProfile = await this.prisma.doctorProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!doctorProfile) {
+      throw new NotFoundException('Doctor profile not found');
+    }
+
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: { patient: true, slot: true },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    if (appointment.doctorId !== doctorProfile.id) {
+      throw new ForbiddenException(
+        'You do not have access to this appointment',
+      );
+    }
+
+    return appointment;
   }
 
   async updateStatus(userId: string, id: string, status: AppointmentStatus) {

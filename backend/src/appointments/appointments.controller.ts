@@ -41,6 +41,15 @@ export class AppointmentsController {
     return this.appointmentsService.findAllForDoctor(req.user.id);
   }
 
+  @Get(':id')
+  @Roles('DOCTOR')
+  findOne(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+  ) {
+    return this.appointmentsService.findOne(req.user.id, id);
+  }
+
   @Patch(':id/status')
   @Roles('DOCTOR')
   updateStatus(

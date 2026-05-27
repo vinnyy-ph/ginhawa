@@ -49,36 +49,25 @@ export default function DoctorNotesPage() {
       if (!token || !appointmentId) return;
       try {
         setLoading(true);
-        
-        // 1. Fetch appointments and find the matching one
-        const apptsData = await apiRequest<Appointment[]>("/appointments/doctor", { token });
-        const appt = apptsData.find(a => a.id === appointmentId);
-        
-        if (!appt) {
-          setError("Appointment not found or you don't have permission to view it.");
-          setLoading(false);
-          return;
-        }
-        
+
+        const [appt, recordsData] = await Promise.all([
+          apiRequest<Appointment>(`/appointments/${appointmentId}`, { token }),
+          apiRequest<MedicalRecord[]>("/medical-records/doctor", { token }),
+        ]);
+
         setAppointment(appt);
-        
-        // 2. Try to fetch existing medical record for this appointment
-        // We'll fetch all doctor's records and find the match
-        const recordsData = await apiRequest<MedicalRecord[]>("/medical-records/doctor", { token });
+
         const record = recordsData.find(r => r.appointmentId === appointmentId);
-        
         if (record) {
           setExistingRecord(record);
-          // Pre-fill form if they want to view it (though in this implementation it's read-only)
           setNotes(record.notes || "");
           setPrescription(record.prescription || "");
           setRecommendations(record.recommendations || "");
           setFollowUpAdvice(record.followUpAdvice || "");
         }
-        
       } catch (err) {
         console.error(err);
-        setError("Failed to load appointment details.");
+        setError("Appointment not found or you don't have permission to view it.");
       } finally {
         setLoading(false);
       }
