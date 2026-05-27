@@ -1,12 +1,14 @@
-import { DoctorProfile } from '@prisma/client';
+import { DoctorProfile, AvailabilitySlot } from '@prisma/client';
 
 export type PublicDoctorProfile = Omit<
   DoctorProfile,
   'userId' | 'createdAt' | 'updatedAt'
->;
+> & {
+  availabilitySlots?: AvailabilitySlot[];
+};
 
 export function toPublicDoctorProfile(
-  profile: DoctorProfile,
+  profile: DoctorProfile & { availabilitySlots?: AvailabilitySlot[] },
 ): PublicDoctorProfile {
   const {
     userId: _userId,

@@ -82,7 +82,12 @@ export class DoctorsService {
       where.specialization = { contains: specialization, mode: 'insensitive' };
     }
 
-    return this.prisma.doctorProfile.findMany({ where });
+    return this.prisma.doctorProfile.findMany({
+      where,
+      include: {
+        availabilitySlots: true,
+      },
+    });
   }
 
   async findById(id: string) {
@@ -93,6 +98,9 @@ export class DoctorsService {
     }
     const profile = await this.prisma.doctorProfile.findUnique({
       where: { id },
+      include: {
+        availabilitySlots: true,
+      },
     });
     if (!profile) {
       throw new NotFoundException('Doctor profile not found');

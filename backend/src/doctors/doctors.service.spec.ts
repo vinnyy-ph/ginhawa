@@ -160,6 +160,9 @@ describe('DoctorsService', () => {
           fullName: { contains: 'Smith', mode: 'insensitive' },
           specialization: { contains: 'Cardio', mode: 'insensitive' },
         },
+        include: {
+          availabilitySlots: true,
+        },
       });
     });
   });
@@ -175,6 +178,9 @@ describe('DoctorsService', () => {
       expect(result).toEqual(expected);
       expect(mockPrismaService.doctorProfile.findUnique).toHaveBeenCalledWith({
         where: { id: profileId },
+        include: {
+          availabilitySlots: true,
+        },
       });
     });
 

@@ -8,9 +8,10 @@ interface FadeInProps {
   delay?: number;
   direction?: "up" | "down" | "left" | "right";
   duration?: number;
+  className?: string;
 }
 
-export function FadeIn({ children, delay = 0, direction = "up", duration = 0.5 }: FadeInProps) {
+export function FadeIn({ children, delay = 0, direction = "up", duration = 0.5, className }: FadeInProps) {
   const directions = {
     up: { y: 20, x: 0 },
     down: { y: -20, x: 0 },
@@ -20,6 +21,7 @@ export function FadeIn({ children, delay = 0, direction = "up", duration = 0.5 }
 
   return (
     <motion.div
+      className={className}
       initial={{ 
         opacity: 0, 
         y: directions[direction].y, 

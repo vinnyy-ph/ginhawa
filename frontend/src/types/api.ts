@@ -25,6 +25,7 @@ export interface DoctorProfile {
   languagesSpoken?: string;
   consultationFee?: number;
   consultationFocusAreas?: string;
+  availabilitySlots?: AvailabilitySlot[];
 }
 
 // ─── Availability Slot ───────────────────────────────────────────────────────
