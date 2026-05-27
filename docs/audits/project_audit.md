@@ -240,7 +240,7 @@ Covers spec §6.8
 | Sign up (Patient) | `/(auth)/signup` | Patient registration → redirects to `/onboarding/1` |
 | Sign up (Doctor) | `/(auth)/signup/doctor` | Doctor registration → redirects to `/doctor/dashboard` |
 | Patient: Complete Profile | `/onboarding/1` → `/onboarding/5` | Full 5-step onboarding: personal info → body metrics → medical history → profile picture → review |
-| Doctor: Complete Profile | `/onboarding/doctor` | Doctor profile creation form |
+| Doctor: Complete Profile | `/onboarding/doctor/1` → `/onboarding/doctor/4` | Full 4-step onboarding: personal info → specialization → practice details → review |
 | Find Doctors (list) | `/doctors` | Doctor list with search/filter — consumes `GET /doctors` API ✅ |
 | Doctor Detail & Booking | `/doctors/[id]` | Full booking flow with slot picker wired ✅ |
 | Patient Dashboard | `/dashboard` | Dashboard with stats, recent appointments, and quick actions ✅ |
@@ -332,17 +332,18 @@ All integration issues identified in rev 3 have been fixed and verified.
 |---|---|:---:|:---:|---|
 | 1 | Register a patient account | ✅ | ✅ | ✅ **Works** |
 | 2 | Complete patient profile | ✅ | ✅ (5-step onboarding) | ✅ **Works** |
-| 3 | Browse or search doctors | ✅ API | ✅ `/doctors` page | ✅ **Works** |
-| 4 | Use symptom-based recommendation | ✅ API | ✅ `/recommendations` page **NEW** | ✅ **Works** |
-| 5 | Book appointment from available slot | ✅ API | ✅ `/doctors/[id]` with slot picker | ✅ **Works** |
-| 6 | Appointment visible for both roles | ✅ API | ✅ Appointment pages for both roles | ✅ **Works** |
-| 7 | Join consultation session | ❌ No link generation | ❌ No room page | ❌ **Not built** |
-| 8 | Doctor writes notes/prescription | ✅ API | ✅ `/doctor/notes/[appointmentId]` | ✅ **Works** |
-| 9 | Patient views medical record/history | ✅ API | ✅ `/dashboard/records` | ✅ **Works** |
-| 10 | Reschedule or cancellation flow | ❌ Patient-side endpoints missing | ⚠️ Disabled buttons + "coming soon" | ⚠️ **Partial** |
-| 11 | Notifications + architecture explanation | ✅ Wired + dispatching | ✅ Both notification center pages **NEW** | ✅ **Works** |
+| 3 | Complete doctor profile | ✅ | ✅ (4-step onboarding) | ✅ **Works** |
+| 4 | Browse or search doctors | ✅ API | ✅ `/doctors` page | ✅ **Works** |
+| 5 | Use symptom-based recommendation | ✅ API | ✅ `/recommendations` page **NEW** | ✅ **Works** |
+| 6 | Book appointment from available slot | ✅ API | ✅ `/doctors/[id]` with slot picker | ✅ **Works** |
+| 7 | Appointment visible for both roles | ✅ API | ✅ Appointment pages for both roles | ✅ **Works** |
+| 8 | Join consultation session | ❌ No link generation | ❌ No room page | ❌ **Not built** |
+| 9 | Doctor writes notes/prescription | ✅ API | ✅ `/doctor/notes/[appointmentId]` | ✅ **Works** |
+| 10 | Patient views medical record/history | ✅ API | ✅ `/dashboard/records` | ✅ **Works** |
+| 11 | Reschedule or cancellation flow | ❌ Patient-side endpoints missing | ⚠️ Disabled buttons + "coming soon" | ⚠️ **Partial** |
+| 12 | Notifications + architecture explanation | ✅ Wired + dispatching | ✅ Both notification center pages **NEW** | ✅ **Works** |
 
-> **9 of 11 demo steps are now fully functional.** Step 7 (consultation room) is the last major unbuilt feature. Step 10 works for doctors but patient cancel/reschedule still requires backend endpoints.
+> **10 of 12 demo steps are now fully functional.** Step 8 (consultation room) is the last major unbuilt feature. Step 11 works for doctors but patient cancel/reschedule still requires backend endpoints.
 
 ---
 
