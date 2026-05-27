@@ -87,16 +87,22 @@ describe('DoctorsService', () => {
 
       expect(result.profileComplete).toBe(true);
       expect(result.profile.fullName).toBe('Dr. John');
+      const profileData = {
+        fullName: dto.fullName,
+        professionalTitle: dto.professionalTitle,
+        specialization: dto.specialization,
+        bio: dto.bio,
+        yearsOfExperience: undefined,
+        consultationFee: undefined,
+        languagesSpoken: undefined,
+        consultationFocusAreas: undefined,
+        availabilitySummary: undefined,
+        profilePictureUrl: undefined,
+      };
       expect(mockPrismaService.doctorProfile.upsert).toHaveBeenCalledWith({
         where: { userId },
-        update: {},
-        create: {
-          userId,
-          fullName: dto.fullName,
-          professionalTitle: dto.professionalTitle,
-          specialization: dto.specialization,
-          bio: dto.bio,
-        },
+        update: profileData,
+        create: { userId, ...profileData },
       });
     });
   });
