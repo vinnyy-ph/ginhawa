@@ -2,13 +2,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { step1Schema, type Step1Schema } from '@/lib/schemas/onboarding.schemas';
 import { useOnboarding } from '@/context/onboarding-context';
 import { ProgressIndicator } from '@/components/ui/progress-indicator';
 import { FormField } from '@/components/ui/form-field';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 
 export default function OnboardingStep1() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function OnboardingStep1() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<Step1Schema>({
@@ -54,7 +56,18 @@ export default function OnboardingStep1() {
         </FormField>
 
         <FormField id="ob1-birthdate" label="Date of birth" error={errors.birthdate?.message} required>
-          <input type="date" max={new Date().toISOString().split('T')[0]} className={inputClass} {...register('birthdate')} />
+          <Controller
+            control={control}
+            name="birthdate"
+            render={({ field }) => (
+              <DatePicker
+                date={field.value ? new Date(field.value) : undefined}
+                setDate={(date) => field.onChange(date ? date.toISOString().split('T')[0] : "")}
+                placeholder="Select your birthdate"
+                toDate={new Date()} // Cannot be in the future
+              />
+            )}
+          />
         </FormField>
 
         <FormField id="ob1-contactDetails" label="Contact number" error={errors.contactDetails?.message} required>
