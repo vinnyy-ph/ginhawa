@@ -59,7 +59,7 @@ export function DatePicker({
           disabled={[
             fromDate ? { before: fromDate } : undefined,
             toDate ? { after: toDate } : undefined,
-          ].filter((m): m is any => !!m)}
+          ].filter((m): m is NonNullable<typeof m> => !!m)}
         />
       </PopoverContent>
     </Popover>

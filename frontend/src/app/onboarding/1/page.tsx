@@ -4,6 +4,7 @@
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format, parseISO } from 'date-fns';
 import { step1Schema, type Step1Schema } from '@/lib/schemas/onboarding.schemas';
 import { useOnboarding } from '@/context/onboarding-context';
 import { ProgressIndicator } from '@/components/ui/progress-indicator';
@@ -61,8 +62,8 @@ export default function OnboardingStep1() {
             name="birthdate"
             render={({ field }) => (
               <DatePicker
-                date={field.value ? new Date(field.value) : undefined}
-                setDate={(date) => field.onChange(date ? date.toISOString().split('T')[0] : "")}
+                date={field.value ? parseISO(field.value) : undefined}
+                setDate={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
                 placeholder="Select your birthdate"
                 toDate={new Date()} // Cannot be in the future
               />
