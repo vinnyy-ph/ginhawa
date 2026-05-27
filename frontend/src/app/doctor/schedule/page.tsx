@@ -8,6 +8,8 @@ import { apiRequest, ApiError } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { DatePicker } from "@/components/ui/date-picker";
+import { format, parseISO } from "date-fns";
 import { ClockIcon, PlusIcon, TrashIcon, CheckCircledIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import type { AvailabilitySlot, DoctorProfile, SlotStatus } from "@/types/api";
@@ -224,13 +226,11 @@ export default function DoctorSchedulePage() {
               <form onSubmit={handleAddSlot} className="flex flex-col md:flex-row gap-6 items-end">
                 <div className="w-full md:w-auto flex-1">
                   <label className="block text-sm font-semibold text-text-primary mb-1">Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={formDate}
-                    min={new Date().toISOString().split('T')[0]} // Cannot be in the past
-                    onChange={(e) => setFormDate(e.target.value)}
-                    className="w-full rounded-md border border-outline-variant px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface"
+                  <DatePicker
+                    date={formDate ? parseISO(formDate) : undefined}
+                    setDate={(date) => setFormDate(date ? format(date, "yyyy-MM-dd") : "")}
+                    placeholder="Pick a date"
+                    fromDate={new Date()} // Cannot be in the past
                   />
                 </div>
                 
