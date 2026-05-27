@@ -54,7 +54,7 @@ export default function LoginPage() {
     'w-full rounded-md border border-outline-variant bg-surface-white px-3 py-2.5 text-sm text-on-surface font-manrope placeholder:text-outline transition-colors focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 aria-[invalid=true]:border-error';
 
   return (
-    <AuthCard title="Welcome back" subtitle="Sign in to your Ginhawa account.">
+    <AuthCard title="Welcome back" subtitle="Sign in to your Ginhawa account." type="login">
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
         {serverError && (
           <div

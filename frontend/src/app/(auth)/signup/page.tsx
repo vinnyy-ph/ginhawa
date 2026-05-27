@@ -66,6 +66,7 @@ export default function SignupPage() {
     <AuthCard
       title="Create your account"
       subtitle="Join Ginhawa and take charge of your health."
+      type="signup-patient"
     >
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
         {serverError && (

@@ -65,6 +65,7 @@ export default function DoctorSignupPage() {
     <AuthCard
       title="Join Ginhawa as a Doctor"
       subtitle="Set your availability, consult with context, and document care — with less friction."
+      type="signup-doctor"
     >
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
         {serverError && (
