@@ -48,7 +48,7 @@ export function DatePicker({
           {date ? format(date, "PPP") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-4" align="start">
         <Calendar
           mode="single"
           selected={date}
@@ -60,6 +60,14 @@ export function DatePicker({
             fromDate ? { before: fromDate } : undefined,
             toDate ? { after: toDate } : undefined,
           ].filter((m): m is NonNullable<typeof m> => !!m)}
+          classNames={{
+            months: "relative",
+            month_caption: "flex justify-center h-7 pt-1 items-center",
+            caption_label: "text-sm font-medium",
+            nav: "absolute top-0 left-0 right-0 flex justify-between items-center z-10",
+            button_previous: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+            button_next: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+          }}
         />
       </PopoverContent>
     </Popover>

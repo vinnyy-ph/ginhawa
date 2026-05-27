@@ -46,7 +46,7 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
       );
       if (hasToday) {
         availabilityStatus = "Available Today";
-        badgeColor = "bg-[#48cab6]/10 text-[#006b5e] border-[#48cab6]/30";
+        badgeColor = "bg-[#48cab6]/10 text-[#004d43] border-[#48cab6]/30";
       } else {
         availabilityStatus = "Available Soon";
         badgeColor = "bg-primary/10 text-primary border-primary/20";
@@ -56,7 +56,7 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
 
   return (
     <div className="bg-surface-white rounded-2xl shadow-soft overflow-hidden flex flex-col hover:-translate-y-1 hover:shadow-lifted transition-all duration-300 border border-transparent hover:border-primary/20 group relative">
-      <div className="h-2 bg-gradient-to-r from-[#006b5e] via-[#31a795] to-[#48cab6]" />
+      <div className="h-2 bg-gradient-to-r from-[#004d43] via-[#31a795] to-[#48cab6]" />
       
       {/* Availability Badge Absolute */}
       <div className="absolute top-5 right-5">
@@ -77,7 +77,7 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
               />
             ) : (
               <div
-                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#48cab6] to-[#006b5e] flex items-center justify-center ring-2 ring-primary/10 shadow-inner"
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#48cab6] to-[#004d43] flex items-center justify-center ring-2 ring-primary/10 shadow-inner"
                 aria-label={`Avatar for ${doctor.fullName}`}
               >
                 <span className="text-white font-bold text-xl">{initials}</span>
@@ -93,7 +93,7 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
             <div className="flex items-center gap-2 mt-1.5">
               <Badge
                 variant="outline"
-                className="text-[11px] border-[#31a795]/40 text-[#006b5e] bg-[#48cab6]/5 font-semibold px-2 py-0.5 rounded-md"
+                className="text-[11px] border-[#31a795]/40 text-[#004d43] bg-[#48cab6]/5 font-semibold px-2 py-0.5 rounded-md"
               >
                 {doctor.specialization}
               </Badge>
@@ -112,7 +112,7 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
           {doctor.consultationFee !== undefined && doctor.consultationFee !== null && (
             <div className="flex flex-col pl-4 border-l border-surface-container/60">
               <span className="text-on-surface-variant font-medium uppercase tracking-wider text-[10px]">Fee</span>
-              <span className="text-[#006b5e] font-bold mt-0.5">₱{doctor.consultationFee.toLocaleString()}</span>
+              <span className="text-[#004d43] font-bold mt-0.5">₱{doctor.consultationFee.toLocaleString()}</span>
             </div>
           )}
           {languages.length > 0 && (
@@ -162,8 +162,8 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
               className={cn(
                 "w-full rounded-xl py-5 font-semibold transition-all shadow-sm", 
                 isPatient 
-                  ? "bg-[#006b5e] hover:bg-[#005248] text-white" 
-                  : "bg-surface-white border-[#31a795] text-[#006b5e] hover:bg-[#48cab6]/10"
+                  ? "bg-[#004d43] hover:bg-[#005248] text-white" 
+                  : "bg-surface-white border-[#31a795] text-[#004d43] hover:bg-[#48cab6]/10"
               )} 
               variant={isPatient ? "default" : "outline"}
             >

@@ -97,7 +97,7 @@ export function DashboardClient() {
           <Card className="p-6 flex items-center justify-between border-0 shadow-soft hover:shadow-lifted transition-shadow">
             <div>
               <p className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Upcoming</p>
-              <h3 className="text-3xl font-bold text-primary">{upcomingCount}</h3>
+              <h2 className="text-3xl font-bold text-primary">{upcomingCount}</h2>
             </div>
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <CalendarIcon className="w-6 h-6 text-primary" />
@@ -107,7 +107,7 @@ export function DashboardClient() {
           <Card className="p-6 flex items-center justify-between border-0 shadow-soft hover:shadow-lifted transition-shadow">
             <div>
               <p className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Completed</p>
-              <h3 className="text-3xl font-bold text-info">{completedCount}</h3>
+              <h2 className="text-3xl font-bold text-info">{completedCount}</h2>
             </div>
             <div className="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
               <FileTextIcon className="w-6 h-6 text-info" />
@@ -117,7 +117,7 @@ export function DashboardClient() {
           <Card className="p-6 flex items-center justify-between border-0 shadow-soft hover:shadow-lifted transition-shadow">
             <div>
               <p className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Unread Alerts</p>
-              <h3 className="text-3xl font-bold text-secondary">{unreadCount}</h3>
+              <h2 className="text-3xl font-bold text-secondary">{unreadCount}</h2>
             </div>
             <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center relative">
               <BellIcon className="w-6 h-6 text-secondary" />
@@ -137,7 +137,7 @@ export function DashboardClient() {
                   <MagnifyingGlassIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-text-primary group-hover:text-primary transition-colors">Find a Doctor</h4>
+                  <h3 className="font-semibold text-text-primary group-hover:text-primary transition-colors">Find a Doctor</h3>
                   <p className="text-xs text-on-surface-variant">Search and book consultations</p>
                 </div>
               </div>
@@ -149,7 +149,7 @@ export function DashboardClient() {
                   <ActivityLogIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-text-primary group-hover:text-primary transition-colors">AI Recommendation</h4>
+                  <h3 className="font-semibold text-text-primary group-hover:text-primary transition-colors">AI Recommendation</h3>
                   <p className="text-xs text-on-surface-variant">Find doctors by symptom</p>
                 </div>
               </div>
@@ -161,7 +161,7 @@ export function DashboardClient() {
                   <FileTextIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-text-primary group-hover:text-primary transition-colors">My Records</h4>
+                  <h3 className="font-semibold text-text-primary group-hover:text-primary transition-colors">My Records</h3>
                   <p className="text-xs text-on-surface-variant">View medical history & notes</p>
                 </div>
               </div>
@@ -202,7 +202,7 @@ export function DashboardClient() {
                           {doc?.fullName.charAt(0) || 'D'}
                         </div>
                         <div>
-                          <h4 className="font-bold text-text-primary">{doc?.professionalTitle ? `${doc.professionalTitle} ` : ''}{doc?.fullName}</h4>
+                  <h3 className="font-bold text-text-primary">{doc?.professionalTitle ? `${doc.professionalTitle} ` : ''}{doc?.fullName}</h3>
                           <p className="text-xs text-primary font-medium mb-1">{doc?.specialization}</p>
                           <div className="flex items-center gap-2 text-xs text-on-surface-variant">
                             <CalendarIcon className="w-3.5 h-3.5" />

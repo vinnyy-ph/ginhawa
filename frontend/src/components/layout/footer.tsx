@@ -18,7 +18,7 @@ export function Footer() {
             </p>
           </div>
           <div>
-            <h4 className="text-sm font-bold text-text-primary mb-4 uppercase tracking-wider">Product</h4>
+            <h3 className="text-sm font-bold text-text-primary mb-4 uppercase tracking-wider">Product</h3>
             <ul className="space-y-2 text-sm text-on-surface-variant">
               <li><Link href="#features" className="hover:text-primary transition-colors">Features</Link></li>
               <li><Link href="/for-doctors" className="hover:text-primary transition-colors">For Doctors</Link></li>
@@ -27,8 +27,8 @@ export function Footer() {
               <div>
               <h3 className="font-bold text-text-primary mb-4 font-serif">Legal</h3>
               <ul className="space-y-2 text-sm text-on-surface-variant">
-              <li><span className="hover:text-primary transition-colors cursor-not-allowed opacity-50">Privacy Policy</span></li>
-              <li><span className="hover:text-primary transition-colors cursor-not-allowed opacity-50">Terms of Service</span></li>
+              <li><span className="hover:text-primary transition-colors cursor-not-allowed">Privacy Policy</span></li>
+              <li><span className="hover:text-primary transition-colors cursor-not-allowed">Terms of Service</span></li>
               </ul>
               </div>
         </div>

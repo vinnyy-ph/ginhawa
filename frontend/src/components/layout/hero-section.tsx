@@ -37,7 +37,7 @@ export function HeroSection() {
               </Button>
             </div>
             
-            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 opacity-60">
+            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8">
               <div className="flex flex-col items-center">
                 <span className="text-3xl font-bold text-text-primary">500+</span>
                 <span className="text-sm text-on-surface-variant">Vetted Doctors</span>

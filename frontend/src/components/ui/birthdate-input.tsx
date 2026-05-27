@@ -1,20 +1,25 @@
 "use client"
 
 import * as React from "react"
-import { cn } from "@/lib/utils"
 import { format, parse, isValid } from "date-fns"
 import { CalendarIcon } from "@radix-ui/react-icons"
-import { Button } from "@/components/ui/button"
+
+import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 interface BirthdateInputProps {
   value?: string // YYYY-MM-DD
   onChange: (value: string) => void
   disabled?: boolean
+  className?: string
 }
 
-export function BirthdateInput({ value, onChange, disabled }: BirthdateInputProps) {
+export function BirthdateInput({ value, onChange, disabled, className }: BirthdateInputProps) {
   const [month, setMonth] = React.useState("")
   const [day, setDay] = React.useState("")
   const [year, setYear] = React.useState("")
@@ -24,7 +29,6 @@ export function BirthdateInput({ value, onChange, disabled }: BirthdateInputProp
   const dayRef = React.useRef<HTMLInputElement>(null)
   const yearRef = React.useRef<HTMLInputElement>(null)
 
-  // Initialize/Sync from value during render to avoid cascading renders in useEffect
   const [prevValue, setPrevValue] = React.useState(value)
   if (value !== prevValue) {
     setPrevValue(value)
@@ -49,7 +53,6 @@ export function BirthdateInput({ value, onChange, disabled }: BirthdateInputProp
         return
       }
     }
-    // If not complete or not valid, sync with empty string
     onChange("")
   }
 
@@ -113,77 +116,32 @@ export function BirthdateInput({ value, onChange, disabled }: BirthdateInputProp
     }
   }
 
-  const inputClasses = "w-full bg-transparent border-none p-0 text-center focus:ring-0 text-sm font-manrope placeholder:text-on-surface-variant/30"
-
   const parsedDate = value ? parse(value, "yyyy-MM-dd", new Date()) : undefined
   const validParsedDate = parsedDate && isValid(parsedDate) ? parsedDate : undefined
 
+  const inputClasses = "bg-transparent border-none p-0 text-center outline-none focus:ring-0 text-sm placeholder:text-on-surface-variant/50"
+
   return (
-    <div className="flex items-center gap-2">
-      <div className={cn(
-        "flex items-center gap-1 px-3 py-2 rounded-md border border-outline-variant bg-surface focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all flex-1 max-w-[240px]",
-        disabled && "opacity-50 cursor-not-allowed"
-      )}>
-        <div className="flex-1 flex flex-col items-center">
-          <label className="sr-only">Month</label>
-          <input
-            ref={monthRef}
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            placeholder="MM"
-            value={month}
-            onChange={handleMonthChange}
-            onBlur={handleMonthBlur}
-            disabled={disabled}
-            className={inputClasses}
-            aria-label="Birth month (MM)"
-          />
-        </div>
-        <span className="text-outline-variant">/</span>
-        <div className="flex-1 flex flex-col items-center">
-          <label className="sr-only">Day</label>
-          <input
-            ref={dayRef}
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            placeholder="DD"
-            value={day}
-            onChange={handleDayChange}
-            onBlur={handleDayBlur}
-            onKeyDown={(e) => handleKeyDown(e, monthRef, day)}
-            disabled={disabled}
-            className={inputClasses}
-            aria-label="Birth day (DD)"
-          />
-        </div>
-        <span className="text-outline-variant">/</span>
-        <div className="flex-1 flex flex-col items-center min-w-[60px]">
-          <label className="sr-only">Year</label>
-          <input
-            ref={yearRef}
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            placeholder="YYYY"
-            value={year}
-            onChange={handleYearChange}
-            onKeyDown={(e) => handleKeyDown(e, dayRef, year)}
-            disabled={disabled}
-            className={inputClasses}
-            aria-label="Birth year (YYYY)"
-          />
-        </div>
-      </div>
+    <div
+      className={cn(
+        "flex h-10 w-full items-center justify-start rounded-md border border-outline-variant bg-surface px-4 py-2 text-left text-sm font-normal transition-colors hover:bg-surface-container focus-within:bg-surface-container focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-0",
+        !value && "text-on-surface-variant",
+        disabled && "opacity-50 cursor-not-allowed pointer-events-none",
+        className
+      )}
+    >
       <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 border-outline-variant bg-surface" disabled={disabled} type="button">
-            <CalendarIcon className="h-4 w-4 text-on-surface-variant" />
+          <button 
+            type="button" 
+            disabled={disabled} 
+            className="mr-2 flex h-full items-center outline-none shrink-0"
+          >
+            <CalendarIcon className="h-4 w-4 text-primary" />
             <span className="sr-only">Open calendar</span>
-          </Button>
+          </button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
+        <PopoverContent className="w-auto p-4" align="start">
           <Calendar
             mode="single"
             selected={validParsedDate}
@@ -191,9 +149,62 @@ export function BirthdateInput({ value, onChange, disabled }: BirthdateInputProp
             defaultMonth={validParsedDate}
             endMonth={new Date()}
             disabled={{ after: new Date() }}
+            classNames={{
+              months: "relative",
+              month_caption: "flex justify-center h-7 pt-1 items-center",
+              caption_label: "text-sm font-medium",
+              nav: "absolute top-0 left-0 right-0 flex justify-between items-center z-10",
+              button_previous: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+              button_next: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+            }}
           />
         </PopoverContent>
       </Popover>
+
+      <div className="flex flex-1 items-center">
+        <input
+          ref={monthRef}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          placeholder="MM"
+          value={month}
+          onChange={handleMonthChange}
+          onBlur={handleMonthBlur}
+          disabled={disabled}
+          className={cn(inputClasses, "w-6")}
+          aria-label="Birth month (MM)"
+        />
+        <span className="px-1 text-on-surface-variant/50">/</span>
+        <input
+          ref={dayRef}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          placeholder="DD"
+          value={day}
+          onChange={handleDayChange}
+          onBlur={handleDayBlur}
+          onKeyDown={(e) => handleKeyDown(e, monthRef, day)}
+          disabled={disabled}
+          className={cn(inputClasses, "w-6")}
+          aria-label="Birth day (DD)"
+        />
+        <span className="px-1 text-on-surface-variant/50">/</span>
+        <input
+          ref={yearRef}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          placeholder="YYYY"
+          value={year}
+          onChange={handleYearChange}
+          onKeyDown={(e) => handleKeyDown(e, dayRef, year)}
+          disabled={disabled}
+          className={cn(inputClasses, "w-10")}
+          aria-label="Birth year (YYYY)"
+        />
+      </div>
     </div>
   )
 }

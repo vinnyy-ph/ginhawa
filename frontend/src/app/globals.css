@@ -2,14 +2,14 @@
 
 @theme inline {
   /* Colors from DESIGN.md */
-  --color-primary: #006b5e;
+  --color-primary: #004d43;
   --color-on-primary: #ffffff;
   --color-primary-container: #31a795;
   --color-on-primary-container: #00352e;
   
-  --color-secondary: #006b5e;
+  --color-secondary: #004d43;
   --color-secondary-container: #78f4df;
-  --color-on-secondary-container: #006f62;
+  --color-on-secondary-container: #004d43;
   
   --color-tertiary: #356761;
   --color-tertiary-container: #6d9f98;
@@ -42,8 +42,8 @@
   --color-text-primary: #1a3a35;
 
   /* Status colors */
-  --color-success: #31a795;
-  --color-info: #48cab6;
+  --color-success: #006b5e;
+  --color-info: #006064;
   --color-error: #ba1a1a;
   --color-on-error: #ffffff;
 

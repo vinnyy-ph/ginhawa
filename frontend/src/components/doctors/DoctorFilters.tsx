@@ -66,7 +66,7 @@ export function DoctorFilters({
           className={cn(
             "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border rounded-lg focus:outline-none focus:ring-2 shadow-sm",
             activeCount > 0
-              ? "bg-[#48cab6]/10 border-[#31a795] text-[#006b5e] focus:ring-[#31a795]/40"
+              ? "bg-[#48cab6]/10 border-[#31a795] text-[#004d43] focus:ring-[#31a795]/40"
               : "bg-surface-white border-outline-variant text-text-primary hover:border-primary/40 focus:ring-primary/40"
           )}
         >
@@ -127,7 +127,7 @@ export function DoctorFilters({
                     className={cn(
                       "px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/40",
                       localFilters.availability === opt.id
-                        ? "bg-[#006b5e] text-white border-[#006b5e] shadow-sm"
+                        ? "bg-[#004d43] text-white border-[#004d43] shadow-sm"
                         : "bg-surface-white text-on-surface-variant border-outline-variant hover:border-primary/50 hover:text-primary"
                     )}
                   >
@@ -153,7 +153,7 @@ export function DoctorFilters({
                     className={cn(
                       "px-3 py-2 text-xs font-semibold rounded-lg border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/40 text-center",
                       localFilters.feeRange === opt.id
-                        ? "bg-[#006b5e] text-white border-[#006b5e] shadow-sm"
+                        ? "bg-[#004d43] text-white border-[#004d43] shadow-sm"
                         : "bg-surface-white text-on-surface-variant border-outline-variant hover:border-primary/50 hover:text-primary"
                     )}
                   >
@@ -179,7 +179,7 @@ export function DoctorFilters({
                     className={cn(
                       "px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/40",
                       localFilters.experience === opt.id
-                        ? "bg-[#006b5e] text-white border-[#006b5e] shadow-sm"
+                        ? "bg-[#004d43] text-white border-[#004d43] shadow-sm"
                         : "bg-surface-white text-on-surface-variant border-outline-variant hover:border-primary/50 hover:text-primary"
                     )}
                   >
@@ -212,7 +212,7 @@ export function DoctorFilters({
                             });
                           }
                         }}
-                        className="flex h-5 w-5 appearance-none items-center justify-center rounded-[4px] border border-outline-variant bg-surface-white outline-none focus:ring-2 focus:ring-primary/40 data-[state=checked]:bg-[#006b5e] data-[state=checked]:border-[#006b5e]"
+                        className="flex h-5 w-5 appearance-none items-center justify-center rounded-[4px] border border-outline-variant bg-surface-white outline-none focus:ring-2 focus:ring-primary/40 data-[state=checked]:bg-[#004d43] data-[state=checked]:border-[#004d43]"
                       >
                         <Checkbox.Indicator className="text-white">
                           <CheckIcon className="w-3.5 h-3.5" />
@@ -234,12 +234,12 @@ export function DoctorFilters({
           <div className="p-4 border-t border-surface-container bg-surface flex gap-3">
             <Button
               variant="outline"
-              className="flex-1 border-[#31a795] text-[#006b5e]"
+              className="flex-1 border-[#31a795] text-[#004d43]"
               onClick={clearLocalFilters}
             >
               Clear
             </Button>
-            <Button className="flex-1 bg-[#006b5e] hover:bg-[#005248] text-white" onClick={applyFilters}>
+            <Button className="flex-1 bg-[#004d43] hover:bg-[#005248] text-white" onClick={applyFilters}>
               Show Results
             </Button>
           </div>

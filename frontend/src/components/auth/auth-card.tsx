@@ -47,7 +47,7 @@ export function AuthCard({ title, subtitle, children, className, type = 'login' 
   return (
     <div className="flex min-h-screen w-full bg-background">
       {/* Left Panel (Hidden on mobile/tablet, shown on desktop) */}
-      <div className="relative hidden lg:flex w-1/2 flex-col justify-between overflow-hidden bg-surface-white border-r border-outline-variant/30 p-12 lg:p-16 xl:p-20">
+      <aside className="relative hidden lg:flex w-1/2 flex-col justify-between overflow-hidden bg-surface-white border-r border-outline-variant/30 p-12 lg:p-16 xl:p-20" aria-label="Branding">
         {/* Soft Tactile Background */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-24 right-[-20%] h-[520px] w-[520px] rounded-full bg-primary-container/15 blur-3xl" />
@@ -103,19 +103,19 @@ export function AuthCard({ title, subtitle, children, className, type = 'login' 
         <div className="relative z-10 text-sm text-on-surface-variant font-manrope">
           © {new Date().getFullYear()} Ginhawa Health. All rights reserved.
         </div>
-      </div>
+      </aside>
 
       {/* Right Panel (Form) */}
-      <div className="flex w-full lg:w-1/2 flex-col items-center justify-center p-6 sm:p-12 relative">
+      <main className="flex w-full lg:w-1/2 flex-col items-center justify-center p-6 sm:p-12 relative">
         {/* Mobile Header (Hidden on Desktop) */}
-        <div className="lg:hidden absolute top-8 left-0 w-full flex justify-center">
+        <header className="lg:hidden absolute top-8 left-0 w-full flex justify-center">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Logo size={36} />
             <span className="text-xl font-bold font-plus-jakarta tracking-wide text-text-primary">
               Ginhawa
             </span>
           </Link>
-        </div>
+        </header>
 
         <FadeIn direction="up" className="w-full max-w-md mt-16 lg:mt-0">
           <div
@@ -135,7 +135,7 @@ export function AuthCard({ title, subtitle, children, className, type = 'login' 
             <div>{children}</div>
           </div>
         </FadeIn>
-      </div>
+      </main>
     </div>
   );
 }

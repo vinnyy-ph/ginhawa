@@ -19,7 +19,7 @@ import { useDoctorDiscovery } from "@/components/doctors/use-doctor-discovery";
 function SkeletonCard() {
   return (
     <div className="animate-pulse bg-surface-white rounded-2xl shadow-soft overflow-hidden border border-outline-variant/50">
-      <div className="h-2 bg-gradient-to-r from-[#006b5e]/30 to-[#48cab6]/30" />
+      <div className="h-2 bg-gradient-to-r from-[#004d43]/30 to-[#48cab6]/30" />
       <div className="p-6 space-y-4">
         <div className="flex gap-4 items-center">
           <div className="w-16 h-16 rounded-full bg-surface-container shrink-0" />
@@ -119,7 +119,7 @@ export default function DoctorsDiscoveryPage() {
   return (
     <div className="min-h-screen bg-surface">
       {/* ── Gradient Hero ───────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-[#006b5e] via-[#31a795] to-[#48cab6]">
+      <div className="bg-gradient-to-br from-[#004d43] via-[#31a795] to-[#48cab6]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div>
@@ -223,4 +223,3 @@ export default function DoctorsDiscoveryPage() {
     </div>
   );
 }
-

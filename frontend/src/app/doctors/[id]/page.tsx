@@ -20,7 +20,7 @@ import type { DoctorProfile, AvailabilitySlot } from "@/types/api";
 function PageSkeleton() {
   return (
     <div className="min-h-screen bg-surface">
-      <div className="bg-gradient-to-br from-[#006b5e] via-[#31a795] to-[#48cab6] py-10">
+      <div className="bg-gradient-to-br from-[#004d43] via-[#31a795] to-[#48cab6] py-10">
         <div className="max-w-5xl mx-auto px-4 animate-pulse">
           <div className="h-4 bg-white/20 w-24 rounded mb-8" />
           <div className="flex gap-6 items-start">
@@ -131,7 +131,7 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
   if (error || !doctor) {
     return (
       <div className="min-h-screen bg-surface">
-        <div className="bg-gradient-to-br from-[#006b5e] via-[#31a795] to-[#48cab6] py-10">
+        <div className="bg-gradient-to-br from-[#004d43] via-[#31a795] to-[#48cab6] py-10">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <Link
               href="/doctors"
@@ -182,7 +182,7 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
       )}
 
       {/* ── Gradient Hero ────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-[#006b5e] via-[#31a795] to-[#48cab6]">
+      <div className="bg-gradient-to-br from-[#004d43] via-[#31a795] to-[#48cab6]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10">
           <Link
             href="/doctors"
