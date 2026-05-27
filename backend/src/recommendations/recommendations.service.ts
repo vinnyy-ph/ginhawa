@@ -46,20 +46,22 @@ export class RecommendationsService {
     return 'General Practice';
   }
 
-  async create(userId: string, createRecommendationDto: CreateRecommendationDto) {
-    const patientProfile = await this.prisma.patientProfile.findUnique({
-      where: { userId },
-    });
+  async create(userId: string | null, createRecommendationDto: CreateRecommendationDto) {
+    const matchedSpecialization = this.determineSpecialization(
+      createRecommendationDto.symptomInput,
+    );
 
-    if (!patientProfile) {
-      throw new NotFoundException('Patient profile not found');
+    let patientId: string | null = null;
+    if (userId) {
+      const patientProfile = await this.prisma.patientProfile.findUnique({
+        where: { userId },
+      });
+      patientId = patientProfile?.id ?? null;
     }
-
-    const matchedSpecialization = this.determineSpecialization(createRecommendationDto.symptomInput);
 
     return this.prisma.recommendationLog.create({
       data: {
-        patientId: patientProfile.id,
+        patientId,
         symptomInput: createRecommendationDto.symptomInput,
         matchedSpecialization,
       },

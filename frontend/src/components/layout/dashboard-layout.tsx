@@ -28,8 +28,8 @@ const patientNav: NavItem[] = [
   { href: '/dashboard', label: 'Overview', icon: <HomeIcon className="w-4 h-4" /> },
   { href: '/dashboard/appointments', label: 'Appointments', icon: <CalendarIcon className="w-4 h-4" /> },
   { href: '/dashboard/records', label: 'Medical Records', icon: <FileTextIcon className="w-4 h-4" /> },
-  { href: '/recommendations', label: 'AI Recommendations', icon: <ActivityLogIcon className="w-4 h-4" /> },
-  { href: '/doctors', label: 'Find Doctors', icon: <MagnifyingGlassIcon className="w-4 h-4" /> },
+  { href: '/dashboard/ai-recommendations', label: 'AI Recommendations', icon: <ActivityLogIcon className="w-4 h-4" /> },
+  { href: '/dashboard/find-doctors', label: 'Find Doctors', icon: <MagnifyingGlassIcon className="w-4 h-4" /> },
   { href: '/dashboard/notifications', label: 'Notifications', icon: <BellIcon className="w-4 h-4" /> },
 ];
 

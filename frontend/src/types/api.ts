@@ -96,7 +96,7 @@ export interface Notification {
 
 export interface RecommendationLog {
   id: string;
-  patientId: string;
+  patientId: string | null;
   symptomInput: string;
   matchedSpecialization: string;
   createdAt: string;

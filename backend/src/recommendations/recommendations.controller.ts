@@ -4,22 +4,25 @@ import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('recommendations')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class RecommendationsController {
   constructor(private readonly recommendationsService: RecommendationsService) {}
 
   @Post()
-  @Roles('PATIENT')
+  @Public()
+  @UseGuards(JwtAuthGuard)
   create(
-    @Request() req: { user: { id: string } },
+    @Request() req: { user?: { id?: string } },
     @Body() createRecommendationDto: CreateRecommendationDto,
   ) {
-    return this.recommendationsService.create(req.user.id, createRecommendationDto);
+    const userId = req.user?.id ?? null;
+    return this.recommendationsService.create(userId, createRecommendationDto);
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PATIENT')
   findAll(@Request() req: { user: { id: string } }) {
     return this.recommendationsService.findAllForPatient(req.user.id);

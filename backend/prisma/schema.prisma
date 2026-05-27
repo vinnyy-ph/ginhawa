@@ -158,8 +158,8 @@ model Notification {
 
 model RecommendationLog {
   id                    String         @id @default(cuid())
-  patientId             String         @map("patient_id")
-  patient               PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patientId             String?        @map("patient_id")
+  patient               PatientProfile? @relation(fields: [patientId], references: [id], onDelete: SetNull)
   symptomInput          String         @map("symptom_input")
   matchedSpecialization String         @map("matched_specialization")
   createdAt             DateTime       @default(now()) @map("created_at")

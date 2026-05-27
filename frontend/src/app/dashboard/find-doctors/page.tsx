@@ -80,7 +80,7 @@ function DoctorCard({ doctor }: { doctor: DoctorProfile }) {
                 : doctor.fullName}
             </h3>
             <p className="text-sm text-on-surface-variant mt-0.5 truncate">
-              {doctor.professionalTitle || "General Practitioner"}
+              {doctor.specialization || "General Practitioner"}
             </p>
           </div>
         </div>
@@ -203,22 +203,22 @@ export default function DashboardFindDoctorsPage() {
     () => searchParams.get("specialization") ?? ""
   );
 
-  async function fetchDoctors() {
+  const fetchDoctors = React.useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const data = await apiRequest<DoctorProfile[]>("/doctors");
       setDoctors(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to load doctors. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load doctors. Please try again.");
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     fetchDoctors();
-  }, []);
+  }, [fetchDoctors]);
 
   const specializations = useMemo(() => {
     const specs = new Set(doctors.map((d) => d.specialization));

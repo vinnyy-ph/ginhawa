@@ -131,7 +131,7 @@ export function DashboardClient() {
           <div className="lg:col-span-1 space-y-4">
             <h2 className="text-xl font-bold font-serif text-text-primary mb-4">Quick Actions</h2>
             
-            <Link href="/doctors" className="block group">
+            <Link href="/dashboard/find-doctors" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
                 <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
                   <MagnifyingGlassIcon className="w-6 h-6 text-white" />
@@ -143,7 +143,7 @@ export function DashboardClient() {
               </div>
             </Link>
             
-            <Link href="/recommendations" className="block group">
+            <Link href="/dashboard/ai-recommendations" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
                 <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
                   <ActivityLogIcon className="w-6 h-6 text-white" />
@@ -184,7 +184,7 @@ export function DashboardClient() {
                 </div>
                 <h3 className="font-semibold text-text-primary mb-2">No appointments yet</h3>
                 <p className="text-sm text-on-surface-variant mb-4">Book your first consultation to get started.</p>
-                <Link href="/doctors" className="inline-block px-4 py-2 bg-primary text-white text-sm font-semibold rounded-md shadow hover:bg-primary/90">
+                <Link href="/dashboard/find-doctors" className="inline-block px-4 py-2 bg-primary text-white text-sm font-semibold rounded-md shadow hover:bg-primary/90">
                   Find a Doctor
                 </Link>
               </div>
