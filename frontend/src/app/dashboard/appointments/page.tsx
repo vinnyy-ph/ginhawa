@@ -33,7 +33,7 @@ export default function PatientAppointmentsPage() {
         // Sort descending by start time
         data.sort((a, b) => new Date(b.slot?.startTime || 0).getTime() - new Date(a.slot?.startTime || 0).getTime());
         setAppointments(data);
-      } catch (err: any) {
+      } catch {
         setError("Failed to load your appointments.");
       } finally {
         setLoading(false);

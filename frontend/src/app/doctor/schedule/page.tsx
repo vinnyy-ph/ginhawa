@@ -60,6 +60,7 @@ export default function DoctorSchedulePage() {
     }
     
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   async function fetchSlots(doctorId: string) {

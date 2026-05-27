@@ -69,7 +69,8 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
         <div className="flex gap-4 items-start mb-4 pr-24">
           <div className="shrink-0">
             {doctor.profilePictureUrl ? (
-              <img
+              /* eslint-disable-next-line @next/next/no-img-element */
+            <img
                 src={doctor.profilePictureUrl}
                 alt={`Profile photo of ${doctor.fullName}`}
                 className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/20"

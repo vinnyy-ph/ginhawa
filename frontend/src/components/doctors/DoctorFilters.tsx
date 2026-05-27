@@ -39,6 +39,7 @@ export function DoctorFilters({
 
   // Sync local state when prop changes from outside (e.g. clear filters)
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalFilters(filters);
   }, [filters]);
 

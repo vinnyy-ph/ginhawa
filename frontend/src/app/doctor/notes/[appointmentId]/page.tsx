@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useState, use } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -20,10 +20,10 @@ import {
 } from "@radix-ui/react-icons";
 import type { Appointment, MedicalRecord } from "@/types/api";
 
-export default function DoctorNotesPage() {
-  const params = useParams();
+export default function DoctorNotesPage({ params }: { params: Promise<{ appointmentId: string }> }) {
   const router = useRouter();
-  const appointmentId = params.appointmentId as string;
+  const resolvedParams = use(params);
+  const appointmentId = resolvedParams.appointmentId;
   
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
@@ -47,16 +47,19 @@ export default function DoctorNotesPage() {
   useEffect(() => {
     async function fetchData() {
       if (!token || !appointmentId) return;
+      setLoading(true);
       try {
-        setLoading(true);
-
-        const [appt, recordsData] = await Promise.all([
-          apiRequest<Appointment>(`/appointments/${appointmentId}`, { token }),
-          apiRequest<MedicalRecord[]>("/medical-records/doctor", { token }),
-        ]);
-
+        const appt = await apiRequest<Appointment>(`/appointments/${appointmentId}`, { token });
         setAppointment(appt);
+      } catch (err) {
+        console.error("Failed to load appointment:", err);
+        setError("Appointment not found or you don't have permission to view it.");
+        setLoading(false);
+        return;
+      }
 
+      try {
+        const recordsData = await apiRequest<MedicalRecord[]>("/medical-records/doctor", { token });
         const record = recordsData.find(r => r.appointmentId === appointmentId);
         if (record) {
           setExistingRecord(record);
@@ -66,13 +69,13 @@ export default function DoctorNotesPage() {
           setFollowUpAdvice(record.followUpAdvice || "");
         }
       } catch (err) {
-        console.error(err);
-        setError("Appointment not found or you don't have permission to view it.");
+        console.error("Failed to load medical records:", err);
+        // Non-fatal: the form still works, just won't pre-fill existing record
       } finally {
         setLoading(false);
       }
     }
-    
+
     fetchData();
   }, [token, appointmentId]);
 

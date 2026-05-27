@@ -91,11 +91,6 @@ export class DoctorsService {
   }
 
   async findById(id: string) {
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(id)) {
-      throw new NotFoundException('Doctor not found');
-    }
     const profile = await this.prisma.doctorProfile.findUnique({
       where: { id },
       include: {

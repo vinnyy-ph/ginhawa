@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useState, use } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { apiRequest } from "@/lib/api-client";
@@ -53,10 +53,10 @@ function PageSkeleton() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function DoctorProfilePage() {
-  const params = useParams();
+export default function DoctorProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const id = params.id as string;
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
 
   const { data: session } = useSession();
   const isDoctor = session?.user?.role === "DOCTOR";
@@ -93,7 +93,7 @@ export default function DoctorProfilePage() {
               new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
           );
         setSlots(availableSlots);
-      } catch (err: any) {
+      } catch {
         setError(
           "Failed to load doctor profile. They may not exist or are unavailable."
         );
@@ -117,9 +117,9 @@ export default function DoctorProfilePage() {
       });
       setBookingSuccess(true);
       setTimeout(() => router.push("/dashboard/appointments"), 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setBookingError(
-        err.message || "Failed to book appointment. Please try again."
+        err instanceof Error ? err.message : "Failed to book appointment. Please try again."
       );
     } finally {
       setIsBooking(false);
@@ -195,6 +195,7 @@ export default function DoctorProfilePage() {
           <div className="flex flex-col sm:flex-row gap-6 items-start">
             <div className="shrink-0">
               {doctor.profilePictureUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={doctor.profilePictureUrl}
                   alt={`Profile of ${doctor.fullName}`}

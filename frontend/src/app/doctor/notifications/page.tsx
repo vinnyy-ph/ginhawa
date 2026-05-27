@@ -21,10 +21,12 @@ export default function DoctorNotificationsPage() {
   useEffect(() => {
     if (status === 'loading') return;
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }
     fetchNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, status]);
 
   async function fetchNotifications() {
@@ -33,7 +35,7 @@ export default function DoctorNotificationsPage() {
       setLoading(true);
       const data = await apiRequest<Notification[]>("/notifications", { token });
       setNotifications(data);
-    } catch (err: any) {
+    } catch {
       setError("Failed to load notifications.");
     } finally {
       setLoading(false);
@@ -111,7 +113,7 @@ export default function DoctorNotificationsPage() {
             </div>
             <h3 className="font-bold font-serif text-2xl text-text-primary mb-3">All caught up!</h3>
             <p className="text-on-surface-variant">
-              You don't have any new alerts or updates right now.
+              You don&apos;t have any new alerts or updates right now.
             </p>
           </div>
         ) : (

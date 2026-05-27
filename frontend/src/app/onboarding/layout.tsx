@@ -6,7 +6,8 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
     <OnboardingProvider>
       <div className="min-h-screen bg-surface flex flex-col">
         <header className="flex items-center gap-2 px-6 py-4 border-b border-outline-variant bg-surface-white">
-          <img src="/logo.svg" alt="Ginhawa" className="h-7 w-7" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.svg" alt="Ginhawa" className="h-7 w-7" />
           <span className="text-sm font-semibold text-primary font-plus-jakarta tracking-wide">
             Ginhawa
           </span>

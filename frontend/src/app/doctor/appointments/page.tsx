@@ -28,10 +28,12 @@ export default function DoctorAppointmentsPage() {
   useEffect(() => {
     if (status === 'loading') return;
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }
     fetchAppointments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, status]);
 
   async function fetchAppointments() {
@@ -42,7 +44,7 @@ export default function DoctorAppointmentsPage() {
       // Sort descending by start time
       data.sort((a, b) => new Date(b.slot?.startTime || 0).getTime() - new Date(a.slot?.startTime || 0).getTime());
       setAppointments(data);
-    } catch (err: any) {
+    } catch {
       setError("Failed to load your appointments.");
     } finally {
       setLoading(false);
@@ -63,7 +65,7 @@ export default function DoctorAppointmentsPage() {
         body: { status: newStatus }
       });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to update status", err);
       setActionError("Failed to update appointment status. Please try again.");
       fetchAppointments();

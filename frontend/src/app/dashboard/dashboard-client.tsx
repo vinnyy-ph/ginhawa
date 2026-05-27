@@ -88,7 +88,7 @@ export function DashboardClient() {
             Welcome back, {patientEmail.split('@')[0]}
           </h1>
           <p className="text-on-surface-variant font-sans">
-            Here's an overview of your health journey with Ginhawa.
+            Here&apos;s an overview of your health journey with Ginhawa.
           </p>
         </div>
 

@@ -103,6 +103,7 @@ export default function OnboardingStep4() {
           onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
         >
           {preview ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img src={preview} alt="Preview" className="h-full w-full object-cover" />
           ) : (
             <div className="flex flex-col items-center gap-1 text-outline">

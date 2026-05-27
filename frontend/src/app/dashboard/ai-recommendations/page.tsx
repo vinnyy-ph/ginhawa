@@ -38,7 +38,7 @@ export default function DashboardAIRecommendationsPage() {
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         setHistory(data);
-      } catch (err) {
+      } catch {
         console.error("Failed to load recommendation history");
       } finally {
         setLoadingHistory(false);
@@ -65,8 +65,8 @@ export default function DashboardAIRecommendationsPage() {
       setResult(data);
       // Prepend to history
       setHistory((prev) => [data, ...prev]);
-    } catch (err: any) {
-      setError(err.message || "Failed to analyze symptoms. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to analyze symptoms. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

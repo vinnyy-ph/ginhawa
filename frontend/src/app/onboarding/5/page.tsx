@@ -137,6 +137,7 @@ export default function OnboardingStep5() {
         <ReviewSection title="Profile Picture" editHref="/onboarding/4">
           {data.profilePictureUrl ? (
             <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={data.profilePictureUrl} alt="Profile preview" className="h-12 w-12 rounded-full object-cover border border-outline-variant" />
               <span className="text-success text-sm font-semibold">Photo uploaded</span>
             </div>

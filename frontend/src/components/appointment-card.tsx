@@ -201,16 +201,18 @@ export function AppointmentCard({
               <Button variant="destructive" size="sm" onClick={() => onUpdateStatus?.(appt.id, "CANCELLED")} className="bg-error/10 text-error hover:bg-error/20 border-0 mr-auto">
                 Cancel
               </Button>
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/doctor/notes/${appt.id}`}>Add Notes</Link>
-              </Button>
+              {appt.id && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/doctor/notes/${appt.id}`}>Add Notes</Link>
+                </Button>
+              )}
               <Button size="sm" onClick={() => onUpdateStatus?.(appt.id, "COMPLETED")} className="bg-[#31a795] text-white hover:bg-[#006b5e]">
                 Mark Complete
               </Button>
             </>
           )}
-          
-          {appt.status === "COMPLETED" && (
+
+          {appt.status === "COMPLETED" && appt.id && (
             <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
               <Link href={`/doctor/notes/${appt.id}`}>View / Edit Notes</Link>
             </Button>

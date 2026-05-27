@@ -20,6 +20,7 @@ export default function PatientNotificationsPage() {
 
   useEffect(() => {
     fetchNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   async function fetchNotifications() {
@@ -28,7 +29,7 @@ export default function PatientNotificationsPage() {
       setLoading(true);
       const data = await apiRequest<Notification[]>("/notifications", { token });
       setNotifications(data);
-    } catch (err: any) {
+    } catch {
       setError("Failed to load notifications.");
     } finally {
       setLoading(false);
@@ -106,7 +107,7 @@ export default function PatientNotificationsPage() {
             </div>
             <h3 className="font-bold font-serif text-2xl text-text-primary mb-3">All caught up!</h3>
             <p className="text-on-surface-variant">
-              You don't have any notifications at the moment.
+              You don&apos;t have any notifications at the moment.
             </p>
           </div>
         ) : (

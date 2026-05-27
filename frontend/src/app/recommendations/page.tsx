@@ -35,8 +35,8 @@ export default function RecommendationsPage() {
       });
       setResult(response);
       setStep(3);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -141,7 +141,7 @@ function SymptomsStep({
     <FadeIn>
       <div className="space-y-8">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl font-bold text-text-primary font-serif">Tell us what's happening.</h2>
+          <h2 className="text-3xl font-bold text-text-primary font-serif">Tell us what&apos;s happening.</h2>
           <p className="text-on-surface-variant">
             Describe your symptoms in your own words. The more detail you provide, the better we can help.
           </p>

@@ -47,7 +47,7 @@ function EmptyState({ onClearFilters }: { onClearFilters: () => void }) {
       </div>
       <h3 className="font-bold text-xl text-text-primary mb-2">No doctors found</h3>
       <p className="text-on-surface-variant text-sm max-w-xs mb-6">
-        We couldn't find any doctors matching your search or filters. Try a
+        We couldn&apos;t find any doctors matching your search or filters. Try a
         different keyword or clear your filters.
       </p>
       <Button variant="outline" onClick={onClearFilters} className="gap-2 border-primary text-primary hover:bg-primary/5">
@@ -190,9 +190,8 @@ export default function DoctorsDiscoveryPage() {
             <span className="text-on-surface-variant font-medium">Active filters:</span>
             {searchTerm && (
               <span className="bg-surface-container-low px-3 py-1 rounded-full border border-outline-variant/30 text-xs text-text-primary font-medium">
-                Search: "{searchTerm}"
-              </span>
-            )}
+                Search: &quot;{searchTerm}&quot;
+              </span>            )}
             <button
               onClick={clearFilters}
               className="text-primary hover:underline font-medium text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 rounded px-1"

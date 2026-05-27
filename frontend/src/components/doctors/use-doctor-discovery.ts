@@ -15,6 +15,17 @@ export function useDoctorDiscovery() {
   const [sort, setSort] = useState<SortOption>("relevance");
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const spec = params.get("specialization");
+      if (spec) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setFilters((prev) => ({ ...prev, specialization: spec }));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
     return () => clearTimeout(timer);
   }, [searchTerm]);
@@ -33,6 +44,7 @@ export function useDoctorDiscovery() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDoctors();
   }, [fetchDoctors]);
 
