@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { format, parse, isValid } from "date-fns"
+import { parse, isValid } from "date-fns"
 
 interface BirthdateInputProps {
   value?: string // YYYY-MM-DD
@@ -19,15 +19,21 @@ export function BirthdateInput({ value, onChange, disabled }: BirthdateInputProp
   const dayRef = React.useRef<HTMLInputElement>(null)
   const yearRef = React.useRef<HTMLInputElement>(null)
 
-  // Initialize from value
-  React.useEffect(() => {
+  // Initialize/Sync from value during render to avoid cascading renders in useEffect
+  const [prevValue, setPrevValue] = React.useState(value)
+  if (value !== prevValue) {
+    setPrevValue(value)
     if (value && value.length === 10) {
       const [y, m, d] = value.split("-")
-      setMonth(m)
-      setDay(d)
-      setYear(y)
+      setMonth(m || "")
+      setDay(d || "")
+      setYear(y || "")
+    } else if (!value || value.length === 0) {
+      setMonth("")
+      setDay("")
+      setYear("")
     }
-  }, [value])
+  }
 
   const updateValue = (m: string, d: string, y: string) => {
     if (m.length === 2 && d.length === 2 && y.length === 4) {
@@ -35,8 +41,11 @@ export function BirthdateInput({ value, onChange, disabled }: BirthdateInputProp
       const date = parse(dateStr, "yyyy-MM-dd", new Date())
       if (isValid(date)) {
         onChange(dateStr)
+        return
       }
     }
+    // If not complete or not valid, sync with empty string
+    onChange("")
   }
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,6 +86,8 @@ export function BirthdateInput({ value, onChange, disabled }: BirthdateInputProp
         <input
           ref={monthRef}
           type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
           placeholder="MM"
           value={month}
           onChange={handleMonthChange}
@@ -91,6 +102,8 @@ export function BirthdateInput({ value, onChange, disabled }: BirthdateInputProp
         <input
           ref={dayRef}
           type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
           placeholder="DD"
           value={day}
           onChange={handleDayChange}
@@ -106,6 +119,8 @@ export function BirthdateInput({ value, onChange, disabled }: BirthdateInputProp
         <input
           ref={yearRef}
           type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
           placeholder="YYYY"
           value={year}
           onChange={handleYearChange}
