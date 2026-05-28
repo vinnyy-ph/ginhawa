@@ -110,13 +110,12 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
       }
     }
 
-    let cachedLog = null;
-    if (patientId) {
-      cachedLog = await this.prisma.recommendationLog.findFirst({
-        where: { patientId, symptomInput: { equals: createRecommendationDto.symptomInput, mode: 'insensitive' }, aiExplanation: { not: null } },
-        orderBy: { createdAt: 'desc' },
-      });
-    }
+    const cachedLog = patientId 
+      ? await this.prisma.recommendationLog.findFirst({
+          where: { patientId, symptomInput: { equals: createRecommendationDto.symptomInput, mode: 'insensitive' }, aiExplanation: { not: null } },
+          orderBy: { createdAt: 'desc' },
+        })
+      : null;
     
     const self = this;
     async function* generateStream() {
