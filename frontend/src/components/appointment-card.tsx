@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,7 @@ export function AppointmentCard({
 }: AppointmentCardProps) {
   const slot = appt.slot;
   const config = statusConfig[appt.status] || { variant: "outline", border: "border-l-outline" };
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   if (role === "patient") {
     const doc = appt.doctor;
@@ -123,15 +124,33 @@ export function AppointmentCard({
                       <Button disabled variant="outline" size="sm" className="opacity-50 cursor-not-allowed">
                         Reschedule
                       </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm" 
-                        className={cn("bg-error/10 text-error border-0 hover:bg-error/20", isUpdating && "opacity-50")}
-                        onClick={() => onUpdateStatus?.(appt.id, "CANCELLED")}
-                        disabled={isUpdating}
-                      >
-                        Cancel
-                      </Button>
+                      {!confirmCancel ? (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className={cn("bg-error/10 text-error border-0 hover:bg-error/20", isUpdating && "opacity-50")}
+                          onClick={() => setConfirmCancel(true)}
+                          disabled={isUpdating}
+                        >
+                          Cancel
+                        </Button>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs font-semibold">
+                          <span className="text-error">Cancel appointment?</span>
+                          <button
+                            onClick={() => { onUpdateStatus?.(appt.id, "CANCELLED"); setConfirmCancel(false); }}
+                            className="px-2 py-1 bg-error text-white rounded shadow-sm hover:bg-error/90"
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() => setConfirmCancel(false)}
+                            className="px-2 py-1 bg-surface-container text-on-surface-variant rounded hover:bg-surface-variant"
+                          >
+                            No
+                          </button>
+                        </div>
+                      )}
                       {appt.status === "CONFIRMED" && isWithinJoinWindow(appt) && (
                         <Button asChild size="sm" className="bg-[#31a795] text-white hover:bg-[#006b5e]">
                           <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
@@ -208,9 +227,32 @@ export function AppointmentCard({
         <div className="p-4 bg-surface-container/30 border-t border-outline-variant/20 flex gap-2 justify-end">
           {appt.status === "PENDING" && (
             <>
-              <Button variant="destructive" size="sm" onClick={() => onUpdateStatus?.(appt.id, "CANCELLED")} className="bg-error/10 text-error hover:bg-error/20 border-0">
-                Cancel
-              </Button>
+              {!confirmCancel ? (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setConfirmCancel(true)}
+                  className="bg-error/10 text-error hover:bg-error/20 border-0"
+                >
+                  Cancel
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2 text-xs font-semibold">
+                  <span className="text-error">Cancel?</span>
+                  <button
+                    onClick={() => { onUpdateStatus?.(appt.id, "CANCELLED"); setConfirmCancel(false); }}
+                    className="px-2 py-1 bg-error text-white rounded shadow-sm hover:bg-error/90"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => setConfirmCancel(false)}
+                    className="px-2 py-1 bg-surface-container text-on-surface-variant rounded hover:bg-surface-variant"
+                  >
+                    No
+                  </button>
+                </div>
+              )}
               <Button variant="default" size="sm" onClick={() => onUpdateStatus?.(appt.id, "CONFIRMED")}>
                 Confirm Request
               </Button>
@@ -219,9 +261,32 @@ export function AppointmentCard({
 
           {appt.status === "CONFIRMED" && (
             <>
-              <Button variant="destructive" size="sm" onClick={() => onUpdateStatus?.(appt.id, "CANCELLED")} className="bg-error/10 text-error hover:bg-error/20 border-0 mr-auto">
-                Cancel
-              </Button>
+              {!confirmCancel ? (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setConfirmCancel(true)}
+                  className="bg-error/10 text-error hover:bg-error/20 border-0 mr-auto"
+                >
+                  Cancel
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2 text-xs font-semibold mr-auto">
+                  <span className="text-error">Cancel?</span>
+                  <button
+                    onClick={() => { onUpdateStatus?.(appt.id, "CANCELLED"); setConfirmCancel(false); }}
+                    className="px-2 py-1 bg-error text-white rounded shadow-sm hover:bg-error/90"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => setConfirmCancel(false)}
+                    className="px-2 py-1 bg-surface-container text-on-surface-variant rounded hover:bg-surface-variant"
+                  >
+                    No
+                  </button>
+                </div>
+              )}
               {appt.id && isWithinJoinWindow(appt) && (
                 <Button size="sm" asChild className="bg-[#31a795] text-white hover:bg-[#006b5e]">
                   <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
