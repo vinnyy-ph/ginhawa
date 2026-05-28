@@ -1,9 +1,9 @@
 // frontend/src/app/onboarding/2/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { step2Schema, type Step2Schema } from '@/lib/schemas/onboarding.schemas';
 import { useOnboarding } from '@/context/onboarding-context';
@@ -14,6 +14,11 @@ import { cn } from '@/lib/utils';
 
 type WeightUnit = 'kg' | 'lbs';
 type HeightUnit = 'cm' | 'ft';
+
+const KG_TO_LBS = 2.20462262;
+const LBS_TO_KG = 0.45359237;
+const FT_TO_CM = 30.48;
+const CM_TO_FT = 1 / 30.48;
 
 function UnitToggle({
   value,
@@ -50,20 +55,13 @@ export default function OnboardingStep2() {
   const { data, update } = useOnboarding();
   const [weightUnit, setWeightUnit] = useState<WeightUnit>('kg');
   const [heightUnit, setHeightUnit] = useState<HeightUnit>('cm');
-  const [bmi, setBmi] = useState<number | null>(() => {
-    if (data.weightKg && data.heightCm && data.heightCm > 0) {
-      const hMeter = data.heightCm / 100;
-      const result = data.weightKg / (hMeter * hMeter);
-      return Math.round(result * 10) / 10;
-    }
-    return null;
-  });
 
   const {
     register,
     handleSubmit,
     setValue,
     getValues,
+    control,
     formState: { errors },
   } = useForm<Step2Schema>({
     resolver: zodResolver(step2Schema),
@@ -74,41 +72,62 @@ export default function OnboardingStep2() {
     mode: 'onBlur',
   });
 
-  const calculateBMI = (w: number | undefined, h: number | undefined) => {
-    if (w && h && h > 0) {
-      const hMeter = h / 100;
-      const result = w / (hMeter * hMeter);
-      setBmi(Math.round(result * 10) / 10);
-    } else {
-      setBmi(null);
-    }
-  };
+  const watchedWeight = useWatch({ control, name: 'weightKg' });
+  const watchedHeight = useWatch({ control, name: 'heightCm' });
 
-  const inputClass =
-    'w-full rounded-md border border-outline-variant bg-surface-white px-3 py-2.5 text-sm text-on-surface font-manrope placeholder:text-outline transition-colors focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 aria-[invalid=true]:border-error';
+  // Local display states to avoid conversion drift while typing
+  const [displayWeight, setDisplayWeight] = useState(() => data.weightKg?.toString() ?? '');
+  const [displayHeight, setDisplayHeight] = useState(() => data.heightCm?.toString() ?? '');
+
+  const bmi = useMemo(() => {
+    if (watchedWeight && watchedHeight && watchedHeight > 0) {
+      const hMeter = watchedHeight / 100;
+      const result = watchedWeight / (hMeter * hMeter);
+      return Math.round(result * 10) / 10;
+    }
+    return null;
+  }, [watchedWeight, watchedHeight]);
 
   const handleWeightChange = (raw: string) => {
+    setDisplayWeight(raw);
     const num = parseFloat(raw);
     if (isNaN(num)) {
       setValue('weightKg', undefined as never);
-      calculateBMI(undefined, getValues('heightCm'));
       return;
     }
-    const kg = weightUnit === 'lbs' ? Math.round(num * 0.453592 * 10) / 10 : num;
+    const kg = weightUnit === 'lbs' ? num * LBS_TO_KG : num;
     setValue('weightKg', kg, { shouldValidate: true });
-    calculateBMI(kg, getValues('heightCm'));
   };
 
   const handleHeightChange = (raw: string) => {
+    setDisplayHeight(raw);
     const num = parseFloat(raw);
     if (isNaN(num)) {
       setValue('heightCm', undefined as never);
-      calculateBMI(getValues('weightKg'), undefined);
       return;
     }
-    const cm = heightUnit === 'ft' ? Math.round(num * 30.48 * 10) / 10 : num;
+    const cm = heightUnit === 'ft' ? num * FT_TO_CM : num;
     setValue('heightCm', cm, { shouldValidate: true });
-    calculateBMI(getValues('weightKg'), cm);
+  };
+
+  const toggleWeightUnit = (unit: WeightUnit) => {
+    if (unit === weightUnit) return;
+    setWeightUnit(unit);
+    const currentKg = getValues('weightKg');
+    if (currentKg) {
+      const displayVal = unit === 'lbs' ? currentKg * KG_TO_LBS : currentKg;
+      setDisplayWeight(Math.round(displayVal * 10) / 10 + '');
+    }
+  };
+
+  const toggleHeightUnit = (unit: HeightUnit) => {
+    if (unit === heightUnit) return;
+    setHeightUnit(unit);
+    const currentCm = getValues('heightCm');
+    if (currentCm) {
+      const displayVal = unit === 'ft' ? currentCm * CM_TO_FT : currentCm;
+      setDisplayHeight(Math.round(displayVal * 10) / 10 + '');
+    }
   };
 
   const onSubmit = (values: Step2Schema) => {
@@ -122,6 +141,9 @@ export default function OnboardingStep2() {
     if (val < 30) return { label: 'Overweight', color: 'bg-yellow-100 text-yellow-700' };
     return { label: 'Obese', color: 'bg-red-100 text-red-700' };
   };
+
+  const inputClass =
+    'w-full rounded-md border border-outline-variant bg-surface-white px-3 py-2.5 text-sm text-on-surface font-manrope placeholder:text-outline transition-colors focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 aria-[invalid=true]:border-error';
 
   return (
     <div className="flex flex-col gap-6">
@@ -151,13 +173,14 @@ export default function OnboardingStep2() {
                 type="number"
                 step="0.1"
                 min="0"
+                value={displayWeight}
                 placeholder={weightUnit === 'kg' ? '65' : '143'}
                 className={cn(inputClass, 'pl-10')}
                 onChange={(e) => handleWeightChange(e.target.value)}
                 aria-invalid={errors.weightKg ? true : undefined}
               />
             </div>
-            <UnitToggle value={weightUnit} options={['kg', 'lbs']} onChange={(v) => setWeightUnit(v as WeightUnit)} />
+            <UnitToggle value={weightUnit} options={['kg', 'lbs']} onChange={(v) => toggleWeightUnit(v as WeightUnit)} />
           </div>
         </FormField>
 
@@ -178,18 +201,22 @@ export default function OnboardingStep2() {
                 type="number"
                 step="0.1"
                 min="0"
+                value={displayHeight}
                 placeholder={heightUnit === 'cm' ? '165' : '5.4'}
                 className={cn(inputClass, 'pl-10')}
                 onChange={(e) => handleHeightChange(e.target.value)}
                 aria-invalid={errors.heightCm ? true : undefined}
               />
             </div>
-            <UnitToggle value={heightUnit} options={['cm', 'ft']} onChange={(v) => setHeightUnit(v as HeightUnit)} />
+            <UnitToggle value={heightUnit} options={['cm', 'ft']} onChange={(v) => toggleHeightUnit(v as HeightUnit)} />
           </div>
         </FormField>
 
         {bmi !== null && (
-          <div className="p-4 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-300">
+          <div 
+            className="p-4 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-300"
+            aria-live="polite"
+          >
             <div className="flex flex-col">
               <span className="text-[10px] text-on-surface-variant font-manrope font-bold uppercase tracking-widest">Estimated BMI</span>
               <span className="text-2xl font-bold text-on-surface font-plus-jakarta tracking-tight">{bmi}</span>
