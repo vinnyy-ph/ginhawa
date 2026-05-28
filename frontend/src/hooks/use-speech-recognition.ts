@@ -67,19 +67,56 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     const SpeechRecognitionAPI = win.SpeechRecognition || win.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) return;
 
+    // Stop any existing recognition session
+    if (recognitionRef.current) {
+      recognitionRef.current.onend = null;
+      recognitionRef.current.stop();
+    }
+
     const recognition = new SpeechRecognitionAPI();
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = false;
     recognition.lang = 'en-US';
 
+    let gotResult = false;
+
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const transcript = event.results[0][0].transcript;
-      onTranscript(transcript);
+      // Find the latest final result
+      for (let i = event.results.length - 1; i >= 0; i--) {
+        if (event.results[i].isFinal) {
+          const transcript = event.results[i][0].transcript;
+          onTranscript(transcript);
+          gotResult = true;
+          // Auto-stop after capturing speech
+          recognition.stop();
+          return;
+        }
+      }
+    };
+
+    recognition.onerror = (event: Event) => {
+      const errorEvent = event as Event & { error?: string };
+      // Ignore 'no-speech' — user just hasn't spoken yet; keep listening
+      if (errorEvent.error === 'no-speech') return;
+      // Abort on real errors (not-allowed, network, etc.)
       setIsListening(false);
     };
 
-    recognition.onerror = () => setIsListening(false);
-    recognition.onend = () => setIsListening(false);
+    recognition.onend = () => {
+      if (gotResult) {
+        // Normal completion — we got speech and stopped
+        setIsListening(false);
+      } else if (recognitionRef.current === recognition) {
+        // Chrome fires 'onend' prematurely (e.g., after no-speech timeout).
+        // Restart if the user hasn't clicked stop.
+        try {
+          recognition.start();
+        } catch {
+          // start() can throw if recognition was aborted — just stop
+          setIsListening(false);
+        }
+      }
+    };
 
     recognitionRef.current = recognition;
     recognition.start();
@@ -87,7 +124,12 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
   };
 
   const stopListening = () => {
-    recognitionRef.current?.stop();
+    const recognition = recognitionRef.current;
+    if (recognition) {
+      recognition.onend = null; // Prevent restart loop
+      recognition.stop();
+    }
+    recognitionRef.current = null;
     setIsListening(false);
   };
 
