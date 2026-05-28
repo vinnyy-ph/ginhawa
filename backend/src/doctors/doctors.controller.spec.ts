@@ -9,6 +9,7 @@ describe('DoctorsController', () => {
 
   const mockDoctorsService = {
     create: jest.fn(),
+    upsertProfile: jest.fn(),
     findByUserId: jest.fn(),
     update: jest.fn(),
     searchAll: jest.fn(),
@@ -48,9 +49,7 @@ describe('DoctorsController', () => {
         };
 
       const req = { user: { id: 'user-id' } };
-      mockDoctorsService.upsertProfile = jest
-        .fn()
-        .mockResolvedValue({ profileComplete: true });
+      mockDoctorsService.upsertProfile.mockResolvedValue({ profileComplete: true });
 
       const result = await controller.create(req, createDto);
 

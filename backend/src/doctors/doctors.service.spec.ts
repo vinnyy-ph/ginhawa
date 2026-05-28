@@ -11,6 +11,7 @@ describe('DoctorsService', () => {
     doctorProfile: {
       findUnique: jest.fn(),
       create: jest.fn(),
+      upsert: jest.fn(),
       update: jest.fn(),
       findMany: jest.fn(),
     },
@@ -78,10 +79,7 @@ describe('DoctorsService', () => {
         bio: 'Hello',
       };
 
-      // Mock prisma.doctorProfile.upsert
-      mockPrismaService.doctorProfile.upsert = jest
-        .fn()
-        .mockResolvedValue({ ...dto, userId, id: 'profile-1' });
+      mockPrismaService.doctorProfile.upsert.mockResolvedValue({ ...dto, userId, id: 'profile-1' });
 
       const result = await service.upsertProfile(userId, dto);
 
