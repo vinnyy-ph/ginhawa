@@ -199,19 +199,23 @@ export default function FeaturesPage() {
         </section>
 
         {/* ── CTA Section ────────────────────────────────────────────────── */}
-        <section className="py-24 bg-[#004d43] relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(49,167,149,0.2)_0%,transparent_70%)] pointer-events-none" />
-          <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
+        <section className="py-20 bg-background relative overflow-hidden">
+          <div className="absolute inset-0 bg-primary/5 -skew-y-3 origin-right scale-110" />
+
+          <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 relative z-10 text-center">
             <FadeIn>
-              <h2 className="text-3xl md:text-5xl font-bold text-white font-serif tracking-tight mb-8">
-                Ready to experience Ginhawa?
+              <h2 className="text-3xl font-bold tracking-tight text-text-primary sm:text-5xl mb-6 font-serif">
+                Ready to find the right care?
               </h2>
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                <Button size="lg" className="w-full sm:w-auto bg-white text-[#004d43] hover:bg-surface-container-low px-10 py-7 rounded-2xl text-lg font-bold shadow-soft" asChild>
-                  <Link href="/recommendations">Check My Symptoms</Link>
+              <p className="mx-auto max-w-2xl text-lg text-on-surface-variant mb-10">
+                Answer a few questions about your symptoms and <span className="text-primary font-bold">Ginhawa</span> will match you to the right specialist — free, no account needed.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <Button size="lg" className="rounded-full px-10" asChild>
+                  <Link href="/recommendations">Check My Symptoms →</Link>
                 </Button>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 px-10 py-7 rounded-2xl text-lg font-bold" asChild>
-                  <Link href="/doctors">Browse Doctors</Link>
+                <Button size="lg" variant="outline" className="rounded-full px-10" asChild>
+                  <Link href="/doctors">Browse all doctors →</Link>
                 </Button>
               </div>
             </FadeIn>

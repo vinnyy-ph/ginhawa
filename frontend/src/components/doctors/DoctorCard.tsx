@@ -46,128 +46,122 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
       );
       if (hasToday) {
         availabilityStatus = "Available Today";
-        badgeColor = "bg-[#48cab6]/10 text-[#004d43] border-[#48cab6]/30";
+        badgeColor = "bg-primary/10 text-primary border-primary/20";
       } else {
         availabilityStatus = "Available Soon";
-        badgeColor = "bg-primary/10 text-primary border-primary/20";
+        badgeColor = "bg-secondary-container/30 text-on-secondary-container border-secondary-container/50";
       }
     }
   }
 
   return (
-    <div className="bg-surface-white rounded-2xl shadow-soft overflow-hidden flex flex-col hover:-translate-y-1 hover:shadow-lifted transition-all duration-300 border border-transparent hover:border-primary/20 group relative">
-      <div className="h-2 bg-gradient-to-r from-[#004d43] via-[#31a795] to-[#48cab6]" />
+    <div className="bg-surface-white rounded-3xl shadow-sm border border-outline-variant/30 overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition-all duration-300 group">
       
-      {/* Availability Badge Absolute */}
-      <div className="absolute top-5 right-5">
-        <div className={cn("px-2.5 py-1 text-[10px] font-bold tracking-wide uppercase rounded-full border", badgeColor)}>
-          {availabilityStatus}
-        </div>
+      {/* Left: Image / Avatar */}
+      <div className="p-6 sm:pr-0 shrink-0 flex flex-col items-center sm:items-start relative">
+        {doctor.profilePictureUrl ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={doctor.profilePictureUrl}
+            alt={`Profile photo of ${doctor.fullName}`}
+            className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover ring-4 ring-surface-container-low"
+          />
+        ) : (
+          <div
+            className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-primary-container to-primary flex items-center justify-center ring-4 ring-surface-container-low shadow-inner"
+            aria-label={`Avatar for ${doctor.fullName}`}
+          >
+            <span className="text-white font-bold text-3xl font-serif">{initials}</span>
+          </div>
+        )}
       </div>
 
-      <div className="p-6 flex flex-col flex-1">
-        <div className="flex gap-4 items-start mb-4 pr-24">
-          <div className="shrink-0">
-            {doctor.profilePictureUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-                src={doctor.profilePictureUrl}
-                alt={`Profile photo of ${doctor.fullName}`}
-                className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/20"
-              />
-            ) : (
-              <div
-                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#48cab6] to-[#004d43] flex items-center justify-center ring-2 ring-primary/10 shadow-inner"
-                aria-label={`Avatar for ${doctor.fullName}`}
-              >
-                <span className="text-white font-bold text-xl">{initials}</span>
-              </div>
-            )}
-          </div>
-          <div className="flex-1 min-w-0 pt-1">
-            <h3 className="font-bold text-lg text-text-primary leading-tight group-hover:text-primary transition-colors truncate">
+      {/* Right: Content */}
+      <div className="p-6 flex-1 flex flex-col">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div>
+            <h3 className="font-bold text-2xl text-text-primary leading-tight font-serif tracking-tight group-hover:text-primary transition-colors">
               {doctor.professionalTitle
                 ? `${doctor.professionalTitle} ${doctor.fullName}`
                 : doctor.fullName}
             </h3>
-            <div className="flex items-center gap-2 mt-1.5">
-              <Badge
-                variant="outline"
-                className="text-[11px] border-[#31a795]/40 text-[#004d43] bg-[#48cab6]/5 font-semibold px-2 py-0.5 rounded-md"
-              >
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-primary font-semibold uppercase tracking-widest text-[11px]">
                 {doctor.specialization}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Row */}
-        <div className="flex items-center gap-4 mb-4 pb-4 border-b border-surface-container/60 text-xs">
-          {doctor.yearsOfExperience !== undefined && doctor.yearsOfExperience !== null && (
-            <div className="flex flex-col">
-              <span className="text-on-surface-variant font-medium uppercase tracking-wider text-[10px]">Experience</span>
-              <span className="text-text-primary font-semibold mt-0.5">{doctor.yearsOfExperience}+ Years</span>
-            </div>
-          )}
-          {doctor.consultationFee !== undefined && doctor.consultationFee !== null && (
-            <div className="flex flex-col pl-4 border-l border-surface-container/60">
-              <span className="text-on-surface-variant font-medium uppercase tracking-wider text-[10px]">Fee</span>
-              <span className="text-[#004d43] font-bold mt-0.5">₱{doctor.consultationFee.toLocaleString()}</span>
-            </div>
-          )}
-          {languages.length > 0 && (
-            <div className="flex flex-col pl-4 border-l border-surface-container/60 truncate">
-              <span className="text-on-surface-variant font-medium uppercase tracking-wider text-[10px]">Speaks</span>
-              <span className="text-text-primary font-medium mt-0.5 truncate max-w-[100px]" title={languages.join(", ")}>
-                {languages.join(", ")}
               </span>
             </div>
-          )}
-        </div>
-
-        {/* Focus Areas */}
-        {focusAreas.length > 0 && (
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-1.5">
-              {focusAreas.slice(0, 2).map((area, idx) => (
-                <span key={idx} className="bg-surface-container-low text-on-surface text-[11px] px-2 py-1 rounded-md border border-outline-variant/30 font-medium">
-                  {area}
-                </span>
-              ))}
-              {focusAreas.length > 2 && (
-                <span className="bg-surface-container text-on-surface-variant text-[11px] px-2 py-1 rounded-md font-medium" title={focusAreas.slice(2).join(", ")}>
-                  +{focusAreas.length - 2} more
-                </span>
-              )}
-            </div>
           </div>
-        )}
+          
+          <div className={cn("px-3 py-1.5 text-xs font-bold tracking-wide uppercase rounded-full border whitespace-nowrap", badgeColor)}>
+            {availabilityStatus}
+          </div>
+        </div>
 
         {/* Bio */}
         {doctor.bio && (
-          <div className="mb-5 flex-1">
-            <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-2">
-              {doctor.bio}
-            </p>
+          <p className="mt-4 text-on-surface-variant text-base leading-relaxed line-clamp-2 md:line-clamp-3">
+            {doctor.bio}
+          </p>
+        )}
+
+        {/* Focus Areas */}
+        {focusAreas.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {focusAreas.slice(0, 3).map((area, idx) => (
+              <span key={idx} className="bg-surface-container-lowest text-on-surface-variant text-xs px-2.5 py-1 rounded-md border border-outline-variant/40 font-medium">
+                {area}
+              </span>
+            ))}
+            {focusAreas.length > 3 && (
+              <span className="bg-surface-container-low text-on-surface-variant text-xs px-2.5 py-1 rounded-md font-medium">
+                +{focusAreas.length - 3} more
+              </span>
+            )}
           </div>
         )}
 
-        <div className={cn("mt-auto", !doctor.bio && "pt-2")}>
+        {/* Bottom Meta & Action */}
+        <div className={cn("mt-6 pt-5 border-t border-outline-variant/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5", !doctor.bio && !focusAreas.length && "mt-auto")}>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+            {doctor.yearsOfExperience !== undefined && doctor.yearsOfExperience !== null && (
+              <div className="flex flex-col">
+                <span className="text-on-surface-variant font-semibold uppercase tracking-wider text-[10px]">Experience</span>
+                <span className="text-text-primary font-bold mt-0.5">{doctor.yearsOfExperience}+ Years</span>
+              </div>
+            )}
+            
+            {doctor.consultationFee !== undefined && doctor.consultationFee !== null && (
+              <div className="flex flex-col">
+                <span className="text-on-surface-variant font-semibold uppercase tracking-wider text-[10px]">Consultation Fee</span>
+                <span className="text-primary font-bold mt-0.5 font-mono">₱{doctor.consultationFee.toLocaleString()}</span>
+              </div>
+            )}
+
+            {languages.length > 0 && (
+              <div className="flex flex-col max-w-[120px] sm:max-w-none">
+                <span className="text-on-surface-variant font-semibold uppercase tracking-wider text-[10px]">Languages</span>
+                <span className="text-text-primary font-medium mt-0.5 truncate" title={languages.join(", ")}>
+                  {languages.join(", ")}
+                </span>
+              </div>
+            )}
+          </div>
+
           <Link
             href={`/doctors/${doctor.id}`}
-            className="block w-full"
+            className="w-full sm:w-auto shrink-0"
             aria-label={`${isPatient ? "Book appointment with" : "View profile of"} ${doctor.fullName}`}
           >
             <Button 
               className={cn(
-                "w-full rounded-xl py-5 font-semibold transition-all shadow-sm", 
+                "w-full rounded-2xl py-6 px-8 font-semibold transition-all shadow-soft", 
                 isPatient 
-                  ? "bg-[#004d43] hover:bg-[#005248] text-white" 
-                  : "bg-surface-white border-[#31a795] text-[#004d43] hover:bg-[#48cab6]/10"
+                  ? "bg-primary hover:bg-primary/90 text-white" 
+                  : "bg-surface-white border-primary/50 text-primary hover:bg-primary/5"
               )} 
               variant={isPatient ? "default" : "outline"}
             >
-              {isPatient ? "Book Appointment" : "View Profile"}
+              {isPatient ? "Book Appointment" : "View Full Profile"}
             </Button>
           </Link>
         </div>
