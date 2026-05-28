@@ -38,6 +38,10 @@ export class AppointmentsService {
         throw new BadRequestException('Slot is not available');
       }
 
+      if (new Date(slot.startTime) < new Date()) {
+        throw new BadRequestException('Cannot book a slot in the past');
+      }
+
       await tx.availabilitySlot.update({
         where: { id: slot.id },
         data: { status: SlotStatus.BOOKED },
