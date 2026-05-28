@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { v2 as cloudinary } from 'cloudinary';
 
 @Injectable()
 export class UploadsService {
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: ConfigService) {
+    cloudinary.config({
+      cloud_name: this.configService.get<string>('CLOUDINARY_CLOUD_NAME'),
+      api_key: this.configService.get<string>('CLOUDINARY_API_KEY'),
+      api_secret: this.configService.get<string>('CLOUDINARY_API_SECRET'),
+    });
+  }
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
     if (this.configService.get<string>('STORAGE') === 'cloudinary') {
@@ -18,9 +25,16 @@ export class UploadsService {
     return `${baseUrl}/uploads/${file.filename}`;
   }
 
-  private uploadToCloudinary(file: Express.Multer.File): Promise<string> {
-    // Deferred to deployment time as per docs/STORAGE-SPECS.md
-    void file;
-    return Promise.reject(new Error('Cloudinary not configured yet.'));
+  private async uploadToCloudinary(file: Express.Multer.File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.upload(
+        file.path,
+        { folder: 'telehealth-profiles' },
+        (error, result) => {
+          if (error || !result) return reject(error ?? new Error('No result from Cloudinary'));
+          resolve(result.secure_url);
+        },
+      );
+    });
   }
 }
