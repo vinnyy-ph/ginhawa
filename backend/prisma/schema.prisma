@@ -158,12 +158,13 @@ model Notification {
 }
 
 model RecommendationLog {
-  id                    String         @id @default(cuid())
-  patientId             String?        @map("patient_id")
+  id                    String          @id @default(cuid())
+  patientId             String?         @map("patient_id")
   patient               PatientProfile? @relation(fields: [patientId], references: [id], onDelete: SetNull)
-  symptomInput          String         @map("symptom_input")
-  matchedSpecialization String         @map("matched_specialization")
-  createdAt             DateTime       @default(now()) @map("created_at")
+  symptomInput          String          @map("symptom_input")
+  matchedSpecialization String          @map("matched_specialization")
+  aiExplanation         String?         @map("ai_explanation")
+  createdAt             DateTime        @default(now()) @map("created_at")
 
   @@index([patientId])
   @@map("recommendation_logs")
