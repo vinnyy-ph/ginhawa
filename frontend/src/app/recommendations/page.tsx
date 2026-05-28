@@ -191,6 +191,7 @@ function SymptomsStep({
                       ? "bg-surface-variant text-on-surface-variant opacity-70 cursor-not-allowed"
                       : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
                   }`}
+                  aria-label={isRecording ? "Stop recording" : "Start voice input"}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -210,7 +211,7 @@ function SymptomsStep({
               aria-invalid={!!error}
               aria-describedby={error ? "symptoms-error" : undefined}
             />
-            {micError && <div className="text-error text-sm mt-2">{micError}</div>}
+            {micError && <div className="text-error text-sm mt-2" role="alert">{micError}</div>}
             {error && (
               <p id="symptoms-error" className="text-sm text-error font-medium flex items-center gap-2">
                 <ExclamationTriangleIcon className="w-4 h-4" />
