@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,6 +28,16 @@ export default function RecommendationsPage() {
   const [streamingExplanation, setStreamingExplanation] = useState<string>("");
 
   const { isRecording, isProcessing, isSupported, error: micError, startRecording, stopRecording } = useSpeechRecognition();
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const prefilledSymptoms = searchParams.get("symptoms");
+    if (prefilledSymptoms) {
+      setSymptoms(prefilledSymptoms);
+      setStep(2);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTranscript = (text: string) => {
     setSymptoms((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
