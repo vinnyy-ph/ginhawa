@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,12 @@ export default function RecommendationsPage() {
   const [result, setResult] = useState<RecommendationLog | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition();
+
+  const handleTranscript = (text: string) => {
+    setSymptoms((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
+  };
 
   const handleAnalyze = async () => {
     if (symptoms.trim().length < 10) return;
@@ -73,6 +80,11 @@ export default function RecommendationsPage() {
               onAnalyze={handleAnalyze}
               isAnalyzing={isAnalyzing}
               error={error}
+              isListening={isListening}
+              isSupported={isSupported}
+              onMicClick={() =>
+                isListening ? stopListening() : startListening(handleTranscript)
+              }
             />
           )}
           {step === 3 && <ResultsStep result={result} onRestart={handleRestart} />}
@@ -122,20 +134,26 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
   );
 }
 
-function SymptomsStep({ 
-  symptoms, 
-  setSymptoms, 
-  onBack, 
+function SymptomsStep({
+  symptoms,
+  setSymptoms,
+  onBack,
   onAnalyze,
   isAnalyzing,
-  error
-}: { 
-  symptoms: string; 
-  setSymptoms: (val: string) => void; 
+  error,
+  isListening,
+  isSupported,
+  onMicClick,
+}: {
+  symptoms: string;
+  setSymptoms: (val: string) => void;
   onBack: () => void;
   onAnalyze: () => void;
   isAnalyzing: boolean;
   error: string | null;
+  isListening: boolean;
+  isSupported: boolean;
+  onMicClick: () => void;
 }) {
   return (
     <FadeIn>
@@ -149,9 +167,29 @@ function SymptomsStep({
 
         <Card className="p-8 shadow-soft border-outline-variant/30 rounded-xl">
           <div className="space-y-4">
-            <label htmlFor="symptoms" className="block text-sm font-bold text-text-primary">
-              Your Symptoms
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="symptoms" className="block text-sm font-bold text-text-primary">
+                Your Symptoms
+              </label>
+              {isSupported && (
+                <button
+                  type="button"
+                  onClick={onMicClick}
+                  className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
+                    isListening
+                      ? "bg-error text-white animate-pulse"
+                      : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+                  }`}
+                  aria-label={isListening ? "Stop recording" : "Start voice input"}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2H3v2a9 9 0 0 0 8 8.94V23h-3v2h8v-2h-3v-2.06A9 9 0 0 0 21 12v-2h-2z"/>
+                  </svg>
+                  {isListening ? "Listening..." : "Speak"}
+                </button>
+              )}
+            </div>
             <textarea
               id="symptoms"
               autoFocus
@@ -178,8 +216,8 @@ function SymptomsStep({
             <Button variant="outline" className="flex-1 py-6 rounded-xl" onClick={onBack}>
               Back
             </Button>
-            <Button 
-              className="flex-1 py-6 shadow-soft rounded-xl" 
+            <Button
+              className="flex-1 py-6 shadow-soft rounded-xl"
               disabled={symptoms.trim().length < 10 || isAnalyzing}
               onClick={onAnalyze}
             >
@@ -246,6 +284,11 @@ function ResultsStep({ result, onRestart }: { result: RecommendationLog | null; 
             <h3 className="text-4xl md:text-5xl font-bold font-serif">{result.matchedSpecialization}</h3>
           </div>
           <div className="p-8 bg-white space-y-6">
+            {result.aiExplanation && (
+              <p className="text-on-surface-variant text-sm leading-relaxed italic border-l-4 border-primary/30 pl-4">
+                {result.aiExplanation}
+              </p>
+            )}
             <div className="space-y-4">
               <Button asChild size="lg" className="w-full py-8 text-lg rounded-xl shadow-soft">
                 <Link href={`/doctors?specialization=${encodeURIComponent(result.matchedSpecialization)}`}>
