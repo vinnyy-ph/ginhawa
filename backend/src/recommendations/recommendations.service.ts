@@ -123,6 +123,7 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
 
     const cachedLog = await this.prisma.recommendationLog.findFirst({
       where: {
+        patientId,
         symptomInput: { equals: createRecommendationDto.symptomInput, mode: 'insensitive' },
         aiExplanation: { not: null },
       },

@@ -117,8 +117,6 @@ describe('RecommendationsService', () => {
         matchedSpecialization: 'Cardiology',
         aiExplanation: 'Cached explanation',
       });
-      // Spy on getAIRecommendation to ensure it is NOT called
-      const aiSpy = jest.spyOn(service as any, 'getAIRecommendation');
       // Mock create so it returns the newly saved log based on cache
       mockPrismaService.recommendationLog.create.mockResolvedValueOnce({
         id: 'new-log',
@@ -128,7 +126,7 @@ describe('RecommendationsService', () => {
 
       const result = await service.create(null, { symptomInput: 'Chest pain' });
       expect(mockPrismaService.recommendationLog.findFirst).toHaveBeenCalled();
-      expect(aiSpy).not.toHaveBeenCalled();
+      expect(mockGenerateContent).not.toHaveBeenCalled();
       expect(result.matchedSpecialization).toBe('Cardiology');
     });
   });
@@ -166,6 +164,36 @@ describe('RecommendationsService', () => {
           aiExplanation: 'Given your history of cardiology.',
         },
       });
+    });
+
+    it('should return cached recommendation for logged-in user if exact match exists', async () => {
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue({
+        id: 'patient-1',
+      });
+      mockPrismaService.recommendationLog.findFirst.mockResolvedValueOnce({
+        id: 'cached-log-2',
+        patientId: 'patient-1',
+        matchedSpecialization: 'Dermatology',
+        aiExplanation: 'Cached explanation for user',
+      });
+      mockPrismaService.recommendationLog.create.mockResolvedValueOnce({
+        id: 'new-log-2',
+        patientId: 'patient-1',
+        matchedSpecialization: 'Dermatology',
+        aiExplanation: 'Cached explanation for user',
+      });
+
+      const result = await service.create('user-1', { symptomInput: 'rash' });
+      
+      expect(mockPrismaService.recommendationLog.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            patientId: 'patient-1',
+          }),
+        })
+      );
+      expect(mockGenerateContent).not.toHaveBeenCalled();
+      expect(result.matchedSpecialization).toBe('Dermatology');
     });
   });
 
