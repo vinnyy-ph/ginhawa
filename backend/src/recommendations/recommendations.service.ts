@@ -73,22 +73,7 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
 
     const prompt = this.buildPrompt(symptomInput, patientContext);
 
-    let result;
-    const maxRetries = 3;
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        result = await model.generateContentStream(prompt);
-        break;
-      } catch (error) {
-        if (attempt === maxRetries) {
-          throw new InternalServerErrorException('AI recommendation service unavailable');
-        }
-      }
-    }
-
-    if (!result) {
-      throw new InternalServerErrorException('AI recommendation service unavailable');
-    }
+    const result = await model.generateContentStream(prompt);
 
     let fullText = '';
     for await (const chunk of result.stream) {
@@ -143,9 +128,13 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
       const streamGenerator = self.getAIRecommendationStream(createRecommendationDto.symptomInput, patientContext);
       
       const parsedResult = yield* streamGenerator;
-      await self.prisma.recommendationLog.create({
-        data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: parsedResult.specialization, aiExplanation: parsedResult.explanation },
-      });
+      try {
+        await self.prisma.recommendationLog.create({
+          data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: parsedResult.specialization, aiExplanation: parsedResult.explanation },
+        });
+      } catch (error) {
+        console.error("Failed to save recommendation log to database", error);
+      }
     }
 
     return generateStream();

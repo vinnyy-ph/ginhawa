@@ -69,12 +69,16 @@ export default function DashboardAIRecommendationsPage() {
       setStreamingSpecialization(null);
       setStreamingExplanation("");
 
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recommendations`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
         body: JSON.stringify({ symptomInput: symptoms }),
       });
 
@@ -91,6 +95,9 @@ export default function DashboardAIRecommendationsPage() {
         done = doneReading;
         if (value) {
           const chunkValue = decoder.decode(value, { stream: true });
+          if (chunkValue.includes('{"error":')) {
+            throw new Error("Stream failed midway");
+          }
           fullText += chunkValue;
           
           try {

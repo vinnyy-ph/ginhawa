@@ -1,0 +1,416 @@
+diff --git a/backend/src/recommendations/recommendations.service.spec.ts b/backend/src/recommendations/recommendations.service.spec.ts
+index 09ddeac..2639344 100644
+--- a/backend/src/recommendations/recommendations.service.spec.ts
++++ b/backend/src/recommendations/recommendations.service.spec.ts
+@@ -3,14 +3,15 @@ import { RecommendationsService } from './recommendations.service';
+ import { PrismaService } from '../prisma/prisma.service';
+ import { InternalServerErrorException, NotFoundException } from '@nestjs/common';
+ 
+-const mockGenerateContent = jest.fn();
++const mockGenerateContentStream = jest.fn();
+ 
+ jest.mock('@google/generative-ai', () => ({
+   GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
+     getGenerativeModel: jest.fn().mockReturnValue({
+-      generateContent: mockGenerateContent,
++      generateContentStream: mockGenerateContentStream,
+     }),
+   })),
++  SchemaType: { STRING: 'STRING', OBJECT: 'OBJECT' },
+ }));
+ 
+ describe('RecommendationsService', () => {
+@@ -33,10 +34,10 @@ describe('RecommendationsService', () => {
+     jest.clearAllMocks();
+   });
+ 
+-  describe('create (anonymous)', () => {
++  describe('createStream (anonymous)', () => {
+     it('calls Gemini and saves log with aiExplanation', async () => {
+-      mockGenerateContent.mockResolvedValue({
+-        response: { text: () => '{"specialization":"Neurology","explanation":"Test explanation."}' },
++      mockGenerateContentStream.mockResolvedValue({
++        stream: [{ text: () => '{"specialization":"Neurology","explanation":"Test explanation."}' }],
+       });
+       mockPrismaService.recommendationLog.create.mockResolvedValue({
+         id: '1',
+@@ -47,9 +48,13 @@ describe('RecommendationsService', () => {
+         createdAt: new Date(),
+       });
+ 
+-      const result = await service.create(null, { symptomInput: 'headache' });
++      const stream = await service.createStream(null, { symptomInput: 'headache' });
++      let output = '';
++      for await (const chunk of stream) {
++        output += chunk;
++      }
+ 
+-      expect(mockGenerateContent).toHaveBeenCalledTimes(1);
++      expect(mockGenerateContentStream).toHaveBeenCalledTimes(1);
+       expect(mockPrismaService.recommendationLog.create).toHaveBeenCalledWith({
+         data: {
+           patientId: null,
+@@ -58,79 +63,25 @@ describe('RecommendationsService', () => {
+           aiExplanation: 'Test explanation.',
+         },
+       });
+-      expect(result.matchedSpecialization).toBe('Neurology');
+-      expect(result.aiExplanation).toBe('Test explanation.');
++      expect(output).toBe('{"specialization":"Neurology","explanation":"Test explanation."}');
+     });
+ 
+-    it('should retry getAIRecommendation on failure and succeed', async () => {
+-      // Force the underlying AI call to fail once, then succeed
+-      let attempts = 0;
+-      mockGenerateContent.mockImplementation(() => {
+-        attempts++;
+-        if (attempts === 1) throw new Error('Timeout');
+-        return {
+-          response: { text: () => JSON.stringify({ specialization: 'Dermatology', explanation: 'Rash' }) }
+-        };
++    it('should catch JSON parse errors gracefully and continue yielding stream', async () => {
++      mockGenerateContentStream.mockResolvedValue({
++        stream: [{ text: () => 'not json at all' }],
+       });
+       
+-      // Ensure findFirst misses so it goes to AI
+-      mockPrismaService.recommendationLog.findFirst.mockResolvedValue(null);
+-      mockPrismaService.recommendationLog.create.mockResolvedValue({
+-        id: 'new-log',
+-        matchedSpecialization: 'Dermatology',
+-      });
+-
+-      const result = await service.create(null, { symptomInput: 'red rash' });
+-      expect(attempts).toBe(2);
+-      expect(result.matchedSpecialization).toBe('Dermatology');
+-    });
+-
+-    it('strips markdown code fences from Gemini response', async () => {
+-      mockGenerateContent.mockResolvedValue({
+-        response: {
+-          text: () =>
+-            '```json\n{"specialization":"Cardiology","explanation":"Heart related."}\n```',
+-        },
+-      });
+-      mockPrismaService.recommendationLog.create.mockResolvedValue({
+-        id: '2',
+-        patientId: null,
+-        symptomInput: 'chest pain',
+-        matchedSpecialization: 'Cardiology',
+-        aiExplanation: 'Heart related.',
+-        createdAt: new Date(),
+-      });
+-
+-      const result = await service.create(null, { symptomInput: 'chest pain' });
+-      expect(result.matchedSpecialization).toBe('Cardiology');
+-    });
+-
+-    it('throws InternalServerErrorException when Gemini API fails', async () => {
+-      mockGenerateContent.mockRejectedValue(new Error('API error'));
+-
+-      await expect(
+-        service.create(null, { symptomInput: 'headache' }),
+-      ).rejects.toThrow(InternalServerErrorException);
+-    });
+-
+-    it('throws InternalServerErrorException when Gemini returns invalid specialization', async () => {
+-      mockGenerateContent.mockResolvedValue({
+-        response: { text: () => '{"specialization":"InvalidSpec","explanation":"Test."}' },
+-      });
+-
+-      await expect(
+-        service.create(null, { symptomInput: 'headache' }),
+-      ).rejects.toThrow(InternalServerErrorException);
+-    });
+-
+-    it('throws InternalServerErrorException when Gemini returns invalid JSON', async () => {
+-      mockGenerateContent.mockResolvedValue({
+-        response: { text: () => 'not json at all' },
+-      });
+-
+-      await expect(
+-        service.create(null, { symptomInput: 'headache' }),
+-      ).rejects.toThrow(InternalServerErrorException);
++      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
++      const stream = await service.createStream(null, { symptomInput: 'headache' });
++      let output = '';
++      for await (const chunk of stream) {
++        output += chunk;
++      }
++
++      expect(output).toBe('not json at all');
++      // DB log create is NOT called due to parse error
++      expect(mockPrismaService.recommendationLog.create).not.toHaveBeenCalled();
++      consoleSpy.mockRestore();
+     });
+ 
+     it('should return cached recommendation if exact symptom match exists', async () => {
+@@ -147,14 +98,19 @@ describe('RecommendationsService', () => {
+         aiExplanation: 'Cached explanation',
+       });
+ 
+-      const result = await service.create(null, { symptomInput: 'Chest pain' });
++      const stream = await service.createStream(null, { symptomInput: 'Chest pain' });
++      let output = '';
++      for await (const chunk of stream) {
++        output += chunk;
++      }
++
+       expect(mockPrismaService.recommendationLog.findFirst).toHaveBeenCalled();
+-      expect(mockGenerateContent).not.toHaveBeenCalled();
+-      expect(result.matchedSpecialization).toBe('Cardiology');
++      expect(mockGenerateContentStream).not.toHaveBeenCalled();
++      expect(output).toBe('{"specialization":"Cardiology","explanation":"Cached explanation"}');
+     });
+   });
+ 
+-  describe('create (logged-in patient)', () => {
++  describe('createStream (logged-in patient)', () => {
+     it('fetches patient history and injects context into prompt', async () => {
+       mockPrismaService.patientProfile.findUnique.mockResolvedValue({
+         id: 'patient-1',
+@@ -162,8 +118,8 @@ describe('RecommendationsService', () => {
+       mockPrismaService.recommendationLog.findMany.mockResolvedValue([
+         { matchedSpecialization: 'Cardiology', symptomInput: 'chest pain last month' },
+       ]);
+-      mockGenerateContent.mockResolvedValue({
+-        response: { text: () => '{"specialization":"Cardiology","explanation":"Given your history of cardiology."}' },
++      mockGenerateContentStream.mockResolvedValue({
++        stream: [{ text: () => '{"specialization":"Cardiology","explanation":"Given your history of cardiology."}' }],
+       });
+       mockPrismaService.recommendationLog.create.mockResolvedValue({
+         id: '3',
+@@ -174,9 +130,13 @@ describe('RecommendationsService', () => {
+         createdAt: new Date(),
+       });
+ 
+-      await service.create('user-1', { symptomInput: 'chest tightness' });
++      const stream = await service.createStream('user-1', { symptomInput: 'chest tightness' });
++      let output = '';
++      for await (const chunk of stream) {
++        output += chunk;
++      }
+ 
+-      const promptArg = mockGenerateContent.mock.calls[0][0] as string;
++      const promptArg = mockGenerateContentStream.mock.calls[0][0] as string;
+       expect(promptArg).toContain('Patient context');
+       expect(promptArg).toContain('Cardiology');
+       expect(mockPrismaService.recommendationLog.create).toHaveBeenCalledWith({
+@@ -206,7 +166,11 @@ describe('RecommendationsService', () => {
+         aiExplanation: 'Cached explanation for user',
+       });
+ 
+-      const result = await service.create('user-1', { symptomInput: 'rash' });
++      const stream = await service.createStream('user-1', { symptomInput: 'rash' });
++      let output = '';
++      for await (const chunk of stream) {
++        output += chunk;
++      }
+       
+       expect(mockPrismaService.recommendationLog.findFirst).toHaveBeenCalledWith(
+         expect.objectContaining({
+@@ -215,15 +179,15 @@ describe('RecommendationsService', () => {
+           }),
+         })
+       );
+-      expect(mockGenerateContent).not.toHaveBeenCalled();
+-      expect(result.matchedSpecialization).toBe('Dermatology');
++      expect(mockGenerateContentStream).not.toHaveBeenCalled();
++      expect(output).toBe('{"specialization":"Dermatology","explanation":"Cached explanation for user"}');
+     });
+   });
+ 
+-  describe('create (EMERGENCY)', () => {
++  describe('createStream (EMERGENCY)', () => {
+     it('saves EMERGENCY specialization correctly', async () => {
+-      mockGenerateContent.mockResolvedValue({
+-        response: { text: () => '{"specialization":"EMERGENCY","explanation":"Seek immediate care."}' },
++      mockGenerateContentStream.mockResolvedValue({
++        stream: [{ text: () => '{"specialization":"EMERGENCY","explanation":"Seek immediate care."}' }],
+       });
+       mockPrismaService.recommendationLog.create.mockResolvedValue({
+         id: '4',
+@@ -234,8 +198,12 @@ describe('RecommendationsService', () => {
+         createdAt: new Date(),
+       });
+ 
+-      const result = await service.create(null, { symptomInput: 'chest pain difficulty breathing' });
+-      expect(result.matchedSpecialization).toBe('EMERGENCY');
++      const stream = await service.createStream(null, { symptomInput: 'chest pain difficulty breathing' });
++      let output = '';
++      for await (const chunk of stream) {
++        output += chunk;
++      }
++      expect(output).toBe('{"specialization":"EMERGENCY","explanation":"Seek immediate care."}');
+     });
+   });
+ 
+diff --git a/backend/src/recommendations/recommendations.service.ts b/backend/src/recommendations/recommendations.service.ts
+index a50eb93..f9355e4 100644
+--- a/backend/src/recommendations/recommendations.service.ts
++++ b/backend/src/recommendations/recommendations.service.ts
+@@ -5,7 +5,7 @@ import {
+ } from '@nestjs/common';
+ import { PrismaService } from '../prisma/prisma.service';
+ import { CreateRecommendationDto } from './dto/create-recommendation.dto';
+-import { GoogleGenerativeAI } from '@google/generative-ai';
++import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+ 
+ const VALID_SPECIALIZATIONS = [
+   'Cardiology',
+@@ -52,104 +52,77 @@ Specialization must be one of: Cardiology, Dermatology, Orthopedics, Neurology,
+ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain, stroke, difficulty breathing, heavy bleeding, unconscious, seizure, suicide, self-harm, poisoning).`;
+   }
+ 
+-  private async getAIRecommendation(
+-    symptomInput: string,
+-    patientContext?: { specializations: string[]; symptoms: string[] },
+-  ): Promise<{ specialization: string; explanation: string }> {
+-    const model = this.genAI.getGenerativeModel({ 
+-      model: 'gemini-3.5-flash',
+-      generationConfig: { responseMimeType: 'application/json' }
+-    });
+-    const prompt = this.buildPrompt(symptomInput, patientContext);
+-
+-    const maxRetries = 3;
+-
+-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+-      try {
+-        const result = await model.generateContent(prompt);
+-        const raw = result.response.text();
+-        
+-        // Clean markdown backticks just in case the AI ignores the mimeType hint
+-        const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+-        const parsed = JSON.parse(cleaned);
+-
+-        if (!VALID_SPECIALIZATIONS.includes(parsed.specialization)) {
+-          throw new Error('Invalid specialization returned');
+-        }
+-
+-        return parsed;
+-      } catch (error) {
+-        // If it's the last attempt, break and throw the standard exception
+-        if (attempt === maxRetries) {
+-          break;
+-        }
+-      }
+-    }
+-
+-    throw new InternalServerErrorException('AI recommendation service unavailable');
+-  }
+-
+-  async create(
++  async createStream(
+     userId: string | null,
+     createRecommendationDto: CreateRecommendationDto,
+   ) {
+     let patientId: string | null = null;
+-    let patientContext:
+-      | { specializations: string[]; symptoms: string[] }
+-      | undefined;
++    let patientContext: { specializations: string[]; symptoms: string[] } | undefined;
+ 
+     if (userId) {
+-      const patientProfile = await this.prisma.patientProfile.findUnique({
+-        where: { userId },
+-      });
++      const patientProfile = await this.prisma.patientProfile.findUnique({ where: { userId } });
+       patientId = patientProfile?.id ?? null;
+-
+       if (patientId) {
+         const recentLogs = await this.prisma.recommendationLog.findMany({
+-          where: { patientId },
+-          orderBy: { createdAt: 'desc' },
+-          take: 5,
++          where: { patientId }, orderBy: { createdAt: 'desc' }, take: 5,
+           select: { matchedSpecialization: true, symptomInput: true },
+         });
+-        patientContext = {
+-          specializations: recentLogs.map((l) => l.matchedSpecialization),
+-          symptoms: recentLogs.map((l) => l.symptomInput),
+-        };
++        patientContext = { specializations: recentLogs.map((l) => l.matchedSpecialization), symptoms: recentLogs.map((l) => l.symptomInput) };
+       }
+     }
+ 
+     const cachedLog = await this.prisma.recommendationLog.findFirst({
+-      where: {
+-        patientId,
+-        symptomInput: { equals: createRecommendationDto.symptomInput, mode: 'insensitive' },
+-        aiExplanation: { not: null },
+-      },
++      where: { patientId, symptomInput: { equals: createRecommendationDto.symptomInput, mode: 'insensitive' }, aiExplanation: { not: null } },
+       orderBy: { createdAt: 'desc' },
+     });
++    
++    // Return an async iterable that yields string chunks, and saves to DB at the end
++    const self = this;
++    async function* generateStream() {
++      if (cachedLog && cachedLog.aiExplanation) {
++        yield JSON.stringify({ specialization: cachedLog.matchedSpecialization, explanation: cachedLog.aiExplanation });
++        await self.prisma.recommendationLog.create({
++          data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: cachedLog.matchedSpecialization, aiExplanation: cachedLog.aiExplanation },
++        });
++        return;
++      }
+ 
+-    let specialization: string;
+-    let explanation: string | null = null;
+-
+-    if (cachedLog && cachedLog.aiExplanation) {
+-      specialization = cachedLog.matchedSpecialization;
+-      explanation = cachedLog.aiExplanation;
+-    } else {
+-      const aiResult = await this.getAIRecommendation(
+-        createRecommendationDto.symptomInput,
+-        patientContext,
+-      );
+-      specialization = aiResult.specialization;
+-      explanation = aiResult.explanation;
++      const model = self.genAI.getGenerativeModel({
++        model: 'gemini-3.5-flash',
++        generationConfig: {
++          responseMimeType: 'application/json',
++          responseSchema: {
++            type: SchemaType.OBJECT,
++            properties: {
++              specialization: { type: SchemaType.STRING, enum: VALID_SPECIALIZATIONS },
++              explanation: { type: SchemaType.STRING },
++            },
++            required: ['specialization', 'explanation'],
++          },
++        },
++      });
++
++      const prompt = self.buildPrompt(createRecommendationDto.symptomInput, patientContext);
++      const result = await model.generateContentStream(prompt);
++      
++      let fullText = '';
++      for await (const chunk of result.stream) {
++        const chunkText = chunk.text();
++        fullText += chunkText;
++        yield chunkText;
++      }
++
++      try {
++        const parsed = JSON.parse(fullText);
++        await self.prisma.recommendationLog.create({
++          data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: parsed.specialization, aiExplanation: parsed.explanation },
++        });
++      } catch (e) {
++        console.error("Failed to parse or save AI response", e);
++      }
+     }
+ 
+-    return this.prisma.recommendationLog.create({
+-      data: {
+-        patientId,
+-        symptomInput: createRecommendationDto.symptomInput,
+-        matchedSpecialization: specialization,
+-        aiExplanation: explanation,
+-      },
+-    });
++    return generateStream();
+   }
+ 
+   async findAllForPatient(userId: string) {
