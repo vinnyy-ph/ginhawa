@@ -15,6 +15,7 @@ import {
 } from "@radix-ui/react-icons";
 import type { RecommendationLog } from "@/types/api";
 import { apiRequest } from "@/lib/api-client";
+import { parse } from 'partial-json';
 
 export default function RecommendationsPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -22,6 +23,8 @@ export default function RecommendationsPage() {
   const [result, setResult] = useState<RecommendationLog | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [streamingSpecialization, setStreamingSpecialization] = useState<string | null>(null);
+  const [streamingExplanation, setStreamingExplanation] = useState<string>("");
 
   const { isRecording, isProcessing, isSupported, error: micError, startRecording, stopRecording } = useSpeechRecognition();
 
@@ -34,16 +37,57 @@ export default function RecommendationsPage() {
 
     setIsAnalyzing(true);
     setError(null);
+    setStep(3);
+    setResult(null);
+    setStreamingSpecialization(null);
+    setStreamingExplanation("");
 
     try {
-      const response = await apiRequest<RecommendationLog>("/recommendations", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recommendations`, {
         method: "POST",
-        body: { symptomInput: symptoms },
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symptomInput: symptoms }),
       });
-      setResult(response);
-      setStep(3);
+
+      if (!response.ok) throw new Error("Failed to analyze symptoms.");
+      if (!response.body) throw new Error("No response body.");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let done = false;
+      let fullText = "";
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunkValue = decoder.decode(value, { stream: true });
+          if (chunkValue.includes('{"error":')) {
+            throw new Error("Stream failed midway");
+          }
+          fullText += chunkValue;
+          
+          try {
+            const parsed = parse(fullText);
+            if (typeof parsed === 'object' && parsed !== null) {
+              if (parsed.explanation) setStreamingExplanation(parsed.explanation);
+              if (parsed.specialization) setStreamingSpecialization(parsed.specialization);
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+      }
+
+      const finalParsed = parse(fullText) as any;
+      if (!finalParsed.specialization || !finalParsed.explanation) {
+        throw new Error("Received incomplete data from the server.");
+      }
+      const completeLog = { id: 'temp-' + Date.now(), symptomInput: symptoms, createdAt: new Date().toISOString(), aiExplanation: finalParsed.explanation, matchedSpecialization: finalParsed.specialization } as RecommendationLog;
+      setResult(completeLog);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setStep(2);
     } finally {
       setIsAnalyzing(false);
     }
@@ -54,6 +98,8 @@ export default function RecommendationsPage() {
     setSymptoms("");
     setResult(null);
     setError(null);
+    setStreamingSpecialization(null);
+    setStreamingExplanation("");
   };
 
   return (
@@ -89,7 +135,15 @@ export default function RecommendationsPage() {
               }
             />
           )}
-          {step === 3 && <ResultsStep result={result} onRestart={handleRestart} />}
+          {step === 3 && (
+            <ResultsStep 
+              result={result} 
+              onRestart={handleRestart}
+              isAnalyzing={isAnalyzing}
+              streamingSpecialization={streamingSpecialization}
+              streamingExplanation={streamingExplanation}
+            />
+          )}
         </div>
       </main>
 
@@ -241,10 +295,22 @@ function SymptomsStep({
     </FadeIn>
   );
 }
-function ResultsStep({ result, onRestart }: { result: RecommendationLog | null; onRestart: () => void }) {
-  if (!result) return null;
+function ResultsStep({ 
+  result, 
+  onRestart,
+  isAnalyzing,
+  streamingSpecialization,
+  streamingExplanation
+}: { 
+  result: RecommendationLog | null; 
+  onRestart: () => void;
+  isAnalyzing: boolean;
+  streamingSpecialization: string | null;
+  streamingExplanation: string;
+}) {
+  if (!result && !isAnalyzing) return null;
 
-  if (result.matchedSpecialization === 'EMERGENCY') {
+  if (streamingSpecialization === 'EMERGENCY' || result?.matchedSpecialization === 'EMERGENCY') {
     return (
       <FadeIn>
         <div className="space-y-8">
@@ -283,35 +349,44 @@ function ResultsStep({ result, onRestart }: { result: RecommendationLog | null; 
 
   return (
     <FadeIn>
-...
       <div className="space-y-8">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl font-bold text-text-primary font-serif">Your Recommendation</h2>
-          <p className="text-on-surface-variant">Based on your description, we recommend consulting a specialist.</p>
+          <h2 className="text-3xl font-bold text-text-primary font-serif">
+            {isAnalyzing ? "Analyzing Symptoms..." : "Your Recommendation"}
+          </h2>
+          <p className="text-on-surface-variant">
+            {isAnalyzing 
+              ? "Reading your symptoms and evaluating conditions..." 
+              : "Based on your description, we recommend consulting a specialist."}
+          </p>
         </div>
 
         <Card className="overflow-hidden border-none shadow-lifted rounded-xl">
-          <div className="bg-gradient-to-br from-primary to-primary-container p-8 text-center text-white">
+          <div className="bg-gradient-to-br from-primary to-primary-container p-8 text-center text-white transition-all duration-500">
             <p className="text-sm uppercase tracking-widest font-bold opacity-80 mb-2">Recommended Specialist</p>
-            <h3 className="text-4xl md:text-5xl font-bold font-serif">{result.matchedSpecialization}</h3>
+            <h3 className={`text-4xl md:text-5xl font-bold font-serif transition-all duration-500 ${isAnalyzing && !streamingSpecialization ? 'animate-pulse opacity-50' : ''}`}>
+              {streamingSpecialization || result?.matchedSpecialization || "Determining..."}
+            </h3>
           </div>
           <div className="p-8 bg-white space-y-6">
-            {result.aiExplanation && (
-              <p className="text-on-surface-variant text-sm leading-relaxed italic border-l-4 border-primary/30 pl-4">
-                {result.aiExplanation}
-              </p>
-            )}
-            <div className="space-y-4">
-              <Button asChild size="lg" className="w-full py-8 text-lg rounded-xl shadow-soft">
-                <Link href={`/doctors?specialization=${encodeURIComponent(result.matchedSpecialization)}`}>
-                  Find {result.matchedSpecialization}s
-                  <ChevronRightIcon className="ml-2 w-5 h-5" />
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" asChild className="w-full py-8 text-lg rounded-xl">
-                <Link href="/doctors">Browse all specialists</Link>
-              </Button>
+            <div className="text-on-surface-variant text-sm leading-relaxed italic border-l-4 border-primary/30 pl-4 min-h-[4rem]">
+              {streamingExplanation || result?.aiExplanation || (isAnalyzing ? "Evaluating..." : "")}
+              {isAnalyzing && <span className="inline-block w-1.5 h-4 ml-1 bg-primary/70 animate-pulse align-middle"></span>}
             </div>
+
+            {!isAnalyzing && result && (
+              <div className="space-y-4 animate-in fade-in zoom-in duration-500">
+                <Button asChild size="lg" className="w-full py-8 text-lg rounded-xl shadow-soft">
+                  <Link href={`/doctors?specialization=${encodeURIComponent(result.matchedSpecialization)}`}>
+                    Find {result.matchedSpecialization}s
+                    <ChevronRightIcon className="ml-2 w-5 h-5" />
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" asChild className="w-full py-8 text-lg rounded-xl">
+                  <Link href="/doctors">Browse all specialists</Link>
+                </Button>
+              </div>
+            )}
             
             <div className="pt-6 border-t border-outline-variant flex justify-center">
               <button 
