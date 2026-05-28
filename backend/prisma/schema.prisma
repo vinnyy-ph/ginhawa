@@ -47,10 +47,11 @@ model PatientProfile {
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
-  appointments      Appointment[]
-  medicalRecords    MedicalRecord[]
-  recommendationLogs RecommendationLog[]
-  reviews           Review[]
+  appointments         Appointment[]
+  medicalRecords       MedicalRecord[]
+  recommendationLogs   RecommendationLog[]
+  reviews              Review[]
+  medicalHistoryRecord PatientMedicalHistory?
 
   @@map("patient_profiles")
 }
@@ -265,4 +266,20 @@ model Review {
   @@index([doctorId])
   @@index([patientId])
   @@map("reviews")
+}
+
+model PatientMedicalHistory {
+  id                  String         @id @default(cuid())
+  patientId           String         @unique @map("patient_id")
+  patient             PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  bloodType           String?        @map("blood_type")
+  allergies           String[]
+  chronicConditions   String[]       @map("chronic_conditions")
+  currentMedications  String[]       @map("current_medications")
+  pastSurgeries       String?        @map("past_surgeries")
+  familyHistory       String?        @map("family_history")
+  smokingStatus       String?        @map("smoking_status")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+
+  @@map("patient_medical_histories")
 }

@@ -57,13 +57,44 @@ describe('PatientsService', () => {
 
       const result = await service.create(userId, dto);
 
-      expect(mockPrismaService.patientProfile.create).toHaveBeenCalledWith({
-        data: {
-          ...dto,
-          birthdate: new Date(dto.birthdate),
-          user: { connect: { id: userId } },
-        },
-      });
+      expect(mockPrismaService.patientProfile.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            ...dto,
+            birthdate: new Date(dto.birthdate),
+            user: { connect: { id: userId } },
+          }),
+        }),
+      );
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should create a PatientMedicalHistory record alongside the patient profile', async () => {
+      const userId = 'user123';
+      const dto = {
+        fullName: 'John Doe',
+        birthdate: '1990-01-01',
+        contactDetails: 'john@example.com',
+      };
+      const expectedResult = {
+        id: 'profile123',
+        userId,
+        fullName: dto.fullName,
+        birthdate: new Date(dto.birthdate),
+        medicalHistoryRecord: { id: 'history-1' },
+      };
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue(null);
+      mockPrismaService.patientProfile.create.mockResolvedValue(expectedResult);
+
+      const result = await service.create(userId, dto as any);
+
+      expect(mockPrismaService.patientProfile.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            medicalHistoryRecord: { create: {} },
+          }),
+        }),
+      );
       expect(result).toEqual(expectedResult);
     });
 

@@ -27,6 +27,7 @@ export class PatientsService {
         ...createPatientDto,
         birthdate: new Date(createPatientDto.birthdate),
         user: { connect: { id: userId } },
+        medicalHistoryRecord: { create: {} },
       },
     });
   }
