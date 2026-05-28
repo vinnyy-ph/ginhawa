@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
@@ -23,15 +23,10 @@ export default function RecommendationsPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition();
-  const baseSymptomsRef = useRef("");
+  const { isRecording, isProcessing, isSupported, error: micError, startRecording, stopRecording } = useSpeechRecognition();
 
   const handleTranscript = (text: string) => {
-    setSymptoms(
-      baseSymptomsRef.current.trim()
-        ? `${baseSymptomsRef.current.trim()} ${text}`
-        : text
-    );
+    setSymptoms((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
   };
 
   const handleAnalyze = async () => {
@@ -85,16 +80,13 @@ export default function RecommendationsPage() {
               onAnalyze={handleAnalyze}
               isAnalyzing={isAnalyzing}
               error={error}
-              isListening={isListening}
+              isRecording={isRecording}
+              isProcessing={isProcessing}
               isSupported={isSupported}
-              onMicClick={() => {
-                if (isListening) {
-                  stopListening();
-                } else {
-                  baseSymptomsRef.current = symptoms;
-                  startListening(handleTranscript);
-                }
-              }}
+              micError={micError}
+              onMicClick={() =>
+                isRecording ? stopRecording(handleTranscript) : startRecording()
+              }
             />
           )}
           {step === 3 && <ResultsStep result={result} onRestart={handleRestart} />}
@@ -144,6 +136,20 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
   );
 }
 
+interface SymptomsStepProps {
+  symptoms: string;
+  setSymptoms: (value: string) => void;
+  onBack: () => void;
+  onAnalyze: () => void;
+  isAnalyzing: boolean;
+  error: string | null;
+  isRecording: boolean;
+  isProcessing: boolean;
+  isSupported: boolean;
+  micError: string | null;
+  onMicClick: () => void;
+}
+
 function SymptomsStep({
   symptoms,
   setSymptoms,
@@ -151,20 +157,12 @@ function SymptomsStep({
   onAnalyze,
   isAnalyzing,
   error,
-  isListening,
+  isRecording,
+  isProcessing,
   isSupported,
+  micError,
   onMicClick,
-}: {
-  symptoms: string;
-  setSymptoms: (val: string) => void;
-  onBack: () => void;
-  onAnalyze: () => void;
-  isAnalyzing: boolean;
-  error: string | null;
-  isListening: boolean;
-  isSupported: boolean;
-  onMicClick: () => void;
-}) {
+}: SymptomsStepProps) {
   return (
     <FadeIn>
       <div className="space-y-8">
@@ -185,18 +183,20 @@ function SymptomsStep({
                 <button
                   type="button"
                   onClick={onMicClick}
+                  disabled={isProcessing}
                   className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                    isListening
+                    isRecording
                       ? "bg-error text-white animate-pulse"
+                      : isProcessing
+                      ? "bg-surface-variant text-on-surface-variant opacity-70 cursor-not-allowed"
                       : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
                   }`}
-                  aria-label={isListening ? "Stop recording" : "Start voice input"}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2H3v2a9 9 0 0 0 8 8.94V23h-3v2h8v-2h-3v-2.06A9 9 0 0 0 21 12v-2h-2z"/>
                   </svg>
-                  {isListening ? "Listening..." : "Speak"}
+                  {isProcessing ? "Transcribing..." : isRecording ? "Recording..." : "Speak"}
                 </button>
               )}
             </div>
@@ -210,6 +210,7 @@ function SymptomsStep({
               aria-invalid={!!error}
               aria-describedby={error ? "symptoms-error" : undefined}
             />
+            {micError && <div className="text-error text-sm mt-2">{micError}</div>}
             {error && (
               <p id="symptoms-error" className="text-sm text-error font-medium flex items-center gap-2">
                 <ExclamationTriangleIcon className="w-4 h-4" />

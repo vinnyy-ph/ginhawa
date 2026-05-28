@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -27,15 +27,10 @@ export default function DashboardAIRecommendationsPage() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition();
-  const baseSymptomsRef = useRef("");
+  const { isRecording, isProcessing, isSupported, error: micError, startRecording, stopRecording } = useSpeechRecognition();
 
   const handleTranscript = (text: string) => {
-    setSymptoms(
-      baseSymptomsRef.current.trim()
-        ? `${baseSymptomsRef.current.trim()} ${text}`
-        : text
-    );
+    setSymptoms((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
   };
 
   useEffect(() => {
@@ -136,26 +131,23 @@ export default function DashboardAIRecommendationsPage() {
                 {isSupported && (
                   <button
                     type="button"
-                    onClick={() => {
-                      if (isListening) {
-                        stopListening();
-                      } else {
-                        baseSymptomsRef.current = symptoms;
-                        startListening(handleTranscript);
-                      }
-                    }}
+                    onClick={() =>
+                      isRecording ? stopRecording(handleTranscript) : startRecording()
+                    }
+                    disabled={isProcessing}
                     className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                      isListening
+                      isRecording
                         ? "bg-error text-white animate-pulse"
+                        : isProcessing
+                        ? "bg-surface-variant text-on-surface-variant opacity-70 cursor-not-allowed"
                         : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
                     }`}
-                    aria-label={isListening ? "Stop recording" : "Start voice input"}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
                       <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                       <path d="M19 10v2a7 7 0 0 1-14 0v-2H3v2a9 9 0 0 0 8 8.94V23h-3v2h8v-2h-3v-2.06A9 9 0 0 0 21 12v-2h-2z"/>
                     </svg>
-                    {isListening ? "Listening..." : "Speak"}
+                    {isProcessing ? "Transcribing..." : isRecording ? "Recording..." : "Speak"}
                   </button>
                 )}
               </div>
@@ -173,6 +165,7 @@ export default function DashboardAIRecommendationsPage() {
               />
             </div>
 
+            {micError && <div className="text-error text-sm mt-2">{micError}</div>}
             {error && (
               <p id="symptoms-error" className="text-sm text-error" role="alert">
                 {error}
