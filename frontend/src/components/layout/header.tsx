@@ -16,16 +16,10 @@ export function Header() {
         </div>
         <nav className="hidden md:flex items-center gap-6">
           <Link
-            href="#features"
+            href="/features"
             className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors"
           >
             Features
-          </Link>
-          <Link
-            href="/recommendations"
-            className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors"
-          >
-            Find the Right Doctor
           </Link>
           <Link
             href="/doctors"
