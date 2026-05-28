@@ -100,5 +100,6 @@ export interface RecommendationLog {
   patientId: string | null;
   symptomInput: string;
   matchedSpecialization: string;
+  aiExplanation?: string;
   createdAt: string;
 }
