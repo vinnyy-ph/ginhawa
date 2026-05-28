@@ -15,7 +15,7 @@ interface DoctorProfileData {
   bio: string | null;
   yearsOfExperience: number | null;
   consultationFee: number | null;
-  languagesSpoken: string | null;
+  languagesSpoken?: string[] | null;
   consultationFocusAreas: string | null;
   availabilitySummary: string | null;
   profilePictureUrl: string | null;
@@ -50,7 +50,7 @@ export default function DoctorProfilePage() {
         setBio(data.bio ?? "");
         setYearsOfExperience(data.yearsOfExperience != null ? String(data.yearsOfExperience) : "");
         setConsultationFee(data.consultationFee != null ? String(data.consultationFee) : "");
-        setLanguagesSpoken(data.languagesSpoken ?? "");
+        setLanguagesSpoken(data.languagesSpoken?.join(', ') ?? "");
         setConsultationFocusAreas(data.consultationFocusAreas ?? "");
         setAvailabilitySummary(data.availabilitySummary ?? "");
       })
@@ -75,7 +75,9 @@ export default function DoctorProfilePage() {
           bio: bio.trim() || undefined,
           yearsOfExperience: yearsOfExperience ? Number(yearsOfExperience) : undefined,
           consultationFee: consultationFee ? Number(consultationFee) : undefined,
-          languagesSpoken: languagesSpoken.trim() || undefined,
+          languagesSpoken: languagesSpoken.trim()
+            ? languagesSpoken.split(',').map((s) => s.trim()).filter(Boolean)
+            : [],
           consultationFocusAreas: consultationFocusAreas.trim() || undefined,
           availabilitySummary: availabilitySummary.trim() || undefined,
         },

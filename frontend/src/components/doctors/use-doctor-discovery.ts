@@ -56,8 +56,8 @@ export function useDoctorDiscovery() {
   const availableLanguages = useMemo(() => {
     const langs = new Set<string>();
     doctors.forEach((d) => {
-      if (d.languagesSpoken) {
-        d.languagesSpoken.split(",").forEach((l) => langs.add(l.trim()));
+      if (d.languagesSpoken && d.languagesSpoken.length > 0) {
+        d.languagesSpoken.forEach((l) => langs.add(l.trim()));
       }
     });
     return Array.from(langs).filter(Boolean).sort();
@@ -85,8 +85,8 @@ export function useDoctorDiscovery() {
     // Filter: Languages
     if (filters.languages.length > 0) {
       result = result.filter((d) => {
-        if (!d.languagesSpoken) return false;
-        const dLangs = d.languagesSpoken.split(",").map((l) => l.trim().toLowerCase());
+        if (!d.languagesSpoken || d.languagesSpoken.length === 0) return false;
+        const dLangs = d.languagesSpoken.map((l) => l.toLowerCase());
         return filters.languages.some((l) => dLangs.includes(l.toLowerCase()));
       });
     }

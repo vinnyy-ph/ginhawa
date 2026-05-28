@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsDateString, IsUrl, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsDateString, IsUrl, IsArray, Min } from 'class-validator';
 
 export class CreateDoctorProfileDto {
   @IsString()
@@ -25,8 +25,9 @@ export class CreateDoctorProfileDto {
   consultationFee?: number;
 
   @IsOptional()
-  @IsString()
-  languagesSpoken?: string;
+  @IsArray()
+  @IsString({ each: true })
+  languagesSpoken?: string[];
 
   @IsOptional()
   @IsString()

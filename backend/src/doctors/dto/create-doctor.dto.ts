@@ -3,6 +3,7 @@ import {
   IsOptional,
   IsNumber,
   IsDateString,
+  IsArray,
   Min,
   MaxLength,
 } from 'class-validator';
@@ -41,9 +42,9 @@ export class CreateDoctorDto {
   yearsOfExperience?: number;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  languagesSpoken?: string;
+  @IsArray()
+  @IsString({ each: true })
+  languagesSpoken?: string[];
 
   @IsOptional()
   @IsString()

@@ -67,7 +67,7 @@ model DoctorProfile {
   profilePictureUrl   String?  @map("profile_picture_url")
   availabilitySummary String?  @map("availability_summary")
   yearsOfExperience   Int?     @map("years_of_experience")
-  languagesSpoken     String?  @map("languages_spoken")
+  languagesSpoken     String[] @map("languages_spoken")
   consultationFocusAreas String? @map("consultation_focus_areas")
   consultationFee     Float?   @map("consultation_fee")
   prcLicenseNo        String?  @map("prc_license_no")

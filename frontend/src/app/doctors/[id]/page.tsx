@@ -280,13 +280,13 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
               </section>
             )}
 
-            {doctor.languagesSpoken && (
+            {doctor.languagesSpoken && doctor.languagesSpoken.length > 0 && (
               <section>
                 <h3 className="text-xl font-bold text-text-primary mb-3">
                   Languages
                 </h3>
                 <p className="text-on-surface-variant">
-                  {doctor.languagesSpoken}
+                  {doctor.languagesSpoken.join(', ')}
                 </p>
               </section>
             )}

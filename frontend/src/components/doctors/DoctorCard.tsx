@@ -23,9 +23,7 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
     ? doctor.consultationFocusAreas.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
 
-  const languages = doctor.languagesSpoken
-    ? doctor.languagesSpoken.split(",").map((s) => s.trim()).filter(Boolean)
-    : [];
+  const languages = doctor.languagesSpoken ?? [];
 
   // Determine availability status
   let availabilityStatus = "Fully Booked";

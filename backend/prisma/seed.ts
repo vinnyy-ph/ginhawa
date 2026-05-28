@@ -69,7 +69,7 @@ async function main() {
             specialization,
             bio: faker.lorem.paragraph(),
             yearsOfExperience: faker.number.int({ min: 1, max: 40 }),
-            languagesSpoken: faker.helpers.arrayElements(['English', 'Spanish', 'French', 'German', 'Mandarin'], { min: 1, max: 3 }).join(', '),
+            languagesSpoken: faker.helpers.arrayElements(['English', 'Spanish', 'French', 'German', 'Mandarin'], { min: 1, max: 3 }),
             consultationFee: parseFloat(faker.commerce.price({ min: 50, max: 300 })),
             isVerified: true,
             verifiedAt: new Date(),

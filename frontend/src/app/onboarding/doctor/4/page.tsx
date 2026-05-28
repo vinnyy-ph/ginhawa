@@ -30,7 +30,12 @@ export default function DoctorOnboardingStep4() {
     try {
       const response = await apiRequest<{ profileComplete: boolean }>('/doctors/profile', {
         method: 'POST',
-        body: data,
+        body: {
+          ...data,
+          languagesSpoken: data.languagesSpoken
+            ? data.languagesSpoken.split(',').map((s: string) => s.trim()).filter(Boolean)
+            : [],
+        },
         token: session.user.accessToken as string,
       });
 

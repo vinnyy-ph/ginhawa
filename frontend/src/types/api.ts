@@ -22,7 +22,7 @@ export interface DoctorProfile {
   profilePictureUrl?: string;
   availabilitySummary?: string;
   yearsOfExperience?: number;
-  languagesSpoken?: string;
+  languagesSpoken?: string[];
   consultationFee?: number;
   consultationFocusAreas?: string;
   availabilitySlots?: AvailabilitySlot[];
