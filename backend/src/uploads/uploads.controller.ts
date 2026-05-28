@@ -4,6 +4,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -18,6 +19,9 @@ export class UploadsController {
   @Post('profile-picture')
   @UseInterceptors(FileInterceptor('file', multerLocalConfig))
   async uploadProfilePicture(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
     const url = await this.uploadsService.uploadFile(file);
     return { url };
   }
