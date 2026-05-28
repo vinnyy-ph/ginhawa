@@ -199,6 +199,24 @@ export class AppointmentsService {
       throw new ForbiddenException('Unauthorized role');
     }
 
+    // Transition guard
+    type TransitionKey = `${string}:${string}:${string}`;
+    const allowed = new Set<TransitionKey>([
+      'DOCTOR:PENDING:CONFIRMED',
+      'DOCTOR:PENDING:CANCELLED',
+      'DOCTOR:CONFIRMED:CANCELLED',
+      'DOCTOR:CONFIRMED:COMPLETED',
+      'PATIENT:PENDING:CANCELLED',
+      'PATIENT:CONFIRMED:CANCELLED',
+    ]);
+
+    const key: TransitionKey = `${role}:${appointment.status}:${status}`;
+    if (!allowed.has(key)) {
+      throw new BadRequestException(
+        `Invalid status transition: ${appointment.status} → ${status}`,
+      );
+    }
+
     // Free the slot when cancelling
     if (status === AppointmentStatus.CANCELLED) {
       await this.prisma.availabilitySlot.update({
