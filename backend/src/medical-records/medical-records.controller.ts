@@ -23,7 +23,10 @@ export class MedicalRecordsController {
     @Request() req: { user: { id: string } },
     @Body() createMedicalRecordDto: CreateMedicalRecordDto,
   ) {
-    return this.medicalRecordsService.create(req.user.id, createMedicalRecordDto);
+    return this.medicalRecordsService.create(
+      req.user.id,
+      createMedicalRecordDto,
+    );
   }
 
   @Get('patient')

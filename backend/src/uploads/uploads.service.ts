@@ -31,7 +31,8 @@ export class UploadsService {
         file.path,
         { folder: 'telehealth-profiles' },
         (error, result) => {
-          if (error || !result) return reject(error ?? new Error('No result from Cloudinary'));
+          if (error || !result)
+            return reject(error ?? new Error('No result from Cloudinary'));
           resolve(result.secure_url);
         },
       );

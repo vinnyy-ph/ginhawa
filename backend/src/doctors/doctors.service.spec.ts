@@ -186,11 +186,15 @@ describe('DoctorsService', () => {
 
     it('should throw NotFoundException if profile not found', async () => {
       mockPrismaService.doctorProfile.findUnique.mockResolvedValue(null);
-      await expect(service.findById(profileId)).rejects.toThrow(NotFoundException);
+      await expect(service.findById(profileId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException for non-UUID ids', async () => {
-      await expect(service.findById('profile')).rejects.toThrow(NotFoundException);
+      await expect(service.findById('profile')).rejects.toThrow(
+        NotFoundException,
+      );
       await expect(service.findById('1')).rejects.toThrow(NotFoundException);
     });
   });

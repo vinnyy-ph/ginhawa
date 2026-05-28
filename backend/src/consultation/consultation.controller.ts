@@ -1,4 +1,13 @@
-import { Controller, Get, Patch, Post, Body, Param, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Body,
+  Param,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ConsultationService } from './consultation.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -11,10 +20,7 @@ export class ConsultationController {
 
   @Get(':id/room')
   @Roles('DOCTOR', 'PATIENT')
-  getRoom(
-    @Param('id') id: string,
-    @Request() req: { user: { id: string } },
-  ) {
+  getRoom(@Param('id') id: string, @Request() req: { user: { id: string } }) {
     return this.consultationService.getOrCreateRoom(id, req.user.id);
   }
 
@@ -30,10 +36,7 @@ export class ConsultationController {
 
   @Post(':id/summarize')
   @Roles('DOCTOR')
-  summarize(
-    @Param('id') id: string,
-    @Request() req: { user: { id: string } },
-  ) {
+  summarize(@Param('id') id: string, @Request() req: { user: { id: string } }) {
     return this.consultationService.summarize(id, req.user.id);
   }
 }

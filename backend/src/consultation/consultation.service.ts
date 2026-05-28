@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -10,10 +14,19 @@ export class ConsultationService {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
   }
 
-  async getOrCreateRoom(appointmentId: string, userId: string): Promise<{
+  async getOrCreateRoom(
+    appointmentId: string,
+    userId: string,
+  ): Promise<{
     roomUrl: string;
     userName: string;
-    patientContext?: { fullName: string; medicalHistory: string | null; weight: number | null; height: number | null; birthdate: Date };
+    patientContext?: {
+      fullName: string;
+      medicalHistory: string | null;
+      weight: number | null;
+      height: number | null;
+      birthdate: Date;
+    };
   }> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
@@ -29,7 +42,9 @@ export class ConsultationService {
     const isParticipant = appointment.patient.userId === userId || isDoctor;
     if (!isParticipant) throw new ForbiddenException('Access denied');
 
-    const userName = isDoctor ? appointment.doctor.fullName : appointment.patient.fullName;
+    const userName = isDoctor
+      ? appointment.doctor.fullName
+      : appointment.patient.fullName;
 
     const patientContext = isDoctor
       ? {
@@ -42,7 +57,11 @@ export class ConsultationService {
       : undefined;
 
     if (appointment.consultationLink) {
-      return { roomUrl: appointment.consultationLink, userName, patientContext };
+      return {
+        roomUrl: appointment.consultationLink,
+        userName,
+        patientContext,
+      };
     }
 
     // Create a real Daily.co room via REST API
@@ -71,7 +90,7 @@ export class ConsultationService {
       );
     }
 
-    const room = await response.json() as { url: string };
+    const room = (await response.json()) as { url: string };
     const roomUrl = room.url;
 
     await this.prisma.appointment.update({
@@ -82,14 +101,19 @@ export class ConsultationService {
     return { roomUrl, userName, patientContext };
   }
 
-  async updateNotes(appointmentId: string, userId: string, notes: string): Promise<void> {
+  async updateNotes(
+    appointmentId: string,
+    userId: string,
+    notes: string,
+  ): Promise<void> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: { doctor: { include: { user: true } } },
     });
 
     if (!appointment) throw new NotFoundException('Appointment not found');
-    if (appointment.doctor.userId !== userId) throw new ForbiddenException('Only the doctor can update notes');
+    if (appointment.doctor.userId !== userId)
+      throw new ForbiddenException('Only the doctor can update notes');
 
     await this.prisma.appointment.update({
       where: { id: appointmentId },
@@ -107,7 +131,8 @@ export class ConsultationService {
     });
 
     if (!appointment) throw new NotFoundException('Appointment not found');
-    if (appointment.doctor.userId !== userId) throw new ForbiddenException('Only the doctor can summarize');
+    if (appointment.doctor.userId !== userId)
+      throw new ForbiddenException('Only the doctor can summarize');
 
     const notes = appointment.liveNotes ?? '';
     const model = this.genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
@@ -130,7 +155,9 @@ Notes: ${notes}`;
       try {
         return JSON.parse(clean);
       } catch {
-        throw new Error('AI returned an unparseable response. Please try again.');
+        throw new Error(
+          'AI returned an unparseable response. Please try again.',
+        );
       }
     }
   }
