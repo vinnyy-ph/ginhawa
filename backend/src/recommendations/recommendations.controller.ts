@@ -11,7 +11,7 @@ import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { Public } from '../auth/decorators/public.decorator';
+import { OptionalJwt } from '../auth/decorators/optional-jwt.decorator';
 
 @Controller('recommendations')
 export class RecommendationsController {
@@ -20,7 +20,7 @@ export class RecommendationsController {
   ) {}
 
   @Post()
-  @Public()
+  @OptionalJwt()
   @UseGuards(JwtAuthGuard)
   create(
     @Request() req: { user?: { id?: string } },
