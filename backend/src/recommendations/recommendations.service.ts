@@ -1,11 +1,20 @@
 import {
   Injectable,
   NotFoundException,
-  InternalServerErrorException,
+  HttpException,
+  HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+
+const FALLBACK_MODELS = [
+  'gemini-3.5-flash',
+  'gemini-3.1-flash-lite',
+  'gemini-3-flash',
+  'gemini-2.5-flash',
+] as const;
 
 const VALID_SPECIALIZATIONS = [
   'Cardiology',
@@ -25,6 +34,7 @@ const VALID_SPECIALIZATIONS = [
 @Injectable()
 export class RecommendationsService {
   private readonly genAI: GoogleGenerativeAI;
+  private readonly logger = new Logger(RecommendationsService.name);
 
   constructor(private readonly prisma: PrismaService) {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
@@ -52,43 +62,77 @@ Specialization must be one of: Cardiology, Dermatology, Orthopedics, Neurology, 
 Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain, stroke, difficulty breathing, heavy bleeding, unconscious, seizure, suicide, self-harm, poisoning).`;
   }
 
+  private isRateLimitError(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null) return false;
+    const e = error as Record<string, unknown>;
+    const status = e['status'];
+    const msg = String(e['message'] ?? '');
+    return status === 429 || status === 503 || msg.includes('429') || msg.includes('503');
+  }
+
+  private getRetryDelay(error: unknown): number {
+    if (typeof error === 'object' && error !== null) {
+      const delay = (error as Record<string, unknown>)['retryDelay'];
+      if (typeof delay === 'number' && delay > 0) return delay;
+    }
+    return 1000;
+  }
+
   private async *getAIRecommendationStream(
     symptomInput: string,
     patientContext?: { specializations: string[]; symptoms: string[] },
   ): AsyncGenerator<string, { specialization: string; explanation: string }> {
-    const model = this.genAI.getGenerativeModel({
-      model: 'gemini-3.5-flash',
-      generationConfig: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: SchemaType.OBJECT,
-          properties: {
-            specialization: { type: SchemaType.STRING, enum: VALID_SPECIALIZATIONS } as any,
-            explanation: { type: SchemaType.STRING },
-          },
-          required: ['specialization', 'explanation'],
+    const generationConfig = {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: SchemaType.OBJECT,
+        properties: {
+          specialization: { type: SchemaType.STRING, enum: VALID_SPECIALIZATIONS },
+          explanation: { type: SchemaType.STRING },
         },
-      },
-    });
+        required: ['specialization', 'explanation'],
+      } as any,
+    };
 
     const prompt = this.buildPrompt(symptomInput, patientContext);
 
-    const result = await model.generateContentStream(prompt);
+    for (let mi = 0; mi < FALLBACK_MODELS.length; mi++) {
+      const modelName = FALLBACK_MODELS[mi];
 
-    let fullText = '';
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      fullText += chunkText;
-      yield chunkText;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const model = this.genAI.getGenerativeModel({ model: modelName, generationConfig });
+          const result = await model.generateContentStream(prompt);
+
+          let fullText = '';
+          for await (const chunk of result.stream) {
+            const chunkText = chunk.text();
+            fullText += chunkText;
+            yield chunkText;
+          }
+
+          if (mi > 0) {
+            this.logger.log(`Successfully using fallback model: ${modelName}`);
+          }
+          return JSON.parse(fullText) as { specialization: string; explanation: string };
+        } catch (error) {
+          if (!this.isRateLimitError(error)) throw error;
+
+          const delay = this.getRetryDelay(error);
+          if (attempt === 0) {
+            this.logger.warn(`${modelName} rate limited, retrying in ${delay}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+          } else if (mi < FALLBACK_MODELS.length - 1) {
+            this.logger.warn(`${modelName} failed after retry, switching to ${FALLBACK_MODELS[mi + 1]}`);
+          }
+        }
+      }
     }
 
-    try {
-      const parsed = JSON.parse(fullText);
-      return parsed;
-    } catch (e) {
-      console.error("Failed to parse AI response", e);
-      throw e;
-    }
+    throw new HttpException(
+      'Service is currently rate limited. Please try again in a moment.',
+      HttpStatus.TOO_MANY_REQUESTS,
+    );
   }
 
   async createStream(
