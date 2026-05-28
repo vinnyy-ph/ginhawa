@@ -36,6 +36,7 @@ const patientNav: NavItem[] = [
 
 const doctorNav: NavItem[] = [
   { href: '/doctor/dashboard', label: 'Overview', icon: <HomeIcon className="w-4 h-4" /> },
+  { href: '/doctor/profile', label: 'My Profile', icon: <PersonIcon className="w-4 h-4" /> },
   { href: '/doctor/appointments', label: 'Appointments', icon: <CalendarIcon className="w-4 h-4" /> },
   { href: '/doctor/schedule', label: 'My Schedule', icon: <ClockIcon className="w-4 h-4" /> },
   { href: '/doctor/notifications', label: 'Notifications', icon: <BellIcon className="w-4 h-4" /> },
