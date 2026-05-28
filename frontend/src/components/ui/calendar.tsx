@@ -6,18 +6,28 @@ import { DayPicker } from "react-day-picker"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
+export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
+  fromYear?: number;
+  toYear?: number;
+}
 
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  fromYear,
+  toYear,
   ...props
 }: CalendarProps) {
+  const startMonth = props.startMonth || (fromYear ? new Date(fromYear, 0) : undefined);
+  const endMonth = props.endMonth || (toYear ? new Date(toYear, 11) : undefined);
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
+      startMonth={startMonth}
+      endMonth={endMonth}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",

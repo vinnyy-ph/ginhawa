@@ -45,8 +45,10 @@ export function BirthdateInput({ value, onChange, disabled, className }: Birthda
   }
 
   const updateValue = (m: string, d: string, y: string) => {
-    if (m.length === 2 && d.length === 2 && y.length === 4) {
-      const dateStr = `${y}-${m}-${d}`
+    const mm = m.padStart(2, '0')
+    const dd = d.padStart(2, '0')
+    if (mm.length === 2 && dd.length === 2 && y.length === 4) {
+      const dateStr = `${y}-${mm}-${dd}`
       const date = parse(dateStr, "yyyy-MM-dd", new Date())
       if (isValid(date)) {
         onChange(dateStr)
@@ -79,11 +81,7 @@ export function BirthdateInput({ value, onChange, disabled, className }: Birthda
   }
 
   const handleDayBlur = () => {
-    if (day.length === 1) {
-      const padded = `0${day}`
-      setDay(padded)
-      updateValue(month, padded, year)
-    }
+    updateValue(month, day, year)
   }
 
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,6 +147,9 @@ export function BirthdateInput({ value, onChange, disabled, className }: Birthda
             defaultMonth={validParsedDate}
             endMonth={new Date()}
             disabled={{ after: new Date() }}
+            captionLayout="dropdown"
+            fromYear={1900}
+            toYear={new Date().getFullYear()}
             classNames={{
               months: "relative",
               month_caption: "flex justify-center h-7 pt-1 items-center",
