@@ -1,0 +1,126 @@
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+@Injectable()
+export class ConsultationService {
+  private readonly genAI: GoogleGenerativeAI;
+
+  constructor(private readonly prisma: PrismaService) {
+    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
+  }
+
+  async getOrCreateRoom(appointmentId: string, userId: string): Promise<{ roomUrl: string; userName: string }> {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: {
+        patient: { include: { user: true } },
+        doctor: { include: { user: true } },
+      },
+    });
+
+    if (!appointment) throw new NotFoundException('Appointment not found');
+
+    const isParticipant =
+      appointment.patient.userId === userId || appointment.doctor.userId === userId;
+    if (!isParticipant) throw new ForbiddenException('Access denied');
+
+    const userName =
+      appointment.patient.userId === userId
+        ? appointment.patient.fullName
+        : appointment.doctor.fullName;
+
+    if (appointment.consultationLink) {
+      return { roomUrl: appointment.consultationLink, userName };
+    }
+
+    // Create a real Daily.co room via REST API
+    const dailyApiKey = process.env.DAILY_API_KEY;
+    if (!dailyApiKey) {
+      throw new Error('DAILY_API_KEY is not configured on the server.');
+    }
+
+    const exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // 24h from now
+    const response = await fetch('https://api.daily.co/v1/rooms', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${dailyApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: `ginhawa-${appointmentId}`,
+        properties: { exp },
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(
+        `Daily.co room creation failed: ${(err as { error?: string }).error ?? response.statusText}`,
+      );
+    }
+
+    const room = await response.json() as { url: string };
+    const roomUrl = room.url;
+
+    await this.prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { consultationLink: roomUrl },
+    });
+
+    return { roomUrl, userName };
+  }
+
+  async updateNotes(appointmentId: string, userId: string, notes: string): Promise<void> {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: { doctor: { include: { user: true } } },
+    });
+
+    if (!appointment) throw new NotFoundException('Appointment not found');
+    if (appointment.doctor.userId !== userId) throw new ForbiddenException('Only the doctor can update notes');
+
+    await this.prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { liveNotes: notes },
+    });
+  }
+
+  async summarize(appointmentId: string, userId: string) {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: {
+        doctor: { include: { user: true } },
+        patient: true,
+      },
+    });
+
+    if (!appointment) throw new NotFoundException('Appointment not found');
+    if (appointment.doctor.userId !== userId) throw new ForbiddenException('Only the doctor can summarize');
+
+    const notes = appointment.liveNotes ?? '';
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+    const prompt = `You are a clinical assistant. Analyze these doctor's notes from a telemedicine consultation and return ONLY a valid JSON object (no markdown, no code blocks) with these exact keys:
+{
+  "doctorSummary": "clinical summary for the doctor with diagnosis and medical terminology",
+  "patientSummary": "simple, empathetic summary for the patient in plain language",
+  "prescriptions": "list of prescriptions if mentioned, or empty string",
+  "followUp": "follow-up recommendations"
+}
+Notes: ${notes}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      const clean = text.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+      try {
+        return JSON.parse(clean);
+      } catch {
+        throw new Error('AI returned an unparseable response. Please try again.');
+      }
+    }
+  }
+}
