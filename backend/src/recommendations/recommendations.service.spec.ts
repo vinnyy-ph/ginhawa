@@ -62,6 +62,29 @@ describe('RecommendationsService', () => {
       expect(result.aiExplanation).toBe('Test explanation.');
     });
 
+    it('should retry getAIRecommendation on failure and succeed', async () => {
+      // Force the underlying AI call to fail once, then succeed
+      let attempts = 0;
+      mockGenerateContent.mockImplementation(() => {
+        attempts++;
+        if (attempts === 1) throw new Error('Timeout');
+        return {
+          response: { text: () => JSON.stringify({ specialization: 'Dermatology', explanation: 'Rash' }) }
+        };
+      });
+      
+      // Ensure findFirst misses so it goes to AI
+      mockPrismaService.recommendationLog.findFirst.mockResolvedValue(null);
+      mockPrismaService.recommendationLog.create.mockResolvedValue({
+        id: 'new-log',
+        matchedSpecialization: 'Dermatology',
+      });
+
+      const result = await service.create(null, { symptomInput: 'red rash' });
+      expect(attempts).toBe(2);
+      expect(result.matchedSpecialization).toBe('Dermatology');
+    });
+
     it('strips markdown code fences from Gemini response', async () => {
       mockGenerateContent.mockResolvedValue({
         response: {

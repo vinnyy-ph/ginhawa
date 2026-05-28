@@ -56,40 +56,37 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
     symptomInput: string,
     patientContext?: { specializations: string[]; symptoms: string[] },
   ): Promise<{ specialization: string; explanation: string }> {
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+    const model = this.genAI.getGenerativeModel({ 
+      model: 'gemini-3.5-flash',
+      generationConfig: { responseMimeType: 'application/json' }
+    });
     const prompt = this.buildPrompt(symptomInput, patientContext);
 
-    let raw: string;
-    try {
-      const result = await model.generateContent(prompt);
-      raw = result.response.text();
-    } catch {
-      throw new InternalServerErrorException(
-        'AI recommendation service unavailable',
-      );
+    const maxRetries = 3;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await model.generateContent(prompt);
+        const raw = result.response.text();
+        
+        // Clean markdown backticks just in case the AI ignores the mimeType hint
+        const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        const parsed = JSON.parse(cleaned);
+
+        if (!VALID_SPECIALIZATIONS.includes(parsed.specialization)) {
+          throw new Error('Invalid specialization returned');
+        }
+
+        return parsed;
+      } catch (error) {
+        // If it's the last attempt, break and throw the standard exception
+        if (attempt === maxRetries) {
+          break;
+        }
+      }
     }
 
-    const cleaned = raw
-      .replace(/```json\n?/g, '')
-      .replace(/```\n?/g, '')
-      .trim();
-
-    let parsed: { specialization: string; explanation: string };
-    try {
-      parsed = JSON.parse(cleaned);
-    } catch {
-      throw new InternalServerErrorException(
-        'AI recommendation service unavailable',
-      );
-    }
-
-    if (!VALID_SPECIALIZATIONS.includes(parsed.specialization)) {
-      throw new InternalServerErrorException(
-        'AI recommendation service unavailable',
-      );
-    }
-
-    return parsed;
+    throw new InternalServerErrorException('AI recommendation service unavailable');
   }
 
   async create(
