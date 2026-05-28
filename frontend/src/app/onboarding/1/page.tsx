@@ -10,7 +10,7 @@ import { ProgressIndicator } from '@/components/ui/progress-indicator';
 import { FormField } from '@/components/ui/form-field';
 import { Button } from '@/components/ui/button';
 import { BirthdateInput } from '@/components/ui/birthdate-input';
-import { cn } from '@/lib/utils';
+import { PhoneInput } from '@/components/ui/phone-input';
 
 export default function OnboardingStep1() {
   const router = useRouter();
@@ -70,25 +70,17 @@ export default function OnboardingStep1() {
         </FormField>
 
         <FormField id="ob1-contactDetails" label="Contact number" error={errors.contactDetails?.message} required>
-          <div className="relative flex items-center">
-            <div className="absolute left-3 text-sm font-bold text-on-surface-variant pointer-events-none border-r border-outline-variant/50 pr-2">
-              +63
-            </div>
-            <input
-              id="ob1-contactDetails"
-              type="tel"
-              autoComplete="tel"
-              placeholder="917 123 4567"
-              className={cn(inputClass, 'pl-14')}
-              {...register('contactDetails', {
-                onChange: (e) => {
-                  let val = e.target.value.replace(/\D/g, '');
-                  if (val.startsWith('0')) val = val.slice(1);
-                  e.target.value = val.slice(0, 10);
-                },
-              })}
-            />
-          </div>
+          <PhoneInput
+            autoComplete="tel"
+            placeholder="917 123 4567"
+            {...register('contactDetails', {
+              onChange: (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.startsWith('0')) val = val.slice(1);
+                e.target.value = val.slice(0, 10);
+              },
+            })}
+          />
         </FormField>
 
         <div className="flex justify-end pt-2">

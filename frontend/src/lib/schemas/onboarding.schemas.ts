@@ -10,7 +10,7 @@ export const step1Schema = z.object({
       const d = new Date(val);
       return !isNaN(d.getTime()) && d < new Date();
     }, 'Birthdate must be a past date'),
-  contactDetails: z.string().min(1, 'Contact number is required'),
+  contactDetails: z.string().length(10, 'Contact number must be exactly 10 digits'),
 });
 
 export const step2Schema = z.object({
