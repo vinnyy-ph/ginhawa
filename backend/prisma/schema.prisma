@@ -92,6 +92,18 @@ enum SlotStatus {
   BOOKED
 }
 
+enum NotificationType {
+  APPOINTMENT_BOOKED
+  APPOINTMENT_CONFIRMED
+  APPOINTMENT_CANCELLED
+  APPOINTMENT_COMPLETED
+  APPOINTMENT_RESCHEDULED
+  APPOINTMENT_REMINDER
+  PRESCRIPTION_READY
+  MEDICAL_RECORD_CREATED
+  GENERAL
+}
+
 model AvailabilitySlot {
   id        String     @id @default(cuid())
   doctorId  String     @map("doctor_id")
@@ -167,7 +179,7 @@ model Notification {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String
+  type      NotificationType
   title     String
   message   String
   readAt    DateTime? @map("read_at")

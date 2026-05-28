@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '@prisma/client';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 
 @Injectable()
@@ -71,7 +72,7 @@ export class MedicalRecordsService {
       this.notifications
         .createNotification(
           record.patient.userId,
-          'MEDICAL_RECORD_CREATED',
+          NotificationType.MEDICAL_RECORD_CREATED,
           'New Medical Record',
           `${doctorProfile.fullName} has added consultation notes and a prescription to your records.`,
         )

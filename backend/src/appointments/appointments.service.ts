@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { AppointmentStatus, SlotStatus } from '@prisma/client';
+import { AppointmentStatus, SlotStatus, NotificationType } from '@prisma/client';
 
 @Injectable()
 export class AppointmentsService {
@@ -69,7 +69,7 @@ export class AppointmentsService {
     this.notifications
       .createNotification(
         appointment.doctor.userId,
-        'APPOINTMENT_BOOKED',
+        NotificationType.APPOINTMENT_BOOKED,
         'New Appointment Request',
         `You have a new appointment request from ${patientProfile.fullName}.`,
       )
@@ -79,7 +79,7 @@ export class AppointmentsService {
     this.notifications
       .createNotification(
         userId,
-        'APPOINTMENT_BOOKED',
+        NotificationType.APPOINTMENT_BOOKED,
         'Appointment Requested',
         `Your appointment with ${appointment.doctor.fullName} has been requested.`,
       )
@@ -270,12 +270,18 @@ export class AppointmentsService {
       },
     };
 
+    const typeMap: Partial<Record<AppointmentStatus, NotificationType>> = {
+      [AppointmentStatus.CONFIRMED]: NotificationType.APPOINTMENT_CONFIRMED,
+      [AppointmentStatus.CANCELLED]: NotificationType.APPOINTMENT_CANCELLED,
+      [AppointmentStatus.COMPLETED]: NotificationType.APPOINTMENT_COMPLETED,
+    };
+
     const notif = statusMessages[status];
     if (notif && notif.targetUserId) {
       this.notifications
         .createNotification(
           notif.targetUserId,
-          `APPOINTMENT_${status}`,
+          typeMap[status] ?? NotificationType.GENERAL,
           notif.title,
           notif.message,
         )
