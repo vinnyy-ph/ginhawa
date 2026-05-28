@@ -28,6 +28,8 @@ function Calendar({
       className={cn("p-3", className)}
       startMonth={startMonth}
       endMonth={endMonth}
+      fromYear={fromYear}
+      toYear={toYear}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
@@ -57,6 +59,9 @@ function Calendar({
         disabled: "text-on-surface-variant/30 opacity-50",
         range_middle: "aria-selected:bg-surface-container aria-selected:text-on-surface",
         hidden: "invisible",
+        dropdown: "flex items-center gap-1",
+        dropdown_month: "relative inline-flex",
+        dropdown_year: "relative inline-flex",
         ...classNames,
       }}
       components={{
