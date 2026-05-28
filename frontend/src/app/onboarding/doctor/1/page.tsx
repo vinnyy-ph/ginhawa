@@ -67,7 +67,7 @@ export default function DoctorOnboardingStep1() {
         return;
       }
       try {
-        const { url } = await apiUpload<{ url: string }>('/uploads/profile-picture', selectedFile, token);
+        const { url } = await apiUpload<{ url: string }>('/uploads/profile-picture', 'file', selectedFile, token);
         update({ fullName, professionalTitle, profilePictureUrl: url });
         router.push('/onboarding/doctor/2');
       } catch (err) {

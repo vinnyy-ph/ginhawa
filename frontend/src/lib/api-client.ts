@@ -52,18 +52,24 @@ export async function apiRequest<T>(
   return data as T;
 }
 
-/** Upload a file via multipart/form-data */
+/** Upload a file or blob via multipart/form-data */
 export async function apiUpload<T>(
   path: string,
-  file: File,
-  token: string,
+  fieldName: string,
+  file: File | Blob,
+  token?: string,
 ): Promise<T> {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append(fieldName, file, 'upload.webm');
+
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
 
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
+    headers,
     body: formData,
   });
 

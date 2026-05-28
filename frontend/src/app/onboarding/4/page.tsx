@@ -69,7 +69,7 @@ export default function OnboardingStep4() {
     }
 
     try {
-      const { url } = await apiUpload<{ url: string }>('/uploads/profile-picture', selectedFile, token);
+      const { url } = await apiUpload<{ url: string }>('/uploads/profile-picture', 'file', selectedFile, token);
       update({ profilePictureUrl: url });
       router.push('/onboarding/5');
     } catch (err) {
