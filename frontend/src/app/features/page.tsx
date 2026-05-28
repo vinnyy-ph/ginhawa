@@ -1,4 +1,6 @@
 import React from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { FadeIn } from "@/components/ui/fade-in";
@@ -196,7 +198,25 @@ export default function FeaturesPage() {
           </div>
         </section>
 
-        {/* CTA will go here */}
+        {/* ── CTA Section ────────────────────────────────────────────────── */}
+        <section className="py-24 bg-[#004d43] relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(49,167,149,0.2)_0%,transparent_70%)] pointer-events-none" />
+          <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
+            <FadeIn>
+              <h2 className="text-3xl md:text-5xl font-bold text-white font-serif tracking-tight mb-8">
+                Ready to experience Ginhawa?
+              </h2>
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+                <Button size="lg" className="w-full sm:w-auto bg-white text-[#004d43] hover:bg-surface-container-low px-10 py-7 rounded-2xl text-lg font-bold shadow-soft" asChild>
+                  <Link href="/recommendations">Check My Symptoms</Link>
+                </Button>
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 px-10 py-7 rounded-2xl text-lg font-bold" asChild>
+                  <Link href="/doctors">Browse Doctors</Link>
+                </Button>
+              </div>
+            </FadeIn>
+          </div>
+        </section>
       </main>
 
       <Footer />
