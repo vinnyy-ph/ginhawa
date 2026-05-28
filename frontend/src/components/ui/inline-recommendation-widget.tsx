@@ -118,7 +118,7 @@ export function InlineRecommendationWidget() {
               className="w-full min-h-[120px] resize-none rounded-xl border border-outline-variant bg-surface-container-lowest p-4 text-on-surface outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
               placeholder="e.g., I've had a headache for 3 days with nausea..."
               value={symptoms}
-              onChange={(e) => setSymptoms(e.target.value)}
+              onChange={(e) => { setSymptoms(e.target.value); if (error) setError(null); }}
               aria-label="Describe your symptoms"
             />
             {error && (
