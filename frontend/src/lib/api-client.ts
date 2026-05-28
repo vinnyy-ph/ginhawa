@@ -58,9 +58,18 @@ export async function apiUpload<T>(
   fieldName: string,
   file: File | Blob,
   token?: string,
+  filename?: string,
 ): Promise<T> {
   const formData = new FormData();
-  formData.append(fieldName, file, 'upload.webm');
+  
+  if (filename) {
+    formData.append(fieldName, file, filename);
+  } else if (file instanceof File) {
+    formData.append(fieldName, file, file.name);
+  } else {
+    // Fallback for Blob if no filename is provided
+    formData.append(fieldName, file, 'upload.webm'); 
+  }
 
   const headers: Record<string, string> = {};
   if (token) {
