@@ -11,14 +11,25 @@ export type Role = "patient" | "doctor";
 export interface AppointmentCardProps {
   appointment: Appointment;
   role: Role;
-  
+
   // Patient specific props
   isExpanded?: boolean;
   onToggleExpand?: () => void;
-  
+
   // Doctor specific props
   isUpdating?: boolean;
   onUpdateStatus?: (id: string, status: AppointmentStatus) => void;
+}
+
+//always return true for now
+function isWithinJoinWindow(appt: Appointment): boolean {
+  if (!appt.slot) return false;
+  const now = Date.now();
+  const start = new Date(appt.slot.startTime).getTime();
+  const end = new Date(appt.slot.endTime).getTime();
+  // Allow joining 15 minutes before start until slot end time
+  // return now >= start - 15 * 60 * 1000 && now <= end;
+  return true;
 }
 
 const statusConfig: Record<string, { variant: "secondary" | "success" | "destructive" | "info" | "outline", border: string }> = {
@@ -48,7 +59,7 @@ export function AppointmentCard({
     return (
       <div className={cn("bg-surface-white rounded-xl shadow-soft overflow-hidden border-l-4 transition-all duration-200", config.border)}>
         {/* Card Header (Always visible) */}
-        <div 
+        <div
           className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-surface-container/30"
           onClick={onToggleExpand}
         >
@@ -73,7 +84,7 @@ export function AppointmentCard({
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between sm:justify-end sm:w-auto w-full gap-4">
             <Badge variant={config.variant} className="capitalize px-3 py-1 text-xs">
               {appt.status.toLowerCase()}
@@ -85,7 +96,7 @@ export function AppointmentCard({
         </div>
 
         {/* Expanded Content */}
-        <div 
+        <div
           className={cn(
             "overflow-hidden transition-all duration-300 ease-in-out",
             isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
@@ -104,22 +115,27 @@ export function AppointmentCard({
                   <p className="text-xs font-bold text-outline uppercase tracking-wider mb-2">Booking Reference</p>
                   <p className="text-sm font-mono text-on-surface-variant">{appt.id}</p>
                 </div>
-                
+
                 {(appt.status === "PENDING" || appt.status === "CONFIRMED") && (
                   <div>
                     <p className="text-xs font-bold text-outline uppercase tracking-wider mb-2">Actions</p>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button disabled variant="outline" size="sm" className="opacity-50 cursor-not-allowed">
                         Reschedule
                       </Button>
                       <Button disabled variant="destructive" size="sm" className="opacity-50 cursor-not-allowed bg-error/10 text-error border-0">
                         Cancel
                       </Button>
+                      {appt.status === "CONFIRMED" && isWithinJoinWindow(appt) && (
+                        <Button asChild size="sm" className="bg-[#31a795] text-white hover:bg-[#006b5e]">
+                          <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
+                        </Button>
+                      )}
                     </div>
                     <p className="text-xs text-on-surface-variant mt-2 italic">* Online cancellation coming soon. Please contact the clinic.</p>
                   </div>
                 )}
-                
+
                 {appt.status === "COMPLETED" && (
                   <div>
                     <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
@@ -142,7 +158,7 @@ export function AppointmentCard({
 
     return (
       <div className={cn(
-        "bg-surface-white rounded-xl shadow-soft overflow-hidden border-l-4 transition-all duration-200 flex flex-col h-full", 
+        "bg-surface-white rounded-xl shadow-soft overflow-hidden border-l-4 transition-all duration-200 flex flex-col h-full",
         config.border,
         isUpdating ? "opacity-70 pointer-events-none" : ""
       )}>
@@ -156,14 +172,14 @@ export function AppointmentCard({
                 <h3 className="font-bold text-text-primary leading-tight">
                   {pat?.fullName || 'Patient'}
                 </h3>
-                <p className="text-xs text-on-surface-variant">Patient ID: {pat?.id.slice(0,8)}</p>
+                <p className="text-xs text-on-surface-variant">Patient ID: {pat?.id.slice(0, 8)}</p>
               </div>
             </div>
             <Badge variant={config.variant} className="capitalize px-2.5 py-0.5 text-[10px]">
               {appt.status.toLowerCase()}
             </Badge>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-text-primary mb-4">
             <span className="flex items-center gap-1.5 bg-surface px-2.5 py-1.5 rounded-md">
               <CalendarIcon className="w-3.5 h-3.5 text-primary" />
@@ -195,19 +211,24 @@ export function AppointmentCard({
               </Button>
             </>
           )}
-          
+
           {appt.status === "CONFIRMED" && (
             <>
               <Button variant="destructive" size="sm" onClick={() => onUpdateStatus?.(appt.id, "CANCELLED")} className="bg-error/10 text-error hover:bg-error/20 border-0 mr-auto">
                 Cancel
               </Button>
+              {appt.id && isWithinJoinWindow(appt) && (
+                <Button size="sm" asChild className="bg-[#31a795] text-white hover:bg-[#006b5e]">
+                  <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
+                </Button>
+              )}
               {appt.id && (
                 <Button variant="outline" size="sm" asChild>
                   <Link href={`/doctor/notes/${appt.id}`}>Add Notes</Link>
                 </Button>
               )}
-              <Button size="sm" onClick={() => onUpdateStatus?.(appt.id, "COMPLETED")} className="bg-[#31a795] text-white hover:bg-[#006b5e]">
-                Mark Complete
+              <Button size="sm" asChild variant="outline">
+                <Link href={`/doctor/finalize/${appt.id}`}>Mark Complete</Link>
               </Button>
             </>
           )}
@@ -217,7 +238,7 @@ export function AppointmentCard({
               <Link href={`/doctor/notes/${appt.id}`}>View / Edit Notes</Link>
             </Button>
           )}
-          
+
           {appt.status === "CANCELLED" && (
             <p className="text-xs text-on-surface-variant italic w-full text-center py-1.5">No actions available</p>
           )}

@@ -16,6 +16,7 @@ import { SlotsModule } from './slots/slots.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { MedicalRecordsModule } from './medical-records/medical-records.module';
+import { ConsultationModule } from './consultation/consultation.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { MedicalRecordsModule } from './medical-records/medical-records.module';
     RecommendationsModule,
     NotificationsModule,
     MedicalRecordsModule,
+    ConsultationModule,
   ],
   controllers: [AppController],
   providers: [

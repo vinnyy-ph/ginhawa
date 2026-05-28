@@ -113,6 +113,7 @@ model Appointment {
   status           AppointmentStatus @default(PENDING)
   reasonForVisit   String?           @map("reason_for_visit")
   consultationLink String?           @map("consultation_link")
+  liveNotes        String?           @map("live_notes")
   bookedAt         DateTime          @default(now()) @map("booked_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
 
