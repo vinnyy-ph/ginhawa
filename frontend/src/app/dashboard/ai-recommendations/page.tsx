@@ -107,13 +107,13 @@ export default function DashboardAIRecommendationsPage() {
               if (parsed.explanation) setStreamingExplanation(parsed.explanation);
               if (parsed.specialization) setStreamingSpecialization(parsed.specialization);
             }
-          } catch (e) {
+          } catch {
             // ignore parse errors for incomplete JSON
           }
         }
       }
 
-      const finalParsed = parse(fullText) as any;
+      const finalParsed = parse(fullText) as { explanation?: string; specialization?: string };
       // We mock the DB generated fields for the immediate UI, the real one is saved in the backend
       const completeLog = { ...finalParsed, id: 'temp-' + Date.now(), symptomInput: symptoms, createdAt: new Date().toISOString(), aiExplanation: finalParsed.explanation, matchedSpecialization: finalParsed.specialization };
       

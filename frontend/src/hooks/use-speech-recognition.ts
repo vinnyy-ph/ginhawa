@@ -24,7 +24,9 @@ export function useSpeechRecognition(token?: string): UseSpeechRecognitionReturn
 
   useEffect(() => {
     isMountedRef.current = true;
-    setIsSupported(typeof window !== 'undefined' && !!navigator.mediaDevices?.getUserMedia);
+    queueMicrotask(() => {
+      setIsSupported(typeof window !== 'undefined' && !!navigator.mediaDevices?.getUserMedia);
+    });
     
     return () => {
       isMountedRef.current = false;
@@ -58,7 +60,7 @@ export function useSpeechRecognition(token?: string): UseSpeechRecognitionReturn
       if (isMountedRef.current) {
         setIsRecording(true);
       }
-    } catch (err) {
+    } catch {
       if (isMountedRef.current) {
         setError('Microphone access denied or unavailable.');
       }
@@ -86,7 +88,7 @@ export function useSpeechRecognition(token?: string): UseSpeechRecognitionReturn
         if (result.text && isMountedRef.current) {
           onTranscript(result.text);
         }
-      } catch (err) {
+      } catch {
         if (isMountedRef.current) {
           setError('Failed to transcribe audio.');
         }

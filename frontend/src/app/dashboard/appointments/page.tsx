@@ -42,7 +42,9 @@ export default function PatientAppointmentsPage() {
   }, [token]);
 
   useEffect(() => {
-    fetchAppointments();
+    queueMicrotask(() => {
+      fetchAppointments();
+    });
   }, [fetchAppointments]);
 
   const updateStatus = async (id: string, status: AppointmentStatus) => {

@@ -24,9 +24,6 @@ export interface AppointmentCardProps {
 //always return true for now
 function isWithinJoinWindow(appt: Appointment): boolean {
   if (!appt.slot) return false;
-  const now = Date.now();
-  const start = new Date(appt.slot.startTime).getTime();
-  const end = new Date(appt.slot.endTime).getTime();
   // Allow joining 15 minutes before start until slot end time
   // return now >= start - 15 * 60 * 1000 && now <= end;
   return true;

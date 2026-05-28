@@ -167,7 +167,7 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
                   <div>
                     <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1">Age</p>
                     <p className="text-on-surface">
-                      {Math.floor((Date.now() - new Date(patientContext.birthdate).getTime()) / (365.25 * 24 * 3600 * 1000))} years
+                      {Math.floor((new Date().getTime() - new Date(patientContext.birthdate).getTime()) / (365.25 * 24 * 3600 * 1000))} years
                     </p>
                   </div>
                   {patientContext.weight && (

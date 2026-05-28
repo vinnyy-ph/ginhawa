@@ -15,10 +15,9 @@ import {
   ChevronRightIcon 
 } from "@radix-ui/react-icons";
 import type { RecommendationLog } from "@/types/api";
-import { apiRequest } from "@/lib/api-client";
 import { parse } from 'partial-json';
 
-export default function RecommendationsPage() {
+function RecommendationsContent() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [symptoms, setSymptoms] = useState("");
   const [result, setResult] = useState<RecommendationLog | null>(null);
@@ -34,8 +33,10 @@ export default function RecommendationsPage() {
   useEffect(() => {
     const prefilledSymptoms = searchParams.get("symptoms");
     if (prefilledSymptoms) {
-      setSymptoms(prefilledSymptoms);
-      setStep(2);
+      queueMicrotask(() => {
+        setSymptoms(prefilledSymptoms);
+        setStep(2);
+      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional mount-only: pre-fill once from URL, don't reset if URL changes later
   }, []);
@@ -85,13 +86,13 @@ export default function RecommendationsPage() {
               if (parsed.explanation) setStreamingExplanation(parsed.explanation);
               if (parsed.specialization) setStreamingSpecialization(parsed.specialization);
             }
-          } catch (e) {
+          } catch {
             // ignore
           }
         }
       }
 
-      const finalParsed = parse(fullText) as any;
+      const finalParsed = parse(fullText) as { explanation?: string; specialization?: string };
       if (!finalParsed.specialization || !finalParsed.explanation) {
         throw new Error("Received incomplete data from the server.");
       }
@@ -407,5 +408,13 @@ function ResultsStep({
         </Card>
       </div>
     </FadeIn>
+  );
+}
+
+export default function RecommendationsPage() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <RecommendationsContent />
+    </React.Suspense>
   );
 }

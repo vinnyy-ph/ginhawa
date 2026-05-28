@@ -57,7 +57,9 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
   }
 
   useEffect(() => {
-    fetchSummary();
+    queueMicrotask(() => {
+      fetchSummary();
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
