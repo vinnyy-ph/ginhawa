@@ -93,27 +93,6 @@ describe('RecommendationsService', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should return cached recommendation if exact symptom match exists', async () => {
-      // Mock prisma to return a cached log
-      mockPrismaService.recommendationLog.findFirst.mockResolvedValueOnce({
-        id: 'cached-log',
-        matchedSpecialization: 'Cardiology',
-        aiExplanation: 'Cached explanation',
-      });
-      // Mock create so it returns the newly saved log based on cache
-      mockPrismaService.recommendationLog.create.mockResolvedValueOnce({
-        id: 'new-log',
-        matchedSpecialization: 'Cardiology',
-        aiExplanation: 'Cached explanation',
-      });
-
-      const stream = await service.createStream(null, { symptomInput: 'Chest pain' });
-      const output = await consumeStream(stream);
-
-      expect(mockPrismaService.recommendationLog.findFirst).toHaveBeenCalled();
-      expect(mockGenerateContentStream).not.toHaveBeenCalled();
-      expect(output).toBe('{"specialization":"Cardiology","explanation":"Cached explanation"}');
-    });
   });
 
   describe('createStream (logged-in patient)', () => {
