@@ -1,9 +1,8 @@
-// frontend/src/app/login/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn, getSession } from 'next-auth/react';
@@ -14,8 +13,10 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -39,12 +40,8 @@ export default function LoginPage() {
     if (result?.ok) {
       const session = await getSession();
       const role = session?.user?.role;
-
-      if (role === 'DOCTOR') {
-        router.push('/doctor/dashboard');
-      } else {
-        router.push('/dashboard');
-      }
+      const defaultRedirect = role === 'DOCTOR' ? '/doctor/dashboard' : '/dashboard';
+      router.push(callbackUrl ? decodeURIComponent(callbackUrl) : defaultRedirect);
     } else {
       setServerError('Incorrect email or password.');
     }
@@ -100,5 +97,13 @@ export default function LoginPage() {
         </Link>
       </p>
     </AuthCard>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
