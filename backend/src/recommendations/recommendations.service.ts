@@ -121,10 +121,28 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
       }
     }
 
-    const { specialization, explanation } = await this.getAIRecommendation(
-      createRecommendationDto.symptomInput,
-      patientContext,
-    );
+    const cachedLog = await this.prisma.recommendationLog.findFirst({
+      where: {
+        symptomInput: { equals: createRecommendationDto.symptomInput, mode: 'insensitive' },
+        aiExplanation: { not: null },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    let specialization: string;
+    let explanation: string | null = null;
+
+    if (cachedLog && cachedLog.aiExplanation) {
+      specialization = cachedLog.matchedSpecialization;
+      explanation = cachedLog.aiExplanation;
+    } else {
+      const aiResult = await this.getAIRecommendation(
+        createRecommendationDto.symptomInput,
+        patientContext,
+      );
+      specialization = aiResult.specialization;
+      explanation = aiResult.explanation;
+    }
 
     return this.prisma.recommendationLog.create({
       data: {

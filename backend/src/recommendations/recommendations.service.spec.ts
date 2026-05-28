@@ -18,7 +18,7 @@ describe('RecommendationsService', () => {
 
   const mockPrismaService = {
     patientProfile: { findUnique: jest.fn() },
-    recommendationLog: { create: jest.fn(), findMany: jest.fn() },
+    recommendationLog: { create: jest.fn(), findMany: jest.fn(), findFirst: jest.fn() },
   };
 
   beforeEach(async () => {
@@ -108,6 +108,28 @@ describe('RecommendationsService', () => {
       await expect(
         service.create(null, { symptomInput: 'headache' }),
       ).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it('should return cached recommendation if exact symptom match exists', async () => {
+      // Mock prisma to return a cached log
+      mockPrismaService.recommendationLog.findFirst.mockResolvedValueOnce({
+        id: 'cached-log',
+        matchedSpecialization: 'Cardiology',
+        aiExplanation: 'Cached explanation',
+      });
+      // Spy on getAIRecommendation to ensure it is NOT called
+      const aiSpy = jest.spyOn(service as any, 'getAIRecommendation');
+      // Mock create so it returns the newly saved log based on cache
+      mockPrismaService.recommendationLog.create.mockResolvedValueOnce({
+        id: 'new-log',
+        matchedSpecialization: 'Cardiology',
+        aiExplanation: 'Cached explanation',
+      });
+
+      const result = await service.create(null, { symptomInput: 'Chest pain' });
+      expect(mockPrismaService.recommendationLog.findFirst).toHaveBeenCalled();
+      expect(aiSpy).not.toHaveBeenCalled();
+      expect(result.matchedSpecialization).toBe('Cardiology');
     });
   });
 
