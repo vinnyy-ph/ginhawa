@@ -36,6 +36,13 @@ model PatientProfile {
   height            Float?
   profilePictureUrl String?  @map("profile_picture_url")
   contactDetails    String?  @map("contact_details")
+  phoneNumber       String?  @map("phone_number")
+  address           String?
+  city              String?
+  region            String?
+  philhealthId      String?  @map("philhealth_id")
+  hmoProvider       String?  @map("hmo_provider")
+  hmoCardNo         String?  @map("hmo_card_no")
   medicalHistory    String?  @map("medical_history")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
