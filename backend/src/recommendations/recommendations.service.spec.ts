@@ -34,6 +34,14 @@ describe('RecommendationsService', () => {
     jest.clearAllMocks();
   });
 
+  async function consumeStream(stream: AsyncGenerator<string, any, unknown> | AsyncIterable<string>): Promise<string> {
+    let output = '';
+    for await (const chunk of stream) {
+      output += chunk;
+    }
+    return output;
+  }
+
   describe('createStream (anonymous)', () => {
     it('calls Gemini and saves log with aiExplanation', async () => {
       mockGenerateContentStream.mockResolvedValue({
@@ -49,10 +57,7 @@ describe('RecommendationsService', () => {
       });
 
       const stream = await service.createStream(null, { symptomInput: 'headache' });
-      let output = '';
-      for await (const chunk of stream) {
-        output += chunk;
-      }
+      const output = await consumeStream(stream);
 
       expect(mockGenerateContentStream).toHaveBeenCalledTimes(1);
       expect(mockPrismaService.recommendationLog.create).toHaveBeenCalledWith({
@@ -66,6 +71,40 @@ describe('RecommendationsService', () => {
       expect(output).toBe('{"specialization":"Neurology","explanation":"Test explanation."}');
     });
 
+    it('should retry getAIRecommendationStream on failure and succeed', async () => {
+      let attempts = 0;
+      mockGenerateContentStream.mockImplementation(() => {
+        attempts++;
+        if (attempts === 1) throw new Error('Timeout');
+        return {
+          stream: [{ text: () => JSON.stringify({ specialization: 'Dermatology', explanation: 'Rash' }) }]
+        };
+      });
+      
+      mockPrismaService.recommendationLog.findFirst.mockResolvedValue(null);
+      mockPrismaService.recommendationLog.create.mockResolvedValue({
+        id: 'new-log',
+        matchedSpecialization: 'Dermatology',
+      });
+
+      const stream = await service.createStream(null, { symptomInput: 'red rash' });
+      await consumeStream(stream);
+
+      expect(attempts).toBe(2);
+      expect(mockPrismaService.recommendationLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ matchedSpecialization: 'Dermatology' })
+        })
+      );
+    });
+
+    it('throws InternalServerErrorException when Gemini API fails', async () => {
+      mockGenerateContentStream.mockRejectedValue(new Error('API error'));
+
+      const stream = await service.createStream(null, { symptomInput: 'headache' });
+      await expect(consumeStream(stream)).rejects.toThrow(InternalServerErrorException);
+    });
+
     it('should throw error when JSON parsing fails', async () => {
       mockGenerateContentStream.mockResolvedValue({
         stream: [{ text: () => 'not json at all' }],
@@ -74,9 +113,7 @@ describe('RecommendationsService', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       const stream = await service.createStream(null, { symptomInput: 'headache' });
       
-      await expect(async () => {
-        for await (const chunk of stream) {}
-      }).rejects.toThrow(SyntaxError);
+      await expect(consumeStream(stream)).rejects.toThrow(SyntaxError);
 
       // DB log create is NOT called due to parse error
       expect(mockPrismaService.recommendationLog.create).not.toHaveBeenCalled();
@@ -98,10 +135,7 @@ describe('RecommendationsService', () => {
       });
 
       const stream = await service.createStream(null, { symptomInput: 'Chest pain' });
-      let output = '';
-      for await (const chunk of stream) {
-        output += chunk;
-      }
+      const output = await consumeStream(stream);
 
       expect(mockPrismaService.recommendationLog.findFirst).toHaveBeenCalled();
       expect(mockGenerateContentStream).not.toHaveBeenCalled();
@@ -130,10 +164,7 @@ describe('RecommendationsService', () => {
       });
 
       const stream = await service.createStream('user-1', { symptomInput: 'chest tightness' });
-      let output = '';
-      for await (const chunk of stream) {
-        output += chunk;
-      }
+      const output = await consumeStream(stream);
 
       const promptArg = mockGenerateContentStream.mock.calls[0][0] as string;
       expect(promptArg).toContain('Patient context');
@@ -166,10 +197,7 @@ describe('RecommendationsService', () => {
       });
 
       const stream = await service.createStream('user-1', { symptomInput: 'rash' });
-      let output = '';
-      for await (const chunk of stream) {
-        output += chunk;
-      }
+      const output = await consumeStream(stream);
       
       expect(mockPrismaService.recommendationLog.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -198,10 +226,7 @@ describe('RecommendationsService', () => {
       });
 
       const stream = await service.createStream(null, { symptomInput: 'chest pain difficulty breathing' });
-      let output = '';
-      for await (const chunk of stream) {
-        output += chunk;
-      }
+      const output = await consumeStream(stream);
       expect(output).toBe('{"specialization":"EMERGENCY","explanation":"Seek immediate care."}');
     });
   });

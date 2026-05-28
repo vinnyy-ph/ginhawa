@@ -41,6 +41,9 @@ export class RecommendationsController {
       }
     } catch (e) {
       console.error(e);
+      if (!res.headersSent) {
+        res.status(500);
+      }
       res.write(JSON.stringify({ error: 'Stream failed' }));
     } finally {
       res.end();

@@ -63,7 +63,7 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
         responseSchema: {
           type: SchemaType.OBJECT,
           properties: {
-            specialization: { type: SchemaType.STRING, format: 'enum', enum: VALID_SPECIALIZATIONS },
+            specialization: { type: SchemaType.STRING, enum: VALID_SPECIALIZATIONS } as any,
             explanation: { type: SchemaType.STRING },
           },
           required: ['specialization', 'explanation'],
@@ -142,14 +142,10 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
 
       const streamGenerator = self.getAIRecommendationStream(createRecommendationDto.symptomInput, patientContext);
       
-      try {
-        const parsedResult = yield* streamGenerator;
-        await self.prisma.recommendationLog.create({
-          data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: parsedResult.specialization, aiExplanation: parsedResult.explanation },
-        });
-      } catch (error) {
-        throw error;
-      }
+      const parsedResult = yield* streamGenerator;
+      await self.prisma.recommendationLog.create({
+        data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: parsedResult.specialization, aiExplanation: parsedResult.explanation },
+      });
     }
 
     return generateStream();
