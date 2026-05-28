@@ -51,7 +51,13 @@ export class AppointmentsService {
           reasonForVisit: createAppointmentDto.reasonForVisit,
           status: AppointmentStatus.PENDING,
         },
-        include: { doctor: { include: { user: true } } },
+        include: {
+          doctor: {
+            include: {
+              user: { select: { id: true, email: true, role: true } },
+            },
+          },
+        },
       });
     });
 
@@ -150,8 +156,16 @@ export class AppointmentsService {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id },
       include: {
-        patient: { include: { user: true } },
-        doctor: { include: { user: true } },
+        patient: {
+          include: {
+            user: { select: { id: true, email: true, role: true } },
+          },
+        },
+        doctor: {
+          include: {
+            user: { select: { id: true, email: true, role: true } },
+          },
+        },
       },
     });
 
