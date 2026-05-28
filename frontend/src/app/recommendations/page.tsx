@@ -116,12 +116,6 @@ export default function RecommendationsPage() {
 
   return (
     <>
-      <a 
-        href="#main-content" 
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-white focus:p-4 focus:rounded-lg focus:shadow-lg focus:text-primary focus:font-bold"
-      >
-        Skip to main content
-      </a>
       <Header />
       <main id="main-content" className="min-h-screen bg-surface pb-20 pt-12">
         <div className="max-w-2xl mx-auto px-4 space-y-8">
