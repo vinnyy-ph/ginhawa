@@ -10,7 +10,11 @@ export class ConsultationService {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
   }
 
-  async getOrCreateRoom(appointmentId: string, userId: string): Promise<{ roomUrl: string; userName: string }> {
+  async getOrCreateRoom(appointmentId: string, userId: string): Promise<{
+    roomUrl: string;
+    userName: string;
+    patientContext?: { fullName: string; medicalHistory: string | null; weight: number | null; height: number | null; birthdate: Date };
+  }> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
@@ -21,17 +25,24 @@ export class ConsultationService {
 
     if (!appointment) throw new NotFoundException('Appointment not found');
 
-    const isParticipant =
-      appointment.patient.userId === userId || appointment.doctor.userId === userId;
+    const isDoctor = appointment.doctor.userId === userId;
+    const isParticipant = appointment.patient.userId === userId || isDoctor;
     if (!isParticipant) throw new ForbiddenException('Access denied');
 
-    const userName =
-      appointment.patient.userId === userId
-        ? appointment.patient.fullName
-        : appointment.doctor.fullName;
+    const userName = isDoctor ? appointment.doctor.fullName : appointment.patient.fullName;
+
+    const patientContext = isDoctor
+      ? {
+          fullName: appointment.patient.fullName,
+          medicalHistory: appointment.patient.medicalHistory ?? null,
+          weight: appointment.patient.weight ?? null,
+          height: appointment.patient.height ?? null,
+          birthdate: appointment.patient.birthdate,
+        }
+      : undefined;
 
     if (appointment.consultationLink) {
-      return { roomUrl: appointment.consultationLink, userName };
+      return { roomUrl: appointment.consultationLink, userName, patientContext };
     }
 
     // Create a real Daily.co room via REST API
@@ -68,7 +79,7 @@ export class ConsultationService {
       data: { consultationLink: roomUrl },
     });
 
-    return { roomUrl, userName };
+    return { roomUrl, userName, patientContext };
   }
 
   async updateNotes(appointmentId: string, userId: string, notes: string): Promise<void> {

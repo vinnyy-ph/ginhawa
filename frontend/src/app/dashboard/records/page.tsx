@@ -94,9 +94,15 @@ export default function PatientRecordsPage() {
                         </h3>
                         <p className="text-primary text-sm font-semibold">{doc?.specialization}</p>
                       </div>
-                      <div className="flex items-center gap-2 text-sm font-medium text-text-primary bg-surface-white px-3 py-1.5 rounded-md shadow-sm border border-outline-variant/20">
-                        <CalendarIcon className="w-4 h-4 text-primary" />
-                        {dateStr}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#31a795] bg-[#31a795]/10 px-2.5 py-1 rounded-full border border-[#31a795]/20">
+                          <CheckCircledIcon className="w-3.5 h-3.5" />
+                          Doctor Reviewed
+                        </div>
+                        <div className="flex items-center gap-2 text-sm font-medium text-text-primary bg-surface-white px-3 py-1.5 rounded-md shadow-sm border border-outline-variant/20">
+                          <CalendarIcon className="w-4 h-4 text-primary" />
+                          {dateStr}
+                        </div>
                       </div>
                     </div>
                     

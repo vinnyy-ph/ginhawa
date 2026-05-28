@@ -7,6 +7,14 @@ import DailyIframe, { DailyCall, DailyEventObjectAppMessage } from "@daily-co/da
 import { apiRequest } from "@/lib/api-client";
 import { Spinner } from "@/components/ui/spinner";
 
+interface PatientContext {
+  fullName: string;
+  medicalHistory: string | null;
+  weight: number | null;
+  height: number | null;
+  birthdate: string;
+}
+
 export default function ConsultationPage({ params }: { params: Promise<{ appointmentId: string }> }) {
   const resolvedParams = use(params);
   const appointmentId = resolvedParams.appointmentId;
@@ -17,6 +25,8 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
 
   const [roomUrl, setRoomUrl] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  const [patientContext, setPatientContext] = useState<PatientContext | null>(null);
+  const [activeTab, setActiveTab] = useState<'notes' | 'patient'>('notes');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
@@ -28,8 +38,8 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
 
   useEffect(() => {
     if (!token) return;
-    apiRequest<{ roomUrl: string; userName: string }>(`/consultation/${appointmentId}/room`, { token })
-      .then((data) => { setRoomUrl(data.roomUrl); setUserName(data.userName); })
+    apiRequest<{ roomUrl: string; userName: string; patientContext?: PatientContext }>(`/consultation/${appointmentId}/room`, { token })
+      .then((data) => { setRoomUrl(data.roomUrl); setUserName(data.userName); if (data.patientContext) setPatientContext(data.patientContext); })
       .catch(() => setError("Could not load consultation room."))
       .finally(() => setLoading(false));
   }, [token, appointmentId]);
@@ -115,19 +125,76 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
         <div ref={containerRef} className="w-full h-full" />
       </div>
 
-      {/* Doctor Notes Sidebar */}
+      {/* Doctor Sidebar */}
       {isDoctor && (
         <div className="w-80 bg-surface-white flex flex-col border-l border-outline-variant/30">
-          <div className="p-4 border-b border-outline-variant/30 flex justify-between items-center">
-            <h2 className="font-serif font-bold text-text-primary">Live Notes</h2>
-            {isSaving && <span className="text-xs text-on-surface-variant">Saving...</span>}
+          {/* Tab headers */}
+          <div className="flex border-b border-outline-variant/30">
+            <button
+              onClick={() => setActiveTab('notes')}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'notes' ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
+            >
+              Live Notes
+              {isSaving && <span className="ml-1 text-xs text-on-surface-variant">(saving...)</span>}
+            </button>
+            <button
+              onClick={() => setActiveTab('patient')}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'patient' ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
+            >
+              Patient
+            </button>
           </div>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Document findings, symptoms, observations..."
-            className="flex-1 resize-none p-4 text-sm text-on-surface bg-surface-white focus:outline-none"
-          />
+
+          {/* Notes tab */}
+          {activeTab === 'notes' && (
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Document findings, symptoms, observations..."
+              className="flex-1 resize-none p-4 text-sm text-on-surface bg-surface-white focus:outline-none"
+            />
+          )}
+
+          {/* Patient context tab */}
+          {activeTab === 'patient' && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 text-sm">
+              {patientContext ? (
+                <>
+                  <div>
+                    <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1">Patient</p>
+                    <p className="text-on-surface font-medium">{patientContext.fullName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1">Age</p>
+                    <p className="text-on-surface">
+                      {Math.floor((Date.now() - new Date(patientContext.birthdate).getTime()) / (365.25 * 24 * 3600 * 1000))} years
+                    </p>
+                  </div>
+                  {patientContext.weight && (
+                    <div>
+                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1">Weight</p>
+                      <p className="text-on-surface">{patientContext.weight} kg</p>
+                    </div>
+                  )}
+                  {patientContext.height && (
+                    <div>
+                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1">Height</p>
+                      <p className="text-on-surface">{patientContext.height} cm</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1">Medical History</p>
+                    <p className="text-on-surface-variant whitespace-pre-line leading-relaxed">
+                      {patientContext.medicalHistory ?? 'None recorded'}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <p className="text-on-surface-variant text-center py-8">No patient data available.</p>
+              )}
+            </div>
+          )}
+
           <div className="p-4 border-t border-outline-variant/30 space-y-3">
             <p className="text-xs text-on-surface-variant">
               Notes auto-save every 1.5s. They will be used for AI summarization after the call.
