@@ -14,6 +14,7 @@ import {
   ClockIcon,
 } from "@radix-ui/react-icons";
 import type { RecommendationLog } from "@/types/api";
+import { parse } from 'partial-json';
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 
 export default function DashboardAIRecommendationsPage() {
@@ -26,6 +27,8 @@ export default function DashboardAIRecommendationsPage() {
   const [history, setHistory] = useState<RecommendationLog[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [streamingSpecialization, setStreamingSpecialization] = useState<string | null>(null);
+  const [streamingExplanation, setStreamingExplanation] = useState<string>("");
 
   const { isRecording, isProcessing, isSupported, error: micError, startRecording, stopRecording } = useSpeechRecognition();
 
@@ -62,16 +65,53 @@ export default function DashboardAIRecommendationsPage() {
     try {
       setIsSubmitting(true);
       setError(null);
+      setResult(null);
+      setStreamingSpecialization(null);
+      setStreamingExplanation("");
 
-      const data = await apiRequest<RecommendationLog>("/recommendations", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recommendations`, {
         method: "POST",
-        token,
-        body: { symptomInput: symptoms },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ symptomInput: symptoms }),
       });
 
-      setResult(data);
-      // Prepend to history
-      setHistory((prev) => [data, ...prev]);
+      if (!response.ok) throw new Error("Failed to analyze symptoms.");
+      if (!response.body) throw new Error("No response body.");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let done = false;
+      let fullText = "";
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunkValue = decoder.decode(value, { stream: true });
+          fullText += chunkValue;
+          
+          try {
+            // parse partial json safely
+            const parsed = parse(fullText);
+            if (typeof parsed === 'object' && parsed !== null) {
+              if (parsed.explanation) setStreamingExplanation(parsed.explanation);
+              if (parsed.specialization) setStreamingSpecialization(parsed.specialization);
+            }
+          } catch (e) {
+            // ignore parse errors for incomplete JSON
+          }
+        }
+      }
+
+      const finalParsed = parse(fullText) as any;
+      // We mock the DB generated fields for the immediate UI, the real one is saved in the backend
+      const completeLog = { ...finalParsed, id: 'temp-' + Date.now(), symptomInput: symptoms, createdAt: new Date().toISOString(), aiExplanation: finalParsed.explanation, matchedSpecialization: finalParsed.specialization };
+      
+      setResult(completeLog as RecommendationLog);
+      setHistory((prev) => [completeLog as RecommendationLog, ...prev]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to analyze symptoms. Please try again.");
     } finally {
@@ -184,10 +224,11 @@ export default function DashboardAIRecommendationsPage() {
           </form>
         </div>
 
-        {/* Result */}
-        {result && (
+        {/* Result & Streaming State */}
+        {(isSubmitting || result) && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {result.matchedSpecialization === 'EMERGENCY' ? (
+            {/* Show emergency UI if the stream determines it's an emergency early or final */}
+            {(streamingSpecialization === 'EMERGENCY' || result?.matchedSpecialization === 'EMERGENCY') ? (
               <div className="bg-red-50 border-2 border-error rounded-xl p-8 text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-error flex items-center justify-center mx-auto shadow-soft animate-pulse">
                   <ExclamationTriangleIcon className="w-8 h-8 text-white" />
@@ -207,36 +248,38 @@ export default function DashboardAIRecommendationsPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-gradient-to-br from-[#48cab6]/10 to-[#31a795]/10 rounded-xl p-8 border border-primary/20 text-center">
+              <div className="bg-gradient-to-br from-[#48cab6]/10 to-[#31a795]/10 rounded-xl p-8 border border-primary/20 text-center transition-all duration-300">
                 <p className="text-sm font-bold uppercase tracking-wider text-primary mb-2">
-                  Recommendation
+                  {isSubmitting ? "Analyzing Symptoms..." : "Recommendation"}
                 </p>
                 <p className="text-on-surface-variant mb-4">
                   Based on your symptoms, we recommend consulting a:
                 </p>
-                <h3 className="font-serif text-3xl md:text-4xl font-bold text-text-primary mb-2 text-primary">
-                  {result.matchedSpecialization}
+                
+                {/* Specialization Placeholder or Actual */}
+                <h3 className={`font-serif text-3xl md:text-4xl font-bold mb-2 transition-all duration-500 ${isSubmitting && !streamingSpecialization ? 'text-primary/30 animate-pulse' : 'text-primary'}`}>
+                  {streamingSpecialization || result?.matchedSpecialization || "Determining Specialist..."}
                 </h3>
-                {result.aiExplanation && (
-                  <p className="text-on-surface-variant text-sm leading-relaxed italic mb-8 border-l-4 border-primary/30 pl-4 text-left">
-                    {result.aiExplanation}
-                  </p>
-                )}
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button asChild size="lg" className="shadow-soft">
-                    <Link
-                      href={`/dashboard/find-doctors?specialization=${encodeURIComponent(
-                        result.matchedSpecialization
-                      )}`}
-                    >
-                      Find {result.matchedSpecialization}s
-                    </Link>
-                  </Button>
-                  <Button variant="outline" size="lg" asChild>
-                    <Link href="/dashboard/find-doctors">Browse all doctors</Link>
-                  </Button>
+                
+                {/* Typing Explanation */}
+                <div className="text-on-surface-variant text-sm leading-relaxed italic mb-8 border-l-4 border-primary/30 pl-4 text-left min-h-[4rem]">
+                  {streamingExplanation || result?.aiExplanation || (isSubmitting ? "Reading your symptoms and evaluating conditions..." : "")}
+                  {isSubmitting && <span className="inline-block w-1.5 h-4 ml-1 bg-primary/70 animate-pulse align-middle"></span>}
                 </div>
+
+                {/* Final Actions (Only show when stream completes) */}
+                {!isSubmitting && result && (
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in fade-in zoom-in duration-500 delay-150">
+                    <Button asChild size="lg" className="shadow-soft">
+                      <Link href={`/dashboard/find-doctors?specialization=${encodeURIComponent(result.matchedSpecialization)}`}>
+                        Find {result.matchedSpecialization}s
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="lg" asChild>
+                      <Link href="/dashboard/find-doctors">Browse all doctors</Link>
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
