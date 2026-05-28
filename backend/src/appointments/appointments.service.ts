@@ -156,6 +156,7 @@ export class AppointmentsService {
     role: string,
     id: string,
     status: AppointmentStatus,
+    cancelReason?: string,
   ) {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id },
@@ -227,7 +228,13 @@ export class AppointmentsService {
 
     const updated = await this.prisma.appointment.update({
       where: { id },
-      data: { status },
+      data: {
+        status,
+        ...(status === AppointmentStatus.CANCELLED && {
+          cancelledAt: new Date(),
+          cancelReason: cancelReason ?? null,
+        }),
+      },
     });
 
     // Notify the other party about the status change

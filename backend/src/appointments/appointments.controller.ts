@@ -60,6 +60,7 @@ export class AppointmentsController {
       req.user.role,
       id,
       updateAppointmentStatusDto.status,
+      updateAppointmentStatusDto.cancelReason,
     );
   }
 }
