@@ -15,15 +15,34 @@ async function main() {
   await prisma.medicalRecord.deleteMany();
   await prisma.appointment.deleteMany();
   await prisma.availabilitySlot.deleteMany();
+  await prisma.doctorSpecialization.deleteMany();
   await prisma.recommendationLog.deleteMany();
   await prisma.notification.deleteMany();
   await prisma.patientProfile.deleteMany();
   await prisma.doctorProfile.deleteMany();
+  await prisma.specialization.deleteMany();
   await prisma.user.deleteMany();
 
   console.log('Database cleared.');
 
   const passwordHash = await bcrypt.hash('123123123', 10);
+
+  // Seed specializations
+  console.log('Seeding specializations...');
+  const specializationNames = [
+    'General Practice', 'Internal Medicine', 'Pediatrics', 'OB-GYN',
+    'Dermatology', 'Cardiology', 'Orthopedics', 'ENT', 'Psychiatry',
+    'Neurology', 'Ophthalmology', 'Radiology', 'Surgery',
+    'Family Medicine', 'Rehabilitation Medicine',
+  ];
+  for (const name of specializationNames) {
+    await prisma.specialization.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+  console.log('Specializations seeded.');
 
   // Seeding Doctors
   console.log('Seeding 20 doctors...');

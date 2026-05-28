@@ -82,6 +82,7 @@ model DoctorProfile {
   availabilitySlots   AvailabilitySlot[]
   appointments        Appointment[]
   medicalRecords      MedicalRecord[]
+  specializations     DoctorSpecialization[]
 
   @@map("doctor_profiles")
 }
@@ -200,4 +201,26 @@ model RecommendationLog {
 
   @@index([patientId])
   @@map("recommendation_logs")
+}
+
+model Specialization {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  doctors     DoctorSpecialization[]
+
+  @@map("specializations")
+}
+
+model DoctorSpecialization {
+  doctorId         String         @map("doctor_id")
+  doctor           DoctorProfile  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  specializationId String         @map("specialization_id")
+  specialization   Specialization @relation(fields: [specializationId], references: [id], onDelete: Cascade)
+  isPrimary        Boolean        @default(false) @map("is_primary")
+
+  @@id([doctorId, specializationId])
+  @@map("doctor_specializations")
 }
