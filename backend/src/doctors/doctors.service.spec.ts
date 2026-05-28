@@ -155,6 +155,8 @@ describe('DoctorsService', () => {
 
       expect(mockPrismaService.doctorProfile.findMany).toHaveBeenCalledWith({
         where: {
+          isActive: true,
+          isVerified: true,
           fullName: { contains: 'Smith', mode: 'insensitive' },
           specialization: { contains: 'Cardio', mode: 'insensitive' },
         },
@@ -162,6 +164,21 @@ describe('DoctorsService', () => {
           availabilitySlots: true,
         },
       });
+    });
+
+    it('should always filter by isActive: true and isVerified: true', async () => {
+      mockPrismaService.doctorProfile.findMany.mockResolvedValue([]);
+
+      await service.searchAll();
+
+      expect(mockPrismaService.doctorProfile.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            isActive: true,
+            isVerified: true,
+          }),
+        }),
+      );
     });
   });
 

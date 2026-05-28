@@ -68,6 +68,14 @@ model DoctorProfile {
   languagesSpoken     String?  @map("languages_spoken")
   consultationFocusAreas String? @map("consultation_focus_areas")
   consultationFee     Float?   @map("consultation_fee")
+  prcLicenseNo        String?  @map("prc_license_no")
+  prcLicenseExpiry    DateTime? @map("prc_license_expiry")
+  ptrNo               String?  @map("ptr_no")
+  region              String?
+  city                String?
+  isVerified          Boolean  @default(false) @map("is_verified")
+  isActive            Boolean  @default(true)  @map("is_active")
+  verifiedAt          DateTime? @map("verified_at")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 

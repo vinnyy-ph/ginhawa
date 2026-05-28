@@ -2,6 +2,7 @@ import {
   IsString,
   IsOptional,
   IsNumber,
+  IsDateString,
   Min,
   MaxLength,
 } from 'class-validator';
@@ -53,4 +54,28 @@ export class CreateDoctorDto {
   @IsNumber()
   @Min(0)
   consultationFee?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  prcLicenseNo?: string;
+
+  @IsOptional()
+  @IsDateString()
+  prcLicenseExpiry?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  ptrNo?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  region?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  city?: string;
 }

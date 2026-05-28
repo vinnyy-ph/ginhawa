@@ -72,7 +72,10 @@ export class DoctorsService {
   }
 
   async searchAll(search?: string, specialization?: string) {
-    const where: Prisma.DoctorProfileWhereInput = {};
+    const where: Prisma.DoctorProfileWhereInput = {
+      isActive: true,
+      isVerified: true,
+    };
 
     if (search) {
       where.fullName = { contains: search, mode: 'insensitive' };
