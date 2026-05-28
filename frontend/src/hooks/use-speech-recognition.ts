@@ -20,12 +20,27 @@ export function useSpeechRecognition(token?: string): UseSpeechRecognitionReturn
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
     setIsSupported(typeof window !== 'undefined' && !!navigator.mediaDevices?.getUserMedia);
+    
+    return () => {
+      isMountedRef.current = false;
+      // Stop stream tracks if component unmounts while recording
+      if (mediaRecorderRef.current?.stream) {
+        mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+      }
+    };
   }, []);
 
   const startRecording = async () => {
+    // Prevent consecutive calls from creating multiple streams
+    if (isRecording || mediaRecorderRef.current?.state === 'recording') {
+      return;
+    }
+
     try {
       setError(null);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -40,9 +55,13 @@ export function useSpeechRecognition(token?: string): UseSpeechRecognitionReturn
       };
 
       mediaRecorder.start();
-      setIsRecording(true);
+      if (isMountedRef.current) {
+        setIsRecording(true);
+      }
     } catch (err) {
-      setError('Microphone access denied or unavailable.');
+      if (isMountedRef.current) {
+        setError('Microphone access denied or unavailable.');
+      }
     }
   };
 
@@ -50,9 +69,11 @@ export function useSpeechRecognition(token?: string): UseSpeechRecognitionReturn
     if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') return;
 
     mediaRecorderRef.current.onstop = async () => {
-      setIsRecording(false);
-      setIsProcessing(true);
-      setError(null);
+      if (isMountedRef.current) {
+        setIsRecording(false);
+        setIsProcessing(true);
+        setError(null);
+      }
 
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
       audioChunksRef.current = [];
@@ -62,13 +83,17 @@ export function useSpeechRecognition(token?: string): UseSpeechRecognitionReturn
 
       try {
         const result = await apiUpload<{ text: string }>('/speech/transcribe', 'audio', audioBlob, token);
-        if (result.text) {
+        if (result.text && isMountedRef.current) {
           onTranscript(result.text);
         }
       } catch (err) {
-        setError('Failed to transcribe audio.');
+        if (isMountedRef.current) {
+          setError('Failed to transcribe audio.');
+        }
       } finally {
-        setIsProcessing(false);
+        if (isMountedRef.current) {
+          setIsProcessing(false);
+        }
       }
     };
 
