@@ -37,7 +37,8 @@ export default function RecommendationsPage() {
       setSymptoms(prefilledSymptoms);
       setStep(2);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional mount-only: pre-fill once from URL, don't reset if URL changes later
+  }, []);
 
   const handleTranscript = (text: string) => {
     setSymptoms((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
