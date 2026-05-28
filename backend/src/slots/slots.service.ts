@@ -5,6 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SlotStatus } from '@prisma/client';
 import { CreateSlotDto } from './dto/create-slot.dto';
 import { UpdateSlotDto } from './dto/update-slot.dto';
 
@@ -103,6 +104,12 @@ export class SlotsService {
 
     if (slot.doctorId !== doctor.id) {
       throw new ForbiddenException('You can only delete your own slots');
+    }
+
+    if (slot.status === SlotStatus.BOOKED) {
+      throw new BadRequestException(
+        'Cannot delete a booked slot. Cancel the appointment first.',
+      );
     }
 
     return this.prisma.availabilitySlot.delete({
