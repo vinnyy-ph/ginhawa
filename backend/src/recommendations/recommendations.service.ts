@@ -1,92 +1,137 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const emergencyKeywords = [
-  'chest pain',
-  'difficulty breathing',
-  'heavy bleeding',
-  'unconscious',
-  'stroke',
-  'seizure',
-  'suicide',
-  'self harm',
-  'poison',
+const VALID_SPECIALIZATIONS = [
+  'Cardiology',
+  'Dermatology',
+  'Orthopedics',
+  'Neurology',
+  'Gastroenterology',
+  'Ophthalmology',
+  'Dentistry',
+  'Pediatrics',
+  'Gynecology',
+  'Psychiatry',
+  'General Practice',
+  'EMERGENCY',
 ];
-
-const keywordMap: Record<string, string> = {
-  heart: 'Cardiology',
-  chest: 'Cardiology',
-  blood: 'Cardiology',
-  skin: 'Dermatology',
-  rash: 'Dermatology',
-  itch: 'Dermatology',
-  bone: 'Orthopedics',
-  fracture: 'Orthopedics',
-  joint: 'Orthopedics',
-  muscle: 'Orthopedics',
-  brain: 'Neurology',
-  headache: 'Neurology',
-  nerve: 'Neurology',
-  stomach: 'Gastroenterology',
-  digestion: 'Gastroenterology',
-  acid: 'Gastroenterology',
-  eye: 'Ophthalmology',
-  vision: 'Ophthalmology',
-  tooth: 'Dentistry',
-  dental: 'Dentistry',
-  child: 'Pediatrics',
-  baby: 'Pediatrics',
-  women: 'Gynecology',
-  pregnancy: 'Gynecology',
-  mental: 'Psychiatry',
-  depression: 'Psychiatry',
-  anxiety: 'Psychiatry',
-};
 
 @Injectable()
 export class RecommendationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly genAI: GoogleGenerativeAI;
 
-  private determineSpecialization(symptoms: string): string {
-    const lowerSymptoms = symptoms.toLowerCase();
+  constructor(private readonly prisma: PrismaService) {
+    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
+  }
 
-    // Check for emergency keywords first
-    for (const keyword of emergencyKeywords) {
-      if (lowerSymptoms.includes(keyword)) {
-        return 'EMERGENCY';
-      }
+  private buildPrompt(
+    symptomInput: string,
+    patientContext?: { specializations: string[]; symptoms: string[] },
+  ): string {
+    const contextBlock = patientContext
+      ? `Patient context (use this to personalize your recommendation):
+- Recent specializations consulted: ${patientContext.specializations.join(', ') || 'none'}
+- Prior symptom history (brief): ${patientContext.symptoms.map((s) => s.slice(0, 100)).join(' | ') || 'none'}
+
+`
+      : '';
+
+    return `You are a medical triage assistant. ${contextBlock}A patient describes their symptoms: "${symptomInput}".
+
+Return ONLY valid JSON in this exact format, no markdown:
+{ "specialization": "<name>", "explanation": "<2-3 sentence reasoning>" }
+
+Specialization must be one of: Cardiology, Dermatology, Orthopedics, Neurology, Gastroenterology, Ophthalmology, Dentistry, Pediatrics, Gynecology, Psychiatry, General Practice, EMERGENCY.
+
+Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain, stroke, difficulty breathing, heavy bleeding, unconscious, seizure, suicide, self-harm, poisoning).`;
+  }
+
+  private async getAIRecommendation(
+    symptomInput: string,
+    patientContext?: { specializations: string[]; symptoms: string[] },
+  ): Promise<{ specialization: string; explanation: string }> {
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+    const prompt = this.buildPrompt(symptomInput, patientContext);
+
+    let raw: string;
+    try {
+      const result = await model.generateContent(prompt);
+      raw = result.response.text();
+    } catch {
+      throw new InternalServerErrorException(
+        'AI recommendation service unavailable',
+      );
     }
 
-    for (const [keyword, specialization] of Object.entries(keywordMap)) {
-      if (lowerSymptoms.includes(keyword)) {
-        return specialization;
-      }
+    const cleaned = raw
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
+
+    let parsed: { specialization: string; explanation: string };
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      throw new InternalServerErrorException(
+        'AI recommendation service unavailable',
+      );
     }
-    return 'General Practice';
+
+    if (!VALID_SPECIALIZATIONS.includes(parsed.specialization)) {
+      throw new InternalServerErrorException(
+        'AI recommendation service unavailable',
+      );
+    }
+
+    return parsed;
   }
 
   async create(
     userId: string | null,
     createRecommendationDto: CreateRecommendationDto,
   ) {
-    const matchedSpecialization = this.determineSpecialization(
-      createRecommendationDto.symptomInput,
-    );
-
     let patientId: string | null = null;
+    let patientContext:
+      | { specializations: string[]; symptoms: string[] }
+      | undefined;
+
     if (userId) {
       const patientProfile = await this.prisma.patientProfile.findUnique({
         where: { userId },
       });
       patientId = patientProfile?.id ?? null;
+
+      if (patientId) {
+        const recentLogs = await this.prisma.recommendationLog.findMany({
+          where: { patientId },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: { matchedSpecialization: true, symptomInput: true },
+        });
+        patientContext = {
+          specializations: recentLogs.map((l) => l.matchedSpecialization),
+          symptoms: recentLogs.map((l) => l.symptomInput),
+        };
+      }
     }
+
+    const { specialization, explanation } = await this.getAIRecommendation(
+      createRecommendationDto.symptomInput,
+      patientContext,
+    );
 
     return this.prisma.recommendationLog.create({
       data: {
         patientId,
         symptomInput: createRecommendationDto.symptomInput,
-        matchedSpecialization,
+        matchedSpecialization: specialization,
+        aiExplanation: explanation,
       },
     });
   }
