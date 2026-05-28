@@ -154,32 +154,53 @@ export default function DashboardAIRecommendationsPage() {
         {/* Result */}
         {result && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-gradient-to-br from-[#48cab6]/10 to-[#31a795]/10 rounded-xl p-8 border border-primary/20 text-center">
-              <p className="text-sm font-bold uppercase tracking-wider text-primary mb-2">
-                Recommendation
-              </p>
-              <p className="text-on-surface-variant mb-4">
-                Based on your symptoms, we recommend consulting a:
-              </p>
-              <h3 className="font-serif text-3xl md:text-4xl font-bold text-text-primary mb-8 text-primary">
-                {result.matchedSpecialization}
-              </h3>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild size="lg" className="shadow-soft">
-                  <Link
-                    href={`/dashboard/find-doctors?specialization=${encodeURIComponent(
-                      result.matchedSpecialization
-                    )}`}
-                  >
-                    Find {result.matchedSpecialization}s
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" asChild>
-                  <Link href="/dashboard/find-doctors">Browse all doctors</Link>
-                </Button>
+            {result.matchedSpecialization === 'EMERGENCY' ? (
+              <div className="bg-red-50 border-2 border-error rounded-xl p-8 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-error flex items-center justify-center mx-auto shadow-soft animate-pulse">
+                  <ExclamationTriangleIcon className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="font-serif text-3xl font-bold text-error">
+                  Seek Immediate Emergency Care
+                </h3>
+                <p className="text-on-surface-variant text-lg max-w-lg mx-auto">
+                  Based on your symptoms, this could be a life-threatening situation. 
+                  Please stop using this app and <strong>call 911</strong> or go to the 
+                  nearest emergency department immediately.
+                </p>
+                <div className="pt-4">
+                  <Button variant="destructive" size="lg" className="w-full sm:w-auto" asChild>
+                    <a href="tel:911">Call Emergency Services</a>
+                  </Button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-gradient-to-br from-[#48cab6]/10 to-[#31a795]/10 rounded-xl p-8 border border-primary/20 text-center">
+                <p className="text-sm font-bold uppercase tracking-wider text-primary mb-2">
+                  Recommendation
+                </p>
+                <p className="text-on-surface-variant mb-4">
+                  Based on your symptoms, we recommend consulting a:
+                </p>
+                <h3 className="font-serif text-3xl md:text-4xl font-bold text-text-primary mb-8 text-primary">
+                  {result.matchedSpecialization}
+                </h3>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button asChild size="lg" className="shadow-soft">
+                    <Link
+                      href={`/dashboard/find-doctors?specialization=${encodeURIComponent(
+                        result.matchedSpecialization
+                      )}`}
+                    >
+                      Find {result.matchedSpecialization}s
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="lg" asChild>
+                    <Link href="/dashboard/find-doctors">Browse all doctors</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -191,12 +191,49 @@ function SymptomsStep({
     </FadeIn>
   );
 }
-
 function ResultsStep({ result, onRestart }: { result: RecommendationLog | null; onRestart: () => void }) {
   if (!result) return null;
 
+  if (result.matchedSpecialization === 'EMERGENCY') {
+    return (
+      <FadeIn>
+        <div className="space-y-8">
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl font-bold text-error font-serif italic uppercase tracking-tighter">Emergency Detected</h2>
+            <p className="text-on-surface-variant font-medium">Please prioritize your safety immediately.</p>
+          </div>
+
+          <Card className="overflow-hidden border-2 border-error shadow-lifted rounded-xl bg-red-50/50">
+            <div className="bg-error p-8 text-center text-white space-y-4">
+              <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-2 animate-pulse">
+                <ExclamationTriangleIcon className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-4xl font-bold font-serif leading-tight">Seek Emergency Care Immediately</h3>
+            </div>
+            <div className="p-8 space-y-8">
+              <p className="text-on-surface-variant text-lg leading-relaxed text-center font-medium">
+                Based on your symptoms, our system indicates a high-risk situation that requires immediate medical intervention. 
+                <strong> Please do not book a telehealth consultation.</strong>
+              </p>
+
+              <div className="space-y-4">
+                <Button size="lg" variant="destructive" className="w-full py-8 text-xl rounded-xl shadow-soft font-bold animate-bounce" asChild>
+                  <a href="tel:911">Call 911 Now</a>
+                </Button>
+                <Button variant="outline" size="lg" className="w-full py-8 text-lg rounded-xl border-error text-error hover:bg-red-50" onClick={onRestart}>
+                  Go back & edit symptoms
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </FadeIn>
+    );
+  }
+
   return (
     <FadeIn>
+...
       <div className="space-y-8">
         <div className="text-center space-y-4">
           <h2 className="text-3xl font-bold text-text-primary font-serif">Your Recommendation</h2>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
-import type { Appointment } from "@/types/api";
+import type { Appointment, AppointmentStatus } from "@/types/api";
 import { AppointmentCard } from "@/components/appointment-card";
 
 type FilterTab = "All" | "Upcoming" | "Completed" | "Cancelled";
@@ -23,24 +23,46 @@ export default function PatientAppointmentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<FilterTab>("Upcoming");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const fetchAppointments = useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const data = await apiRequest<Appointment[]>("/appointments/patient", { token });
+      // Sort descending by start time
+      data.sort((a, b) => new Date(b.slot?.startTime || 0).getTime() - new Date(a.slot?.startTime || 0).getTime());
+      setAppointments(data);
+    } catch {
+      setError("Failed to load your appointments.");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
   useEffect(() => {
-    async function fetchAppointments() {
-      if (!token) return;
-      try {
-        setLoading(true);
-        const data = await apiRequest<Appointment[]>("/appointments/patient", { token });
-        // Sort descending by start time
-        data.sort((a, b) => new Date(b.slot?.startTime || 0).getTime() - new Date(a.slot?.startTime || 0).getTime());
-        setAppointments(data);
-      } catch {
-        setError("Failed to load your appointments.");
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchAppointments();
-  }, [token]);
+  }, [fetchAppointments]);
+
+  const updateStatus = async (id: string, status: AppointmentStatus) => {
+    if (!token) return;
+    try {
+      setUpdatingId(id);
+      setActionError(null);
+      await apiRequest(`/appointments/${id}/status`, {
+        method: "PATCH",
+        token,
+        body: { status },
+      });
+      // Refresh list to show updated status and free slots
+      await fetchAppointments();
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : "Failed to cancel appointment.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   const filteredAppointments = useMemo(() => {
     return appointments.filter(appt => {
@@ -63,6 +85,13 @@ export default function PatientAppointmentsPage() {
             Manage your past and upcoming consultations.
           </p>
         </div>
+
+        {actionError && (
+          <div className="mb-4 bg-red-50 text-error px-5 py-3 rounded-lg border border-red-100 text-sm flex items-center justify-between gap-4">
+            <span>{actionError}</span>
+            <button onClick={() => setActionError(null)} className="text-error font-bold">✕</button>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2 mb-8 bg-surface-white p-2 rounded-xl shadow-sm border border-outline-variant/30 inline-flex">
@@ -115,6 +144,8 @@ export default function PatientAppointmentsPage() {
                 role="patient"
                 isExpanded={expandedId === appt.id}
                 onToggleExpand={() => setExpandedId(expandedId === appt.id ? null : appt.id)}
+                isUpdating={updatingId === appt.id}
+                onUpdateStatus={updateStatus}
               />
             ))}
           </div>

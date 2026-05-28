@@ -141,28 +141,44 @@ export class AppointmentsService {
     return appointment;
   }
 
-  async updateStatus(userId: string, id: string, status: AppointmentStatus) {
-    const doctorProfile = await this.prisma.doctorProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!doctorProfile) {
-      throw new NotFoundException('Doctor profile not found');
-    }
-
+  async updateStatus(
+    userId: string,
+    role: string,
+    id: string,
+    status: AppointmentStatus,
+  ) {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id },
-      include: { patient: { include: { user: true } } },
+      include: {
+        patient: { include: { user: true } },
+        doctor: { include: { user: true } },
+      },
     });
 
     if (!appointment) {
       throw new NotFoundException('Appointment not found');
     }
 
-    if (appointment.doctorId !== doctorProfile.id) {
-      throw new BadRequestException(
-        'You can only update your own appointments',
-      );
+    // Authorization & Validation
+    if (role === 'DOCTOR') {
+      if (appointment.doctor.userId !== userId) {
+        throw new ForbiddenException(
+          'You can only update your own appointments',
+        );
+      }
+    } else if (role === 'PATIENT') {
+      if (appointment.patient.userId !== userId) {
+        throw new ForbiddenException(
+          'You can only update your own appointments',
+        );
+      }
+      if (status !== AppointmentStatus.CANCELLED) {
+        throw new BadRequestException(
+          'Patients can only cancel their appointments',
+        );
+      }
+    } else {
+      throw new ForbiddenException('Unauthorized role');
     }
 
     // Free the slot when cancelling
@@ -178,26 +194,48 @@ export class AppointmentsService {
       data: { status },
     });
 
-    // Notify the patient about the status change
-    const statusMessages: Partial<Record<AppointmentStatus, { title: string; message: string }>> = {
+    // Notify the other party about the status change
+    const doctorName = appointment.doctor.fullName;
+    const patientName = appointment.patient.fullName;
+
+    const statusMessages: Partial<
+      Record<
+        AppointmentStatus,
+        { title: string; message: string; targetUserId: string }
+      >
+    > = {
       [AppointmentStatus.CONFIRMED]: {
         title: 'Appointment Confirmed',
-        message: `Your appointment with ${doctorProfile.fullName} has been confirmed.`,
+        message: `Your appointment with ${doctorName} has been confirmed.`,
+        targetUserId: appointment.patient.userId,
       },
       [AppointmentStatus.CANCELLED]: {
         title: 'Appointment Cancelled',
-        message: `Your appointment with ${doctorProfile.fullName} has been cancelled.`,
+        message:
+          role === 'DOCTOR'
+            ? `Your appointment with ${doctorName} has been cancelled.`
+            : `Patient ${patientName} has cancelled their appointment.`,
+        targetUserId:
+          role === 'DOCTOR'
+            ? appointment.patient.userId
+            : appointment.doctor.userId,
       },
       [AppointmentStatus.COMPLETED]: {
         title: 'Appointment Completed',
-        message: `Your appointment with ${doctorProfile.fullName} is complete. Check your records for notes.`,
+        message: `Your appointment with ${doctorName} is complete. Check your records for notes.`,
+        targetUserId: appointment.patient.userId,
       },
     };
 
     const notif = statusMessages[status];
-    if (notif && appointment.patient?.userId) {
+    if (notif && notif.targetUserId) {
       this.notifications
-        .createNotification(appointment.patient.userId, `APPOINTMENT_${status}`, notif.title, notif.message)
+        .createNotification(
+          notif.targetUserId,
+          `APPOINTMENT_${status}`,
+          notif.title,
+          notif.message,
+        )
         .catch(() => null);
     }
 

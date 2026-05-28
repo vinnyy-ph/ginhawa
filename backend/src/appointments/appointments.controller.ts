@@ -14,6 +14,7 @@ import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('appointments')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -43,22 +44,20 @@ export class AppointmentsController {
 
   @Get(':id')
   @Roles('DOCTOR')
-  findOne(
-    @Request() req: { user: { id: string } },
-    @Param('id') id: string,
-  ) {
+  findOne(@Request() req: { user: { id: string } }, @Param('id') id: string) {
     return this.appointmentsService.findOne(req.user.id, id);
   }
 
   @Patch(':id/status')
-  @Roles('DOCTOR')
+  @Roles('DOCTOR', 'PATIENT')
   updateStatus(
-    @Request() req: { user: { id: string } },
+    @Request() req: { user: { id: string; role: Role } },
     @Param('id') id: string,
     @Body() updateAppointmentStatusDto: UpdateAppointmentStatusDto,
   ) {
     return this.appointmentsService.updateStatus(
       req.user.id,
+      req.user.role,
       id,
       updateAppointmentStatusDto.status,
     );

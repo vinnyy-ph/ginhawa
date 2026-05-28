@@ -12,13 +12,13 @@ export interface AppointmentCardProps {
   appointment: Appointment;
   role: Role;
 
+  // Common props
+  isUpdating?: boolean;
+  onUpdateStatus?: (id: string, status: AppointmentStatus) => void;
+
   // Patient specific props
   isExpanded?: boolean;
   onToggleExpand?: () => void;
-
-  // Doctor specific props
-  isUpdating?: boolean;
-  onUpdateStatus?: (id: string, status: AppointmentStatus) => void;
 }
 
 //always return true for now
@@ -123,7 +123,13 @@ export function AppointmentCard({
                       <Button disabled variant="outline" size="sm" className="opacity-50 cursor-not-allowed">
                         Reschedule
                       </Button>
-                      <Button disabled variant="destructive" size="sm" className="opacity-50 cursor-not-allowed bg-error/10 text-error border-0">
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        className={cn("bg-error/10 text-error border-0 hover:bg-error/20", isUpdating && "opacity-50")}
+                        onClick={() => onUpdateStatus?.(appt.id, "CANCELLED")}
+                        disabled={isUpdating}
+                      >
                         Cancel
                       </Button>
                       {appt.status === "CONFIRMED" && isWithinJoinWindow(appt) && (
@@ -132,7 +138,6 @@ export function AppointmentCard({
                         </Button>
                       )}
                     </div>
-                    <p className="text-xs text-on-surface-variant mt-2 italic">* Online cancellation coming soon. Please contact the clinic.</p>
                   </div>
                 )}
 

@@ -2,6 +2,18 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 
+const emergencyKeywords = [
+  'chest pain',
+  'difficulty breathing',
+  'heavy bleeding',
+  'unconscious',
+  'stroke',
+  'seizure',
+  'suicide',
+  'self harm',
+  'poison',
+];
+
 const keywordMap: Record<string, string> = {
   heart: 'Cardiology',
   chest: 'Cardiology',
@@ -38,6 +50,14 @@ export class RecommendationsService {
 
   private determineSpecialization(symptoms: string): string {
     const lowerSymptoms = symptoms.toLowerCase();
+
+    // Check for emergency keywords first
+    for (const keyword of emergencyKeywords) {
+      if (lowerSymptoms.includes(keyword)) {
+        return 'EMERGENCY';
+      }
+    }
+
     for (const [keyword, specialization] of Object.entries(keywordMap)) {
       if (lowerSymptoms.includes(keyword)) {
         return specialization;
@@ -46,7 +66,10 @@ export class RecommendationsService {
     return 'General Practice';
   }
 
-  async create(userId: string | null, createRecommendationDto: CreateRecommendationDto) {
+  async create(
+    userId: string | null,
+    createRecommendationDto: CreateRecommendationDto,
+  ) {
     const matchedSpecialization = this.determineSpecialization(
       createRecommendationDto.symptomInput,
     );
