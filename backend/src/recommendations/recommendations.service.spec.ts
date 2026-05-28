@@ -66,19 +66,18 @@ describe('RecommendationsService', () => {
       expect(output).toBe('{"specialization":"Neurology","explanation":"Test explanation."}');
     });
 
-    it('should catch JSON parse errors gracefully and continue yielding stream', async () => {
+    it('should throw error when JSON parsing fails', async () => {
       mockGenerateContentStream.mockResolvedValue({
         stream: [{ text: () => 'not json at all' }],
       });
       
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       const stream = await service.createStream(null, { symptomInput: 'headache' });
-      let output = '';
-      for await (const chunk of stream) {
-        output += chunk;
-      }
+      
+      await expect(async () => {
+        for await (const chunk of stream) {}
+      }).rejects.toThrow(SyntaxError);
 
-      expect(output).toBe('not json at all');
       // DB log create is NOT called due to parse error
       expect(mockPrismaService.recommendationLog.create).not.toHaveBeenCalled();
       consoleSpy.mockRestore();

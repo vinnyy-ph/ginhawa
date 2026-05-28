@@ -5,7 +5,9 @@ import {
   Get,
   UseGuards,
   Request,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { RecommendationsService } from './recommendations.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,12 +24,27 @@ export class RecommendationsController {
   @Post()
   @OptionalJwt()
   @UseGuards(JwtAuthGuard)
-  create(
+  async create(
     @Request() req: { user?: { id?: string } },
     @Body() createRecommendationDto: CreateRecommendationDto,
+    @Res() res: Response,
   ) {
     const userId = req.user?.id ?? null;
-    return this.recommendationsService.create(userId, createRecommendationDto);
+    const stream = await this.recommendationsService.createStream(userId, createRecommendationDto);
+    
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    
+    try {
+      for await (const chunk of stream) {
+        res.write(chunk);
+      }
+    } catch (e) {
+      console.error(e);
+      res.write(JSON.stringify({ error: 'Stream failed' }));
+    } finally {
+      res.end();
+    }
   }
 
   @Get()

@@ -52,6 +52,60 @@ Specialization must be one of: Cardiology, Dermatology, Orthopedics, Neurology, 
 Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain, stroke, difficulty breathing, heavy bleeding, unconscious, seizure, suicide, self-harm, poisoning).`;
   }
 
+  private async *getAIRecommendationStream(
+    symptomInput: string,
+    patientContext?: { specializations: string[]; symptoms: string[] },
+  ): AsyncGenerator<string, { specialization: string; explanation: string }> {
+    const model = this.genAI.getGenerativeModel({
+      model: 'gemini-3.5-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            specialization: { type: SchemaType.STRING, format: 'enum', enum: VALID_SPECIALIZATIONS },
+            explanation: { type: SchemaType.STRING },
+          },
+          required: ['specialization', 'explanation'],
+        },
+      },
+    });
+
+    const prompt = this.buildPrompt(symptomInput, patientContext);
+
+    let result;
+    const maxRetries = 3;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        result = await model.generateContentStream(prompt);
+        break;
+      } catch (error) {
+        if (attempt === maxRetries) {
+          throw new InternalServerErrorException('AI recommendation service unavailable');
+        }
+      }
+    }
+
+    if (!result) {
+      throw new InternalServerErrorException('AI recommendation service unavailable');
+    }
+
+    let fullText = '';
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+      fullText += chunkText;
+      yield chunkText;
+    }
+
+    try {
+      const parsed = JSON.parse(fullText);
+      return parsed;
+    } catch (e) {
+      console.error("Failed to parse AI response", e);
+      throw e;
+    }
+  }
+
   async createStream(
     userId: string | null,
     createRecommendationDto: CreateRecommendationDto,
@@ -76,7 +130,6 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
       orderBy: { createdAt: 'desc' },
     });
     
-    // Return an async iterable that yields string chunks, and saves to DB at the end
     const self = this;
     async function* generateStream() {
       if (cachedLog && cachedLog.aiExplanation) {
@@ -87,38 +140,15 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
         return;
       }
 
-      const model = self.genAI.getGenerativeModel({
-        model: 'gemini-3.5-flash',
-        generationConfig: {
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: SchemaType.OBJECT,
-            properties: {
-              specialization: { type: SchemaType.STRING, enum: VALID_SPECIALIZATIONS },
-              explanation: { type: SchemaType.STRING },
-            },
-            required: ['specialization', 'explanation'],
-          },
-        },
-      });
-
-      const prompt = self.buildPrompt(createRecommendationDto.symptomInput, patientContext);
-      const result = await model.generateContentStream(prompt);
+      const streamGenerator = self.getAIRecommendationStream(createRecommendationDto.symptomInput, patientContext);
       
-      let fullText = '';
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
-        fullText += chunkText;
-        yield chunkText;
-      }
-
       try {
-        const parsed = JSON.parse(fullText);
+        const parsedResult = yield* streamGenerator;
         await self.prisma.recommendationLog.create({
-          data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: parsed.specialization, aiExplanation: parsed.explanation },
+          data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: parsedResult.specialization, aiExplanation: parsedResult.explanation },
         });
-      } catch (e) {
-        console.error("Failed to parse or save AI response", e);
+      } catch (error) {
+        throw error;
       }
     }
 
