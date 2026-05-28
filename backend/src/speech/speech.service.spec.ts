@@ -5,13 +5,18 @@ import { InternalServerErrorException } from '@nestjs/common';
 const mockCreateTranscription = jest.fn();
 
 jest.mock('groq-sdk', () => {
-  return jest.fn().mockImplementation(() => ({
+  const Groq = jest.fn().mockImplementation(() => ({
     audio: {
       transcriptions: {
         create: mockCreateTranscription,
       },
     },
   }));
+  return {
+    __esModule: true,
+    default: Groq,
+    toFile: jest.fn().mockImplementation((buffer, name) => ({ buffer, name })),
+  };
 });
 
 describe('SpeechService', () => {
@@ -33,7 +38,7 @@ describe('SpeechService', () => {
     const result = await service.transcribeAudio(mockFile);
     expect(result).toEqual({ text: 'Hello world' });
     expect(mockCreateTranscription).toHaveBeenCalledWith({
-      file: expect.any(File), // The service maps the buffer to a File object
+      file: expect.any(Object), // toFile mock returns an object
       model: 'whisper-large-v3',
     });
   });
