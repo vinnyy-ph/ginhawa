@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 
 const VALID_SPECIALIZATIONS = [
   'Cardiology',
@@ -52,104 +52,77 @@ Specialization must be one of: Cardiology, Dermatology, Orthopedics, Neurology, 
 Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain, stroke, difficulty breathing, heavy bleeding, unconscious, seizure, suicide, self-harm, poisoning).`;
   }
 
-  private async getAIRecommendation(
-    symptomInput: string,
-    patientContext?: { specializations: string[]; symptoms: string[] },
-  ): Promise<{ specialization: string; explanation: string }> {
-    const model = this.genAI.getGenerativeModel({ 
-      model: 'gemini-3.5-flash',
-      generationConfig: { responseMimeType: 'application/json' }
-    });
-    const prompt = this.buildPrompt(symptomInput, patientContext);
-
-    const maxRetries = 3;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const result = await model.generateContent(prompt);
-        const raw = result.response.text();
-        
-        // Clean markdown backticks just in case the AI ignores the mimeType hint
-        const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        const parsed = JSON.parse(cleaned);
-
-        if (!VALID_SPECIALIZATIONS.includes(parsed.specialization)) {
-          throw new Error('Invalid specialization returned');
-        }
-
-        return parsed;
-      } catch (error) {
-        // If it's the last attempt, break and throw the standard exception
-        if (attempt === maxRetries) {
-          break;
-        }
-      }
-    }
-
-    throw new InternalServerErrorException('AI recommendation service unavailable');
-  }
-
-  async create(
+  async createStream(
     userId: string | null,
     createRecommendationDto: CreateRecommendationDto,
   ) {
     let patientId: string | null = null;
-    let patientContext:
-      | { specializations: string[]; symptoms: string[] }
-      | undefined;
+    let patientContext: { specializations: string[]; symptoms: string[] } | undefined;
 
     if (userId) {
-      const patientProfile = await this.prisma.patientProfile.findUnique({
-        where: { userId },
-      });
+      const patientProfile = await this.prisma.patientProfile.findUnique({ where: { userId } });
       patientId = patientProfile?.id ?? null;
-
       if (patientId) {
         const recentLogs = await this.prisma.recommendationLog.findMany({
-          where: { patientId },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
+          where: { patientId }, orderBy: { createdAt: 'desc' }, take: 5,
           select: { matchedSpecialization: true, symptomInput: true },
         });
-        patientContext = {
-          specializations: recentLogs.map((l) => l.matchedSpecialization),
-          symptoms: recentLogs.map((l) => l.symptomInput),
-        };
+        patientContext = { specializations: recentLogs.map((l) => l.matchedSpecialization), symptoms: recentLogs.map((l) => l.symptomInput) };
       }
     }
 
     const cachedLog = await this.prisma.recommendationLog.findFirst({
-      where: {
-        patientId,
-        symptomInput: { equals: createRecommendationDto.symptomInput, mode: 'insensitive' },
-        aiExplanation: { not: null },
-      },
+      where: { patientId, symptomInput: { equals: createRecommendationDto.symptomInput, mode: 'insensitive' }, aiExplanation: { not: null } },
       orderBy: { createdAt: 'desc' },
     });
+    
+    // Return an async iterable that yields string chunks, and saves to DB at the end
+    const self = this;
+    async function* generateStream() {
+      if (cachedLog && cachedLog.aiExplanation) {
+        yield JSON.stringify({ specialization: cachedLog.matchedSpecialization, explanation: cachedLog.aiExplanation });
+        await self.prisma.recommendationLog.create({
+          data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: cachedLog.matchedSpecialization, aiExplanation: cachedLog.aiExplanation },
+        });
+        return;
+      }
 
-    let specialization: string;
-    let explanation: string | null = null;
+      const model = self.genAI.getGenerativeModel({
+        model: 'gemini-3.5-flash',
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: SchemaType.OBJECT,
+            properties: {
+              specialization: { type: SchemaType.STRING, enum: VALID_SPECIALIZATIONS },
+              explanation: { type: SchemaType.STRING },
+            },
+            required: ['specialization', 'explanation'],
+          },
+        },
+      });
 
-    if (cachedLog && cachedLog.aiExplanation) {
-      specialization = cachedLog.matchedSpecialization;
-      explanation = cachedLog.aiExplanation;
-    } else {
-      const aiResult = await this.getAIRecommendation(
-        createRecommendationDto.symptomInput,
-        patientContext,
-      );
-      specialization = aiResult.specialization;
-      explanation = aiResult.explanation;
+      const prompt = self.buildPrompt(createRecommendationDto.symptomInput, patientContext);
+      const result = await model.generateContentStream(prompt);
+      
+      let fullText = '';
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        fullText += chunkText;
+        yield chunkText;
+      }
+
+      try {
+        const parsed = JSON.parse(fullText);
+        await self.prisma.recommendationLog.create({
+          data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: parsed.specialization, aiExplanation: parsed.explanation },
+        });
+      } catch (e) {
+        console.error("Failed to parse or save AI response", e);
+      }
     }
 
-    return this.prisma.recommendationLog.create({
-      data: {
-        patientId,
-        symptomInput: createRecommendationDto.symptomInput,
-        matchedSpecialization: specialization,
-        aiExplanation: explanation,
-      },
-    });
+    return generateStream();
   }
 
   async findAllForPatient(userId: string) {

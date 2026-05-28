@@ -3,14 +3,15 @@ import { RecommendationsService } from './recommendations.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { InternalServerErrorException, NotFoundException } from '@nestjs/common';
 
-const mockGenerateContent = jest.fn();
+const mockGenerateContentStream = jest.fn();
 
 jest.mock('@google/generative-ai', () => ({
   GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
     getGenerativeModel: jest.fn().mockReturnValue({
-      generateContent: mockGenerateContent,
+      generateContentStream: mockGenerateContentStream,
     }),
   })),
+  SchemaType: { STRING: 'STRING', OBJECT: 'OBJECT' },
 }));
 
 describe('RecommendationsService', () => {
@@ -33,10 +34,10 @@ describe('RecommendationsService', () => {
     jest.clearAllMocks();
   });
 
-  describe('create (anonymous)', () => {
+  describe('createStream (anonymous)', () => {
     it('calls Gemini and saves log with aiExplanation', async () => {
-      mockGenerateContent.mockResolvedValue({
-        response: { text: () => '{"specialization":"Neurology","explanation":"Test explanation."}' },
+      mockGenerateContentStream.mockResolvedValue({
+        stream: [{ text: () => '{"specialization":"Neurology","explanation":"Test explanation."}' }],
       });
       mockPrismaService.recommendationLog.create.mockResolvedValue({
         id: '1',
@@ -47,9 +48,13 @@ describe('RecommendationsService', () => {
         createdAt: new Date(),
       });
 
-      const result = await service.create(null, { symptomInput: 'headache' });
+      const stream = await service.createStream(null, { symptomInput: 'headache' });
+      let output = '';
+      for await (const chunk of stream) {
+        output += chunk;
+      }
 
-      expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+      expect(mockGenerateContentStream).toHaveBeenCalledTimes(1);
       expect(mockPrismaService.recommendationLog.create).toHaveBeenCalledWith({
         data: {
           patientId: null,
@@ -58,79 +63,25 @@ describe('RecommendationsService', () => {
           aiExplanation: 'Test explanation.',
         },
       });
-      expect(result.matchedSpecialization).toBe('Neurology');
-      expect(result.aiExplanation).toBe('Test explanation.');
+      expect(output).toBe('{"specialization":"Neurology","explanation":"Test explanation."}');
     });
 
-    it('should retry getAIRecommendation on failure and succeed', async () => {
-      // Force the underlying AI call to fail once, then succeed
-      let attempts = 0;
-      mockGenerateContent.mockImplementation(() => {
-        attempts++;
-        if (attempts === 1) throw new Error('Timeout');
-        return {
-          response: { text: () => JSON.stringify({ specialization: 'Dermatology', explanation: 'Rash' }) }
-        };
+    it('should catch JSON parse errors gracefully and continue yielding stream', async () => {
+      mockGenerateContentStream.mockResolvedValue({
+        stream: [{ text: () => 'not json at all' }],
       });
       
-      // Ensure findFirst misses so it goes to AI
-      mockPrismaService.recommendationLog.findFirst.mockResolvedValue(null);
-      mockPrismaService.recommendationLog.create.mockResolvedValue({
-        id: 'new-log',
-        matchedSpecialization: 'Dermatology',
-      });
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const stream = await service.createStream(null, { symptomInput: 'headache' });
+      let output = '';
+      for await (const chunk of stream) {
+        output += chunk;
+      }
 
-      const result = await service.create(null, { symptomInput: 'red rash' });
-      expect(attempts).toBe(2);
-      expect(result.matchedSpecialization).toBe('Dermatology');
-    });
-
-    it('strips markdown code fences from Gemini response', async () => {
-      mockGenerateContent.mockResolvedValue({
-        response: {
-          text: () =>
-            '```json\n{"specialization":"Cardiology","explanation":"Heart related."}\n```',
-        },
-      });
-      mockPrismaService.recommendationLog.create.mockResolvedValue({
-        id: '2',
-        patientId: null,
-        symptomInput: 'chest pain',
-        matchedSpecialization: 'Cardiology',
-        aiExplanation: 'Heart related.',
-        createdAt: new Date(),
-      });
-
-      const result = await service.create(null, { symptomInput: 'chest pain' });
-      expect(result.matchedSpecialization).toBe('Cardiology');
-    });
-
-    it('throws InternalServerErrorException when Gemini API fails', async () => {
-      mockGenerateContent.mockRejectedValue(new Error('API error'));
-
-      await expect(
-        service.create(null, { symptomInput: 'headache' }),
-      ).rejects.toThrow(InternalServerErrorException);
-    });
-
-    it('throws InternalServerErrorException when Gemini returns invalid specialization', async () => {
-      mockGenerateContent.mockResolvedValue({
-        response: { text: () => '{"specialization":"InvalidSpec","explanation":"Test."}' },
-      });
-
-      await expect(
-        service.create(null, { symptomInput: 'headache' }),
-      ).rejects.toThrow(InternalServerErrorException);
-    });
-
-    it('throws InternalServerErrorException when Gemini returns invalid JSON', async () => {
-      mockGenerateContent.mockResolvedValue({
-        response: { text: () => 'not json at all' },
-      });
-
-      await expect(
-        service.create(null, { symptomInput: 'headache' }),
-      ).rejects.toThrow(InternalServerErrorException);
+      expect(output).toBe('not json at all');
+      // DB log create is NOT called due to parse error
+      expect(mockPrismaService.recommendationLog.create).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
     });
 
     it('should return cached recommendation if exact symptom match exists', async () => {
@@ -147,14 +98,19 @@ describe('RecommendationsService', () => {
         aiExplanation: 'Cached explanation',
       });
 
-      const result = await service.create(null, { symptomInput: 'Chest pain' });
+      const stream = await service.createStream(null, { symptomInput: 'Chest pain' });
+      let output = '';
+      for await (const chunk of stream) {
+        output += chunk;
+      }
+
       expect(mockPrismaService.recommendationLog.findFirst).toHaveBeenCalled();
-      expect(mockGenerateContent).not.toHaveBeenCalled();
-      expect(result.matchedSpecialization).toBe('Cardiology');
+      expect(mockGenerateContentStream).not.toHaveBeenCalled();
+      expect(output).toBe('{"specialization":"Cardiology","explanation":"Cached explanation"}');
     });
   });
 
-  describe('create (logged-in patient)', () => {
+  describe('createStream (logged-in patient)', () => {
     it('fetches patient history and injects context into prompt', async () => {
       mockPrismaService.patientProfile.findUnique.mockResolvedValue({
         id: 'patient-1',
@@ -162,8 +118,8 @@ describe('RecommendationsService', () => {
       mockPrismaService.recommendationLog.findMany.mockResolvedValue([
         { matchedSpecialization: 'Cardiology', symptomInput: 'chest pain last month' },
       ]);
-      mockGenerateContent.mockResolvedValue({
-        response: { text: () => '{"specialization":"Cardiology","explanation":"Given your history of cardiology."}' },
+      mockGenerateContentStream.mockResolvedValue({
+        stream: [{ text: () => '{"specialization":"Cardiology","explanation":"Given your history of cardiology."}' }],
       });
       mockPrismaService.recommendationLog.create.mockResolvedValue({
         id: '3',
@@ -174,9 +130,13 @@ describe('RecommendationsService', () => {
         createdAt: new Date(),
       });
 
-      await service.create('user-1', { symptomInput: 'chest tightness' });
+      const stream = await service.createStream('user-1', { symptomInput: 'chest tightness' });
+      let output = '';
+      for await (const chunk of stream) {
+        output += chunk;
+      }
 
-      const promptArg = mockGenerateContent.mock.calls[0][0] as string;
+      const promptArg = mockGenerateContentStream.mock.calls[0][0] as string;
       expect(promptArg).toContain('Patient context');
       expect(promptArg).toContain('Cardiology');
       expect(mockPrismaService.recommendationLog.create).toHaveBeenCalledWith({
@@ -206,7 +166,11 @@ describe('RecommendationsService', () => {
         aiExplanation: 'Cached explanation for user',
       });
 
-      const result = await service.create('user-1', { symptomInput: 'rash' });
+      const stream = await service.createStream('user-1', { symptomInput: 'rash' });
+      let output = '';
+      for await (const chunk of stream) {
+        output += chunk;
+      }
       
       expect(mockPrismaService.recommendationLog.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -215,15 +179,15 @@ describe('RecommendationsService', () => {
           }),
         })
       );
-      expect(mockGenerateContent).not.toHaveBeenCalled();
-      expect(result.matchedSpecialization).toBe('Dermatology');
+      expect(mockGenerateContentStream).not.toHaveBeenCalled();
+      expect(output).toBe('{"specialization":"Dermatology","explanation":"Cached explanation for user"}');
     });
   });
 
-  describe('create (EMERGENCY)', () => {
+  describe('createStream (EMERGENCY)', () => {
     it('saves EMERGENCY specialization correctly', async () => {
-      mockGenerateContent.mockResolvedValue({
-        response: { text: () => '{"specialization":"EMERGENCY","explanation":"Seek immediate care."}' },
+      mockGenerateContentStream.mockResolvedValue({
+        stream: [{ text: () => '{"specialization":"EMERGENCY","explanation":"Seek immediate care."}' }],
       });
       mockPrismaService.recommendationLog.create.mockResolvedValue({
         id: '4',
@@ -234,8 +198,12 @@ describe('RecommendationsService', () => {
         createdAt: new Date(),
       });
 
-      const result = await service.create(null, { symptomInput: 'chest pain difficulty breathing' });
-      expect(result.matchedSpecialization).toBe('EMERGENCY');
+      const stream = await service.createStream(null, { symptomInput: 'chest pain difficulty breathing' });
+      let output = '';
+      for await (const chunk of stream) {
+        output += chunk;
+      }
+      expect(output).toBe('{"specialization":"EMERGENCY","explanation":"Seek immediate care."}');
     });
   });
 
