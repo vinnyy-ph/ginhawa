@@ -14,6 +14,7 @@ import {
   ClockIcon,
 } from "@radix-ui/react-icons";
 import type { RecommendationLog } from "@/types/api";
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 
 export default function DashboardAIRecommendationsPage() {
   const { data: session } = useSession();
@@ -25,6 +26,12 @@ export default function DashboardAIRecommendationsPage() {
   const [history, setHistory] = useState<RecommendationLog[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition();
+
+  const handleTranscript = (text: string) => {
+    setSymptoms((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
+  };
 
   useEffect(() => {
     async function fetchHistory() {
@@ -114,12 +121,34 @@ export default function DashboardAIRecommendationsPage() {
         <div className="bg-surface-white rounded-xl shadow-soft p-6 md:p-8 border border-outline-variant/30">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label
-                htmlFor="dashboard-symptoms"
-                className="block text-sm font-bold font-serif text-text-primary mb-2"
-              >
-                Describe your symptoms
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label
+                  htmlFor="dashboard-symptoms"
+                  className="block text-sm font-bold font-serif text-text-primary"
+                >
+                  Describe your symptoms
+                </label>
+                {isSupported && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      isListening ? stopListening() : startListening(handleTranscript)
+                    }
+                    className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
+                      isListening
+                        ? "bg-error text-white animate-pulse"
+                        : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+                    }`}
+                    aria-label={isListening ? "Stop recording" : "Start voice input"}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2H3v2a9 9 0 0 0 8 8.94V23h-3v2h8v-2h-3v-2.06A9 9 0 0 0 21 12v-2h-2z"/>
+                    </svg>
+                    {isListening ? "Listening..." : "Speak"}
+                  </button>
+                )}
+              </div>
               <textarea
                 id="dashboard-symptoms"
                 required
@@ -181,9 +210,14 @@ export default function DashboardAIRecommendationsPage() {
                 <p className="text-on-surface-variant mb-4">
                   Based on your symptoms, we recommend consulting a:
                 </p>
-                <h3 className="font-serif text-3xl md:text-4xl font-bold text-text-primary mb-8 text-primary">
+                <h3 className="font-serif text-3xl md:text-4xl font-bold text-text-primary mb-2 text-primary">
                   {result.matchedSpecialization}
                 </h3>
+                {result.aiExplanation && (
+                  <p className="text-on-surface-variant text-sm leading-relaxed italic mb-8 border-l-4 border-primary/30 pl-4 text-left">
+                    {result.aiExplanation}
+                  </p>
+                )}
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button asChild size="lg" className="shadow-soft">
@@ -237,6 +271,11 @@ export default function DashboardAIRecommendationsPage() {
                     <p className="text-sm text-on-surface-variant line-clamp-2 italic">
                       &ldquo;{item.symptomInput}&rdquo;
                     </p>
+                    {item.aiExplanation && (
+                      <p className="text-xs text-on-surface-variant mt-1 line-clamp-1 italic opacity-70">
+                        {item.aiExplanation}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-4 shrink-0">
