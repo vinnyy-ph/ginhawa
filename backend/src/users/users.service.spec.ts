@@ -1,6 +1,8 @@
+import { ConflictException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
@@ -75,6 +77,22 @@ describe('UsersService', () => {
       });
       expect(result).not.toHaveProperty('passwordHash');
       expect(result.email).toBe(createUserDto.email);
+    });
+
+    it('should throw ConflictException when email already exists', async () => {
+      const prismaError = new PrismaClientKnownRequestError(
+        'Unique constraint failed',
+        { code: 'P2002', clientVersion: '5.0.0' },
+      );
+      mockPrismaService.user.create.mockRejectedValue(prismaError);
+
+      await expect(
+        service.create({
+          email: 'duplicate@test.com',
+          password: 'password123',
+          role: 'PATIENT' as any,
+        }),
+      ).rejects.toThrow(ConflictException);
     });
   });
 });

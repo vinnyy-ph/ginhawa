@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -20,13 +21,17 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<PublicUser> {
     const { password, ...userData } = createUserDto;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await this.prisma.user.create({
-      data: {
-        ...userData,
-        passwordHash: hashedPassword,
-      },
-    });
-    return this.sanitizeUser(user);
+    try {
+      const user = await this.prisma.user.create({
+        data: { ...userData, passwordHash: hashedPassword },
+      });
+      return this.sanitizeUser(user);
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
+        throw new ConflictException('Email already in use');
+      }
+      throw e;
+    }
   }
 
   async findAll(): Promise<PublicUser[]> {
