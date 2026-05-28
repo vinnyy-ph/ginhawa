@@ -26,6 +26,7 @@ interface NavItem {
 
 const patientNav: NavItem[] = [
   { href: '/dashboard', label: 'Overview', icon: <HomeIcon className="w-4 h-4" /> },
+  { href: '/dashboard/profile', label: 'My Profile', icon: <PersonIcon className="w-4 h-4" /> },
   { href: '/dashboard/appointments', label: 'Appointments', icon: <CalendarIcon className="w-4 h-4" /> },
   { href: '/dashboard/records', label: 'Medical Records', icon: <FileTextIcon className="w-4 h-4" /> },
   { href: '/dashboard/ai-recommendations', label: 'AI Recommendations', icon: <ActivityLogIcon className="w-4 h-4" /> },
