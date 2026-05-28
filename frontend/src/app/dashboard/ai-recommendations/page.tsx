@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -28,9 +28,14 @@ export default function DashboardAIRecommendationsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition();
+  const baseSymptomsRef = useRef("");
 
   const handleTranscript = (text: string) => {
-    setSymptoms((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
+    setSymptoms(
+      baseSymptomsRef.current.trim()
+        ? `${baseSymptomsRef.current.trim()} ${text}`
+        : text
+    );
   };
 
   useEffect(() => {
@@ -131,9 +136,14 @@ export default function DashboardAIRecommendationsPage() {
                 {isSupported && (
                   <button
                     type="button"
-                    onClick={() =>
-                      isListening ? stopListening() : startListening(handleTranscript)
-                    }
+                    onClick={() => {
+                      if (isListening) {
+                        stopListening();
+                      } else {
+                        baseSymptomsRef.current = symptoms;
+                        startListening(handleTranscript);
+                      }
+                    }}
                     className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
                       isListening
                         ? "bg-error text-white animate-pulse"

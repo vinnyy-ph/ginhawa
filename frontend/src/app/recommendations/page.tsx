@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
@@ -24,9 +24,14 @@ export default function RecommendationsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition();
+  const baseSymptomsRef = useRef("");
 
   const handleTranscript = (text: string) => {
-    setSymptoms((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
+    setSymptoms(
+      baseSymptomsRef.current.trim()
+        ? `${baseSymptomsRef.current.trim()} ${text}`
+        : text
+    );
   };
 
   const handleAnalyze = async () => {
@@ -82,9 +87,14 @@ export default function RecommendationsPage() {
               error={error}
               isListening={isListening}
               isSupported={isSupported}
-              onMicClick={() =>
-                isListening ? stopListening() : startListening(handleTranscript)
-              }
+              onMicClick={() => {
+                if (isListening) {
+                  stopListening();
+                } else {
+                  baseSymptomsRef.current = symptoms;
+                  startListening(handleTranscript);
+                }
+              }}
             />
           )}
           {step === 3 && <ResultsStep result={result} onRestart={handleRestart} />}
