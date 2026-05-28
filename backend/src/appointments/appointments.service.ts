@@ -47,7 +47,7 @@ export class AppointmentsService {
         data: { status: SlotStatus.BOOKED },
       });
 
-      return tx.appointment.create({
+      const newAppointment = await tx.appointment.create({
         data: {
           patientId: patientProfile.id,
           doctorId: slot.doctorId,
@@ -63,6 +63,17 @@ export class AppointmentsService {
           },
         },
       });
+
+      const fee = newAppointment.doctor.consultationFee ?? 0;
+      await tx.payment.create({
+        data: {
+          appointmentId: newAppointment.id,
+          amount: fee,
+          status: fee > 0 ? 'PAID' : 'WAIVED',
+        },
+      });
+
+      return newAppointment;
     });
 
     // Notify doctor of new booking (fire-and-forget)
