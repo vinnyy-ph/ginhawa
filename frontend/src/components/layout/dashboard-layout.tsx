@@ -14,6 +14,7 @@ import {
   MagnifyingGlassIcon,
   ChatBubbleIcon,
   FileTextIcon,
+  AvatarIcon,
 } from '@radix-ui/react-icons';
 import { Logo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
@@ -40,6 +41,7 @@ const doctorNav: NavItem[] = [
 const patientNav: NavItem[] = [
   { href: '/', label: 'Overview', icon: <HomeIcon className="w-4 h-4" /> },
   { href: '/doctors', label: 'Find a Doctor', icon: <MagnifyingGlassIcon className="w-4 h-4" /> },
+  { href: '/my-doctors', label: 'My Doctors', icon: <AvatarIcon className="w-4 h-4" /> },
   { href: '/recommendations', label: 'AI Checker', icon: <ChatBubbleIcon className="w-4 h-4" /> },
   { href: '/appointments', label: 'Appointments', icon: <CalendarIcon className="w-4 h-4" /> },
   { href: '/records', label: 'Records', icon: <FileTextIcon className="w-4 h-4" /> },
