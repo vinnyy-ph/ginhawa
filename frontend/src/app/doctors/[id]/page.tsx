@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeftIcon,
   CalendarIcon,
+  CheckCircledIcon,
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
 import { DoctorAbout } from "@/components/doctors/DoctorAbout";
@@ -59,7 +60,7 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
   const isDoctor = session?.user?.role === "DOCTOR";
   const isAuthenticated = !!session;
 
-  const { doctor, slots, loading, error } = useDoctorDetail(id);
+  const { doctor, slots, reviews, loading, error } = useDoctorDetail(id);
 
   if (loading) return <PageSkeleton />;
 
@@ -152,6 +153,17 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
                     ₱{doctor.consultationFee.toLocaleString()} / session
                   </span>
                 )}
+                {doctor.isVerified && (
+                  <span className="inline-flex items-center gap-1 bg-white/20 text-white text-sm px-3 py-1 rounded-full font-medium">
+                    <CheckCircledIcon className="w-4 h-4" />
+                    Verified
+                  </span>
+                )}
+                {(doctor.city || doctor.region) && (
+                  <span className="bg-white/20 text-white text-sm px-3 py-1 rounded-full">
+                    {[doctor.city, doctor.region].filter(Boolean).join(" · ")}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -162,7 +174,7 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <DoctorAbout doctor={doctor} />
+            <DoctorAbout doctor={doctor} reviews={reviews} />
           </div>
 
           <div className="lg:col-span-1">
