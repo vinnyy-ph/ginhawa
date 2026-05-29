@@ -28,7 +28,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 - [x] **D3** Gate Complete & Document until slot ends (no overlap with Join) — `1b3acf5`
 - [x] **D4** Confirm/cancel success banner on doctor appointments — `1b3acf5`
 - [ ] **D5** Decline-with-reason (distinct from Cancel)
-- [ ] **D6** Mobile Notifications reachable + doctor mobile top header
+- [x] **D6** Doctor mobile top header (logo + notifications bell + logout) — `b0059a9`
 - [x] **D7** Identity papercuts: clean greeting (no "Dr. Dr."), dropped raw-UUID patient id — `44f3de6`
 
 ## Appearance, design & a11y
