@@ -60,6 +60,7 @@ describe('SlotsService.createBulk', () => {
     const result = await service.createBulk('user-1', candidates);
 
     expect(result).toEqual({ created: 0, skipped: 2 });
+    expect(mockPrisma.availabilitySlot.createMany).not.toHaveBeenCalled();
   });
 
   it('skips a candidate overlapping an earlier accepted candidate in the same batch', async () => {

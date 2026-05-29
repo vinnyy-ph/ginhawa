@@ -8,7 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SlotStatus } from '@prisma/client';
 import { CreateSlotDto } from './dto/create-slot.dto';
 import { UpdateSlotDto } from './dto/update-slot.dto';
-import { CreateBulkSlotsDto } from './dto/create-bulk-slots.dto';
+import type { CreateBulkSlotsDto } from './dto/create-bulk-slots.dto';
 
 @Injectable()
 export class SlotsService {
