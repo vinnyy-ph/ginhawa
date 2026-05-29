@@ -8,7 +8,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 - [ ] **S3** Show ratings + credentials (DoctorCard / DoctorAbout / hero)
 - [x] **S4** Patient not ejected on transient call drop (reconnecting + manual return) — `6fb0948`
 - [ ] **S5** Camera/mic permission pre-check + error UX (consultation join)
-- [ ] **S6** AI-prescription verify gate + publish confirm + amend path + fix field mapping (`patientSummary→recommendations`)
+- [x] **S6** AI-prescription verify gate + publish confirm + amend path + field labels aligned — `d831c55`, `579bbbd`
 - [—] **S7** Privacy/Terms links + legal pages — OUT (legal). Trust-badge placeholders folded into V6.
 - [x] **S8** All times pinned to Asia/Manila — `0f1eebf`
 
