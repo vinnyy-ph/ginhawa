@@ -107,7 +107,7 @@ function RecordsContent() {
                     )}
                   >
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-5 border-b border-outline-variant/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-5 border-b border-outline-variant/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>
                         <h3 className="font-bold text-text-primary text-lg">
                           Consultation with {doc?.professionalTitle ? `${doc.professionalTitle} ` : ''}{doc?.fullName || 'Doctor'}
@@ -115,7 +115,7 @@ function RecordsContent() {
                         <p className="text-primary text-sm font-semibold">{doc?.specialization}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#31a795] bg-[#31a795]/10 px-2.5 py-1 rounded-full border border-[#31a795]/20">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-brand bg-brand/10 px-2.5 py-1 rounded-full border border-brand/20">
                           <CheckCircledIcon className="w-3.5 h-3.5" />
                           Doctor Reviewed
                         </div>

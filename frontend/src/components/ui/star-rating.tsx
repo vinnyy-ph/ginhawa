@@ -23,7 +23,7 @@ export function StarRating({
       <span className="flex" aria-hidden="true">
         {[1, 2, 3, 4, 5].map((i) =>
           i <= rounded ? (
-            <StarFilledIcon key={i} className="w-4 h-4 text-[#f59e0b]" />
+            <StarFilledIcon key={i} className="w-4 h-4 text-warning" />
           ) : (
             <StarIcon key={i} className="w-4 h-4 text-outline-variant" />
           ),

@@ -133,10 +133,10 @@ export function DoctorDashboardClient() {
             <Card className="p-6 flex items-center justify-between border-0 shadow-soft hover:shadow-lifted transition-shadow">
               <div>
                 <p className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Pending Requests</p>
-                <h3 className="text-3xl font-bold text-[#f59e0b]">{pendingCount}</h3>
+                <h3 className="text-3xl font-bold text-warning">{pendingCount}</h3>
               </div>
-              <div className="w-12 h-12 rounded-full bg-[#f59e0b]/10 flex items-center justify-center">
-                <BellIcon className="w-6 h-6 text-[#f59e0b]" />
+              <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center">
+                <BellIcon className="w-6 h-6 text-warning" />
               </div>
             </Card>
           </Link>
@@ -161,7 +161,7 @@ export function DoctorDashboardClient() {
 
             <Link href="/doctor/schedule" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <ClockIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -173,7 +173,7 @@ export function DoctorDashboardClient() {
 
             <Link href="/doctor/appointments" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <CalendarIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -185,7 +185,7 @@ export function DoctorDashboardClient() {
 
             <Link href="/doctor/notifications" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <BellIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -197,7 +197,7 @@ export function DoctorDashboardClient() {
 
             <Link href="/doctor/patients" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <PersonIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -253,7 +253,7 @@ export function DoctorDashboardClient() {
                         {appt.status === 'CONFIRMED' && appt.slot &&
                           Date.now() >= new Date(appt.slot.startTime).getTime() - 15 * 60 * 1000 &&
                           Date.now() <= new Date(appt.slot.endTime).getTime() && (
-                            <Button asChild size="sm" className="bg-[#31a795] text-white hover:bg-[#006b5e]">
+                            <Button asChild size="sm" className="bg-brand text-white hover:bg-brand-dark">
                               <Link href={`/consultation/${appt.id}`}>Join</Link>
                             </Button>
                           )}

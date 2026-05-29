@@ -41,6 +41,12 @@
   /* Text aliases */
   --color-text-primary: #1a3a35;
 
+  /* Brand colors */
+  --color-brand: #31a795;
+  --color-brand-light: #48cab6;
+  --color-brand-dark: #006b5e;
+  --color-warning: #f59e0b;
+
   /* Status colors */
   --color-success: #006b5e;
   --color-info: #006064;

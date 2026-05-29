@@ -47,7 +47,7 @@ export function DoctorBookingPanel({ slots }: { slots: AvailabilitySlot[] }) {
     <>
       {bookingSuccess && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
-          <div className="bg-[#31a795] text-white px-6 py-3 rounded-xl shadow-lifted flex items-center gap-3">
+          <div className="bg-brand text-white px-6 py-3 rounded-xl shadow-lifted flex items-center gap-3">
             <CheckCircledIcon className="w-5 h-5" />
             <span className="font-medium">Request sent — your doctor will confirm shortly.</span>
           </div>

@@ -66,12 +66,12 @@ export function DoctorFilters({
           className={cn(
             "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border rounded-lg focus:outline-none focus:ring-2 shadow-sm",
             activeCount > 0
-              ? "bg-[#48cab6]/10 border-[#31a795] text-[#004d43] focus:ring-[#31a795]/40"
+              ? "bg-brand-light/10 border-brand text-[#004d43] focus:ring-brand/40"
               : "bg-surface-white border-outline-variant text-text-primary hover:border-primary/40 focus:ring-primary/40"
           )}
         >
           <MixerHorizontalIcon className="w-4 h-4" />
-          Filters {activeCount > 0 && <span className="bg-[#31a795] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold ml-1">{activeCount}</span>}
+          Filters {activeCount > 0 && <span className="bg-brand text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold ml-1">{activeCount}</span>}
         </button>
       </Dialog.Trigger>
 
@@ -234,7 +234,7 @@ export function DoctorFilters({
           <div className="p-4 border-t border-surface-container bg-surface flex gap-3">
             <Button
               variant="outline"
-              className="flex-1 border-[#31a795] text-[#004d43]"
+              className="flex-1 border-brand text-[#004d43]"
               onClick={clearLocalFilters}
             >
               Clear

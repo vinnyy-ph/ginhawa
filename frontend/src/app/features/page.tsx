@@ -137,14 +137,14 @@ export default function FeaturesPage() {
                     {/* Mock Video Feed */}
                     <div className="absolute inset-0 bg-gradient-to-br from-[#1a2724] to-[#0e1a18]" />
                     <div className="relative z-10 flex justify-end">
-                      <div className="bg-[#31a795] px-2 py-1 rounded-md flex items-center gap-1">
+                      <div className="bg-brand px-2 py-1 rounded-md flex items-center gap-1">
                          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                          <span className="text-[10px] font-bold text-white uppercase">Secure</span>
                       </div>
                     </div>
                     {/* PiP & Controls */}
                     <div className="relative z-10 flex justify-between items-end">
-                      <div className="w-24 h-32 bg-surface-container rounded-xl border-2 border-[#31a795]" />
+                      <div className="w-24 h-32 bg-surface-container rounded-xl border-2 border-brand" />
                       <div className="bg-[rgba(14,26,24,0.72)] backdrop-blur-md px-6 py-3 rounded-full flex gap-4">
                         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                           <VideoIcon className="w-5 h-5 text-white" />

@@ -317,7 +317,7 @@ export default function DoctorSchedulePage() {
         {/* Add Slot Form */}
         {showAddForm && (
           <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden mb-8 animate-in slide-in-from-top-4 fade-in duration-300">
-            <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30 flex items-center gap-2">
+            <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-4 border-b border-outline-variant/30 flex items-center gap-2">
               <PlusIcon className="w-5 h-5 text-primary" />
               <h3 className="font-serif text-lg font-bold text-text-primary">Create New Slot</h3>
             </div>
@@ -357,7 +357,7 @@ export default function DoctorSchedulePage() {
         {/* Weekly Template Panel */}
         {showTemplate && (
           <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden mb-8 animate-in slide-in-from-top-4 fade-in duration-300">
-            <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30 flex items-center gap-2">
+            <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-4 border-b border-outline-variant/30 flex items-center gap-2">
               <ClockIcon className="w-5 h-5 text-primary" />
               <h3 className="font-serif text-lg font-bold text-text-primary">Set Weekly Schedule</h3>
             </div>

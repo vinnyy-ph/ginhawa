@@ -176,7 +176,7 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
               {showReturn && (
                 <button
                   onClick={() => router.push('/appointments')}
-                  className="text-sm font-medium text-white bg-[#31a795] hover:bg-[#006b5e] rounded-md px-4 py-2 transition-colors"
+                  className="text-sm font-medium text-white bg-brand hover:bg-brand-dark rounded-md px-4 py-2 transition-colors"
                 >
                   Return to appointments
                 </button>
@@ -191,7 +191,7 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
               <p className="text-sm text-on-surface-variant">{deviceError}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="text-sm font-medium text-white bg-[#31a795] hover:bg-[#006b5e] rounded-md px-4 py-2 transition-colors"
+                className="text-sm font-medium text-white bg-brand hover:bg-brand-dark rounded-md px-4 py-2 transition-colors"
               >
                 Retry
               </button>
@@ -276,7 +276,7 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
             </p>
             <button
               onClick={handleEndAndFinalize}
-              className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-[#31a795] hover:bg-[#006b5e] rounded-md transition-colors"
+              className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-brand hover:bg-brand-dark rounded-md transition-colors"
             >
               End &amp; Finalize →
             </button>

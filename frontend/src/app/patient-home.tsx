@@ -134,7 +134,7 @@ export function PatientHome() {
 
             <Link href="/doctors" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <MagnifyingGlassIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -146,7 +146,7 @@ export function PatientHome() {
 
             <Link href="/recommendations" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <ActivityLogIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -158,7 +158,7 @@ export function PatientHome() {
 
             <Link href="/records" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <FileTextIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>

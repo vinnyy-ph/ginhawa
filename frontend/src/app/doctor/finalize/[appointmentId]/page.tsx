@@ -269,7 +269,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
         {/* Body */}
         {isReadOnly && !amending ? (
           <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
-            <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30 flex items-start justify-between gap-4">
+            <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-4 border-b border-outline-variant/30 flex items-start justify-between gap-4">
               <div>
                 <h3 className="font-serif text-lg font-bold text-text-primary">Clinical Documentation</h3>
                 <p className="text-sm text-on-surface-variant mt-1">This record is published. You can amend it if needed.</p>
@@ -344,7 +344,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
             )}
 
             <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
-              <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30">
+              <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-4 border-b border-outline-variant/30">
                 <h3 className="font-serif text-lg font-bold text-text-primary">Clinical Documentation</h3>
                 <p className="text-xs text-on-surface-variant mt-1">Edit as needed before publishing to the patient record.</p>
               </div>
@@ -411,7 +411,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
                   <Button
                     onClick={() => setConfirmingPublish(true)}
                     disabled={!attested || isPublishing || publishSuccess}
-                    className="min-w-[160px] bg-[#31a795] text-white hover:bg-[#006b5e]"
+                    className="min-w-[160px] bg-brand text-white hover:bg-brand-dark"
                   >
                     {amending ? 'Save amendment' : 'Publish to Patient Record'}
                   </Button>
@@ -424,7 +424,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
                     <Button
                       onClick={handlePublish}
                       disabled={isPublishing || publishSuccess}
-                      className="bg-[#31a795] text-white hover:bg-[#006b5e]"
+                      className="bg-brand text-white hover:bg-brand-dark"
                     >
                       {isPublishing ? (amending ? 'Saving...' : 'Publishing...') : (amending ? 'Confirm amend' : 'Confirm publish')}
                     </Button>

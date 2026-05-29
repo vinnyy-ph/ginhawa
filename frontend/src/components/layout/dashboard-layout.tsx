@@ -103,7 +103,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
         <div className="p-4 border-t border-outline-variant">
           {session?.user?.email && (
             <div className="flex items-center gap-3 mb-3 px-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center text-white text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-light to-brand flex items-center justify-center text-white text-xs font-bold shrink-0">
                 {(session.user.name || session.user.email).charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">

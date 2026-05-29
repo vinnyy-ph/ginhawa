@@ -40,7 +40,7 @@ function hasConsultEnded(appt: Appointment): boolean {
 }
 
 const statusConfig: Record<string, { variant: "secondary" | "success" | "destructive" | "info" | "outline", border: string }> = {
-  PENDING: { variant: "secondary", border: "border-l-[#f59e0b]" },
+  PENDING: { variant: "secondary", border: "border-l-warning" },
   CONFIRMED: { variant: "success", border: "border-l-primary" },
   CANCELLED: { variant: "destructive", border: "border-l-error" },
   COMPLETED: { variant: "info", border: "border-l-info" },
@@ -181,7 +181,7 @@ export function AppointmentCard({
                         </span>
                       )}
                       {appt.status === "CONFIRMED" && isWithinJoinWindow(appt) && (
-                        <Button asChild size="sm" className="bg-[#31a795] text-white hover:bg-[#006b5e]">
+                        <Button asChild size="sm" className="bg-brand text-white hover:bg-brand-dark">
                           <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
                         </Button>
                       )}
@@ -334,7 +334,7 @@ export function AppointmentCard({
                 }
               />
               {appt.id && isWithinJoinWindow(appt) && (
-                <Button size="sm" asChild className="bg-[#31a795] text-white hover:bg-[#006b5e]">
+                <Button size="sm" asChild className="bg-brand text-white hover:bg-brand-dark">
                   <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
                 </Button>
               )}

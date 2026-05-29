@@ -9,7 +9,7 @@ import { Logo } from "@/components/ui/logo";
 
 function Avatar({ name }: { name: string }) {
   return (
-    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center text-white text-sm font-bold">
+    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-light to-brand flex items-center justify-center text-white text-sm font-bold">
       {name.charAt(0).toUpperCase()}
     </div>
   );
