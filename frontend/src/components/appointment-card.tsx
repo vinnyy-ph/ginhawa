@@ -33,6 +33,11 @@ function isWithinJoinWindow(appt: Appointment): boolean {
   return now >= start - 15 * 60 * 1000 && now <= end;
 }
 
+function hasConsultStarted(appt: Appointment): boolean {
+  if (!appt.slot) return false;
+  return Date.now() >= new Date(appt.slot.startTime).getTime();
+}
+
 const statusConfig: Record<string, { variant: "secondary" | "success" | "destructive" | "info" | "outline", border: string }> = {
   PENDING: { variant: "secondary", border: "border-l-[#f59e0b]" },
   CONFIRMED: { variant: "success", border: "border-l-primary" },
@@ -312,7 +317,7 @@ export function AppointmentCard({
                   <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
                 </Button>
               )}
-              {appt.id && slot && Date.now() >= new Date(slot.startTime).getTime() && (
+              {appt.id && hasConsultStarted(appt) && (
                 <Button size="sm" asChild variant="outline">
                   <Link href={`/doctor/finalize/${appt.id}`}>Complete &amp; Document</Link>
                 </Button>

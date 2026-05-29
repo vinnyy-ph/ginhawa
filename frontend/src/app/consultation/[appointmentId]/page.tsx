@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import DailyIframe, {
   DailyCall,
   DailyEventObjectAppMessage,
-  DailyEventObjectParticipantLeft,
 } from "@daily-co/daily-js";
 import { apiRequest } from "@/lib/api-client";
 import { Spinner } from "@/components/ui/spinner";
@@ -66,7 +65,7 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
         router.push('/appointments');
       }
     };
-    const handleParticipantLeft = (_event: DailyEventObjectParticipantLeft) => {
+    const handleParticipantLeft = () => {
       // In a 1:1 consult, the only other participant is the doctor.
       router.push('/appointments');
     };
