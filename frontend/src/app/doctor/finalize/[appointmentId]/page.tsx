@@ -8,7 +8,18 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { CheckCircledIcon, ExclamationTriangleIcon, MagicWandIcon } from "@radix-ui/react-icons";
+import {
+  ArrowLeftIcon,
+  CalendarIcon,
+  PersonIcon,
+  CheckCircledIcon,
+  ChatBubbleIcon,
+  HeartIcon,
+  FileTextIcon,
+  ExclamationTriangleIcon,
+  MagicWandIcon,
+} from "@radix-ui/react-icons";
+import type { Appointment, MedicalRecord } from "@/types/api";
 
 interface AiSummary {
   doctorSummary: string;
@@ -27,6 +38,13 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [appointment, setAppointment] = useState<Appointment | null>(null);
+  const [existingRecord, setExistingRecord] = useState<MedicalRecord | null>(null);
+
+  // AI summarize (only runs when no record exists yet)
+  const [summarizing, setSummarizing] = useState(false);
+  const [summarizeError, setSummarizeError] = useState<string | null>(null);
+
   const [doctorSummary, setDoctorSummary] = useState('');
   const [patientSummary, setPatientSummary] = useState('');
   const [prescriptions, setPrescriptions] = useState('');
@@ -36,10 +54,10 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
   const [publishSuccess, setPublishSuccess] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
 
-  async function fetchSummary() {
+  async function runSummarize() {
     if (!token) return;
-    setLoading(true);
-    setError(null);
+    setSummarizing(true);
+    setSummarizeError(null);
     try {
       const data = await apiRequest<AiSummary>(`/consultation/${appointmentId}/summarize`, {
         method: 'POST',
@@ -50,22 +68,56 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
       setPrescriptions(data.prescriptions);
       setFollowUp(data.followUp);
     } catch {
-      setError('AI summarization failed. You can try again or publish manually.');
+      setSummarizeError('AI summarization failed. Write the record manually below, or try again.');
     } finally {
-      setLoading(false);
+      setSummarizing(false);
     }
   }
 
   useEffect(() => {
-    queueMicrotask(() => {
-      fetchSummary();
-    });
+    async function init() {
+      if (!token) return;
+      setLoading(true);
+      setError(null);
+
+      // 1. Appointment context
+      try {
+        const appt = await apiRequest<Appointment>(`/appointments/${appointmentId}`, { token });
+        setAppointment(appt);
+      } catch {
+        setError("Appointment not found or you don't have permission to view it.");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Existing-record guard — runs BEFORE any AI call
+      let record: MedicalRecord | undefined;
+      try {
+        const records = await apiRequest<MedicalRecord[]>("/medical-records/doctor", { token });
+        record = records.find(r => r.appointmentId === appointmentId);
+      } catch {
+        // non-fatal: treat as no record
+      }
+
+      if (record) {
+        setExistingRecord(record);
+        setLoading(false);
+        return;
+      }
+
+      // 3. No record yet → AI prefill for editable form
+      setLoading(false);
+      runSummarize();
+    }
+
+    init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, appointmentId]);
 
   async function handlePublish() {
     if (!token) return;
     setIsPublishing(true);
+    setPublishError(null);
     try {
       await apiRequest('/medical-records', {
         method: 'POST',
@@ -93,6 +145,36 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
     }
   }
 
+  if (loading) {
+    return (
+      <DashboardLayout role="doctor">
+        <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !appointment) {
+    return (
+      <DashboardLayout role="doctor">
+        <div className="bg-red-50 text-error p-6 rounded-lg border border-red-100 text-center max-w-lg mx-auto mt-10">
+          <ExclamationTriangleIcon className="w-10 h-10 mx-auto mb-4" />
+          <h3 className="font-bold text-lg mb-2">Error Loading Data</h3>
+          <p>{error}</p>
+          <Button asChild className="mt-4" variant="outline">
+            <Link href="/doctor/appointments">Back to Appointments</Link>
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const isReadOnly = !!existingRecord;
+  const pat = appointment.patient;
+  const slot = appointment.slot;
+  const dateStr = slot
+    ? new Date(slot.startTime).toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    : 'Unknown Date';
+
   return (
     <DashboardLayout role="doctor">
       <div className="max-w-3xl mx-auto animate-in fade-in duration-500">
@@ -106,39 +188,125 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
           </div>
         )}
 
+        {/* Header */}
         <div className="mb-6">
           <Link href="/doctor/appointments" className="inline-flex items-center gap-2 text-sm text-on-surface-variant hover:text-primary transition-colors mb-4">
-            ← Back to Appointments
+            <ArrowLeftIcon className="w-4 h-4" />
+            Back to Appointments
           </Link>
           <div className="flex items-center gap-3">
             <MagicWandIcon className="w-6 h-6 text-primary" />
-            <h1 className="text-3xl font-bold font-serif text-text-primary">Finalize Consultation</h1>
+            <h1 className="text-3xl font-bold font-serif text-text-primary">
+              {isReadOnly ? "Medical Record" : "Finalize Consultation"}
+            </h1>
           </div>
-          <p className="text-sm text-on-surface-variant mt-1 ml-9">Review and edit the AI-generated summaries before publishing.</p>
+          {!isReadOnly && (
+            <p className="text-sm text-on-surface-variant mt-1 ml-9">Review and edit the AI-generated summaries before publishing.</p>
+          )}
         </div>
 
-        {loading ? (
+        {/* Context header */}
+        <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-5 mb-6 flex flex-col md:flex-row gap-5 items-start">
+          <div className="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center text-text-primary font-serif font-bold text-xl shrink-0">
+            {pat?.fullName.charAt(0) || 'P'}
+          </div>
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-bold text-outline uppercase tracking-wider mb-1">Patient</p>
+              <h3 className="font-bold text-text-primary flex items-center gap-2">
+                <PersonIcon className="w-4 h-4 text-on-surface-variant" />
+                {pat?.fullName || 'Unknown Patient'}
+              </h3>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-outline uppercase tracking-wider mb-1">Consultation Date</p>
+              <p className="font-medium flex items-center gap-2 text-text-primary">
+                <CalendarIcon className="w-4 h-4 text-primary" />
+                {dateStr}
+              </p>
+            </div>
+            <div className="md:col-span-2">
+              <p className="text-xs font-bold text-outline uppercase tracking-wider mb-1">Reason for Visit</p>
+              <p className="text-sm text-on-surface-variant bg-surface p-3 rounded-lg">
+                {appointment.reasonForVisit || "No reason provided."}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Body */}
+        {isReadOnly ? (
+          <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
+            <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30">
+              <h3 className="font-serif text-lg font-bold text-text-primary">Clinical Documentation</h3>
+              <p className="text-sm text-on-surface-variant mt-1">This record is published and read-only.</p>
+            </div>
+            <div className="p-6 space-y-8">
+              {existingRecord!.notes && (
+                <div>
+                  <h4 className="flex items-center gap-2 font-bold font-serif text-text-primary mb-2">
+                    <ChatBubbleIcon className="w-4 h-4 text-primary" /> Consultation Notes
+                  </h4>
+                  <div className="bg-surface p-4 rounded-lg text-sm text-on-surface-variant whitespace-pre-line leading-relaxed">
+                    {existingRecord!.notes}
+                  </div>
+                </div>
+              )}
+              {existingRecord!.prescription && (
+                <div>
+                  <h4 className="flex items-center gap-2 font-bold font-serif text-text-primary mb-2">
+                    <HeartIcon className="w-4 h-4 text-[#ba1a1a]" /> Prescription
+                  </h4>
+                  <div className="bg-red-50 p-4 rounded-lg text-sm text-on-surface whitespace-pre-line leading-relaxed border border-red-100">
+                    {existingRecord!.prescription}
+                  </div>
+                </div>
+              )}
+              {existingRecord!.recommendations && (
+                <div>
+                  <h4 className="flex items-center gap-2 font-bold font-serif text-text-primary mb-2">
+                    <FileTextIcon className="w-4 h-4 text-info" /> Recommendations
+                  </h4>
+                  <div className="bg-surface p-4 rounded-lg text-sm text-on-surface-variant whitespace-pre-line leading-relaxed">
+                    {existingRecord!.recommendations}
+                  </div>
+                </div>
+              )}
+              {existingRecord!.followUpAdvice && (
+                <div>
+                  <h4 className="flex items-center gap-2 font-bold font-serif text-text-primary mb-2">
+                    <CheckCircledIcon className="w-4 h-4 text-primary" /> Follow-up Advice
+                  </h4>
+                  <div className="bg-primary/5 p-4 rounded-lg text-sm text-on-surface-variant whitespace-pre-line leading-relaxed border border-primary/10">
+                    {existingRecord!.followUpAdvice}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : summarizing ? (
           <div className="bg-surface-white rounded-xl shadow-soft p-12 text-center">
             <Spinner size="lg" />
             <p className="mt-4 text-on-surface-variant">Generating AI summaries...</p>
           </div>
-        ) : error ? (
-          <div className="bg-red-50 text-error p-6 rounded-xl border border-red-100 text-center">
-            <ExclamationTriangleIcon className="w-8 h-8 mx-auto mb-3" />
-            <p className="font-medium mb-4">{error}</p>
-            <Button onClick={fetchSummary} variant="outline">Try Again</Button>
-          </div>
         ) : (
           <div className="space-y-6">
+            {summarizeError && (
+              <div className="bg-yellow-50 text-yellow-800 p-4 rounded-lg text-sm border border-yellow-200 flex items-center justify-between gap-3">
+                <span>{summarizeError}</span>
+                <Button onClick={runSummarize} variant="outline" size="sm">Try Again</Button>
+              </div>
+            )}
+
             {publishError && (
-              <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm border border-yellow-200">
+              <div className="bg-red-50 text-error p-3 rounded-lg text-sm border border-red-100">
                 {publishError}
               </div>
             )}
 
             <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
               <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30">
-                <h3 className="font-serif text-lg font-bold text-text-primary">Clinical Documentation (AI-Generated)</h3>
+                <h3 className="font-serif text-lg font-bold text-text-primary">Clinical Documentation</h3>
                 <p className="text-xs text-on-surface-variant mt-1">Edit as needed before publishing to the patient record.</p>
               </div>
 
