@@ -16,7 +16,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 - [ ] **P1** Onboarding "skip for now" → reach booking with name/DOB/contact, defer clinical intake
 - [x] **P2** Disabled-button reasons + profile photo made optional — `b5846db`
 - [x] **P3** Confirm-booking copy + redirect (pre-session) — accurate "request" copy shipped
-- [ ] **P4** Prescription as clean medication list (render structured `prescriptions[]`, drop error-red)
+- [x] **P4** Prescription rendered as clean medication list (structured `prescriptions[]`, no error-red) — `34062a8`
 - [x] **P5** Join surfaces (30s poll + "Join opens at" hint) — `3a0c73b`
 - [x] **P6** Symptom check authenticated + persisted — `91fab73`
 - [ ] **P7** DOB picker: year/decade jump + 44px touch targets
