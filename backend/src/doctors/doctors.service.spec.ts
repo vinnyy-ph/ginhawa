@@ -204,6 +204,7 @@ describe('DoctorsService', () => {
       });
       expect(mockTx.specialization.upsert).toHaveBeenCalled();
       expect(mockTx.doctorSpecialization.upsert).toHaveBeenCalled();
+      expect(mockTx.doctorSpecialization.deleteMany).toHaveBeenCalled();
     });
 
     it('skips specialization sync when no specialization is provided', async () => {
