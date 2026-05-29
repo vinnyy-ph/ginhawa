@@ -4,15 +4,14 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GeminiService } from '../ai/gemini.service';
 
 @Injectable()
 export class ConsultationService {
-  private readonly genAI: GoogleGenerativeAI;
-
-  constructor(private readonly prisma: PrismaService) {
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
-  }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gemini: GeminiService,
+  ) {}
 
   async getOrCreateRoom(
     appointmentId: string,
@@ -135,7 +134,6 @@ export class ConsultationService {
       throw new ForbiddenException('Only the doctor can summarize');
 
     const notes = appointment.liveNotes ?? '';
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
     const prompt = `You are a clinical assistant. Analyze these doctor's notes from a telemedicine consultation and return ONLY a valid JSON object (no markdown, no code blocks) with these exact keys:
 {
   "doctorSummary": "clinical summary for the doctor with diagnosis and medical terminology",
@@ -145,20 +143,6 @@ export class ConsultationService {
 }
 Notes: ${notes}`;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
-
-    try {
-      return JSON.parse(text);
-    } catch {
-      const clean = text.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
-      try {
-        return JSON.parse(clean);
-      } catch {
-        throw new Error(
-          'AI returned an unparseable response. Please try again.',
-        );
-      }
-    }
+    return this.gemini.generateJson(prompt);
   }
 }
