@@ -20,7 +20,7 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-bold text-text-primary mb-4 uppercase tracking-wider">Product</h3>
             <ul className="space-y-2 text-sm text-on-surface-variant">
-              <li><Link href="#features" className="hover:text-primary transition-colors">Features</Link></li>
+              <li><Link href="/features" className="hover:text-primary transition-colors">Features</Link></li>
               <li><Link href="/for-doctors" className="hover:text-primary transition-colors">For Doctors</Link></li>
               </ul>
               </div>
