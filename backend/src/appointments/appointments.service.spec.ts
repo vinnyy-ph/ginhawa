@@ -119,6 +119,19 @@ describe('AppointmentsService', () => {
     });
   });
 
+  it('includes payment when listing patient appointments', async () => {
+    mockPrismaService.patientProfile.findUnique.mockResolvedValue({ id: 'patient-1' });
+    mockPrismaService.appointment.findMany = jest.fn().mockResolvedValue([]);
+
+    await service.findAllForPatient('user-1');
+
+    expect(mockPrismaService.appointment.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: expect.objectContaining({ payment: true }),
+      }),
+    );
+  });
+
   describe('reschedule', () => {
     const oldAppt = {
       id: 'appt-1',

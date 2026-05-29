@@ -113,6 +113,7 @@ export class AppointmentsService {
       include: {
         doctor: true,
         slot: true,
+        payment: true,
       },
     });
   }
@@ -131,6 +132,7 @@ export class AppointmentsService {
       include: {
         patient: true,
         slot: true,
+        payment: true,
       },
     });
   }
@@ -146,7 +148,7 @@ export class AppointmentsService {
 
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
-      include: { patient: true, slot: true },
+      include: { patient: true, slot: true, payment: true },
     });
 
     if (!appointment) {
