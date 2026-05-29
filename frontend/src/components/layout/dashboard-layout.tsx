@@ -96,13 +96,13 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
       apiRequest<Appointment[]>('/appointments/patient', { token }),
       apiRequest<Notification[]>('/notifications', { token }),
     ]).then(([profile, appointments, notifications]) => {
-      setPatientName(profile.fullName ?? session?.user?.name ?? session?.user?.email?.split('@')[0] ?? 'Patient');
+      setPatientName(profile.fullName ?? session?.user?.name ?? session?.user?.email?.split('@')?.[0] ?? 'Patient');
       setAvatarUrl(profile.profilePictureUrl ?? null);
       setProfileCompletion(computeProfileCompletion(profile));
       setUpcomingCount(appointments.filter(a => a.status === 'PENDING' || a.status === 'CONFIRMED').length);
       setUnreadCount(notifications.filter(n => !n.readAt).length);
     }).catch(() => {
-      setPatientName(session?.user?.name ?? session?.user?.email?.split('@')[0] ?? 'Patient');
+      setPatientName(session?.user?.name ?? session?.user?.email?.split('@')?.[0] ?? 'Patient');
     });
   }, [role, session?.user?.accessToken, session?.user?.name, session?.user?.email]);
 
