@@ -38,7 +38,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 - [x] **V4** Truncation tooltips on review-id-card name/subtitle — `2041293`
 - [x] **V5** De-duped double specialization render (`doctors/[id]`) — `2041293`
 - [x] **V6** Footer indentation + unified headers + removed empty trust-badge placeholders — `2041293`
-- [ ] **V7** `prefers-reduced-motion` / `motion-reduce` (esp. emergency Call-911 bounce+pulse)
+- [x] **V7** Global `prefers-reduced-motion` reset (covers emergency bounce/pulse, fades, badges) — `d23f74a`
 - [x] **V8** a11y: skip-link, real toggle button + aria-expanded, accordion focus ring, larger touch targets — `747e7bc`
 - [ ] **V9** De-dup: shared relative-time formatter, `/features` CTA → `<CTASection/>`, photo-capture/dead `ProfilePhotoField`, `DashboardLayout` role-prop dead code
 

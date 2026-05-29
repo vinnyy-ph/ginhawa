@@ -30,7 +30,7 @@ export function Alert({
       role="alert"
       className={cn("flex items-start gap-2 rounded-lg border px-4 py-3 text-sm", variantClass, className)}
     >
-      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+      <Icon aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
       <div className="flex-1">{children}</div>
       {onDismiss && (
         <button onClick={onDismiss} aria-label="Dismiss" className="shrink-0 font-semibold hover:opacity-70">
