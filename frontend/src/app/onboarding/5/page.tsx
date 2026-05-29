@@ -152,6 +152,7 @@ export default function OnboardingStep5() {
         loading={uploading}
         loadingLabel="Uploading…"
         submitLabel={selectedFile ? 'Upload & Continue →' : 'Continue →'}
+        onSkip={() => router.push('/onboarding/6')}
       />
     </OnboardingShell>
   );

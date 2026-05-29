@@ -19,6 +19,8 @@ export function OnboardingNav({
   disabled = false,
   submitType = 'submit',
   onSubmit,
+  onSkip,
+  skipLabel,
 }: {
   onBack?: () => void;
   submitLabel: string;
@@ -27,41 +29,57 @@ export function OnboardingNav({
   disabled?: boolean;
   submitType?: 'submit' | 'button';
   onSubmit?: () => void;
+  onSkip?: () => void;
+  skipLabel?: string;
 }) {
   return (
-    <div
-      className={cn(
-        'flex flex-col-reverse sm:flex-row gap-3 pt-2',
-        onBack ? 'sm:justify-between' : 'sm:justify-end',
-      )}
-    >
-      {onBack && (
+    <div className="space-y-3 pt-2">
+      <div
+        className={cn(
+          'flex flex-col-reverse sm:flex-row gap-3',
+          onBack ? 'sm:justify-between' : 'sm:justify-end',
+        )}
+      >
+        {onBack && (
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="w-full sm:w-auto sm:min-w-[140px]"
+            onClick={onBack}
+            disabled={loading}
+          >
+            ← Back
+          </Button>
+        )}
         <Button
-          type="button"
-          variant="outline"
+          type={submitType}
           size="lg"
           className="w-full sm:w-auto sm:min-w-[140px]"
-          onClick={onBack}
-          disabled={loading}
+          onClick={onSubmit}
+          disabled={loading || disabled}
         >
-          ← Back
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <Spinner className="w-5 h-5" /> {loadingLabel}
+            </span>
+          ) : (
+            submitLabel
+          )}
         </Button>
+      </div>
+      {onSkip && (
+        <div className="text-center sm:text-right">
+          <button
+            type="button"
+            onClick={onSkip}
+            disabled={loading}
+            className="text-sm font-medium text-on-surface-variant underline underline-offset-2 hover:text-primary disabled:opacity-50"
+          >
+            {skipLabel ?? 'Skip for now'}
+          </button>
+        </div>
       )}
-      <Button
-        type={submitType}
-        size="lg"
-        className="w-full sm:w-auto sm:min-w-[140px]"
-        onClick={onSubmit}
-        disabled={loading || disabled}
-      >
-        {loading ? (
-          <span className="flex items-center gap-2">
-            <Spinner className="w-5 h-5" /> {loadingLabel}
-          </span>
-        ) : (
-          submitLabel
-        )}
-      </Button>
     </div>
   );
 }

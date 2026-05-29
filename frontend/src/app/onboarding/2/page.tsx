@@ -97,7 +97,7 @@ export default function OnboardingStep2() {
           </FormField>
         </div>
 
-        <OnboardingNav onBack={() => router.push('/onboarding/1')} submitLabel="Continue →" />
+        <OnboardingNav onBack={() => router.push('/onboarding/1')} submitLabel="Continue →" onSkip={() => router.push('/onboarding/6')} />
       </form>
     </OnboardingShell>
   );
