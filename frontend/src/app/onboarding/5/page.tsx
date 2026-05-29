@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { apiUpload, ApiError } from '@/lib/api-client';
 import { useOnboarding } from '@/context/onboarding-context';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { OnboardingShell } from '@/components/ui/onboarding-shell';
+import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -84,15 +84,7 @@ export default function OnboardingStep5() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={5} totalSteps={6} />
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Profile Picture</h1>
-        <p className="mt-1 text-sm text-on-surface-variant font-manrope">
-          Add a photo so doctors can recognise you.
-        </p>
-      </div>
-
+    <OnboardingShell step={5} totalSteps={6} title="Profile Picture" subtitle="Add a photo so doctors can recognise you.">
       <div className="flex flex-col items-center gap-5">
         <div
           className="h-32 w-32 rounded-full bg-surface-container border-2 border-dashed border-outline-variant overflow-hidden flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
@@ -145,27 +137,15 @@ export default function OnboardingStep5() {
         )}
       </div>
 
-      <div className="flex justify-between pt-2">
-        <Button id="ob5-back" type="button" variant="outline" size="lg" onClick={() => router.push('/onboarding/4')}>← Back</Button>
-        <div className="flex gap-3">
-          <Button
-            id="ob5-upload"
-            type="button"
-            size="lg"
-            className="min-w-[160px]"
-            disabled={(!selectedFile && !data.profilePictureUrl) || uploading}
-            onClick={handleUploadAndContinue}
-          >
-            {uploading ? (
-              <span className="flex items-center gap-2"><Spinner /> Uploading…</span>
-            ) : selectedFile ? (
-              'Upload & Continue →'
-            ) : (
-              'Continue →'
-            )}
-          </Button>
-        </div>
-      </div>
-    </div>
+      <OnboardingNav
+        onBack={() => router.push('/onboarding/4')}
+        submitType="button"
+        onSubmit={handleUploadAndContinue}
+        loading={uploading}
+        loadingLabel="Uploading…"
+        submitLabel={selectedFile ? 'Upload & Continue →' : 'Continue →'}
+        disabled={!selectedFile && !data.profilePictureUrl}
+      />
+    </OnboardingShell>
   );
 }

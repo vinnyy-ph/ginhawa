@@ -9,9 +9,10 @@ import {
   type LocationInsuranceSchema,
 } from '@/lib/schemas/onboarding.schemas';
 import { useOnboarding } from '@/context/onboarding-context';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { OnboardingShell } from '@/components/ui/onboarding-shell';
+import { OnboardingNav } from '@/components/ui/onboarding-nav';
+import { onboardingInputClass } from '@/lib/onboarding-styles';
 import { FormField } from '@/components/ui/form-field';
-import { Button } from '@/components/ui/button';
 import { formatPhilHealth, formatHmoCard } from '@/lib/format';
 
 export default function OnboardingStep2() {
@@ -48,32 +49,19 @@ export default function OnboardingStep2() {
     router.push('/onboarding/3');
   };
 
-  const inputClass =
-    'w-full rounded-md border border-outline-variant bg-surface-white px-3 py-2.5 text-sm text-on-surface font-manrope placeholder:text-outline transition-colors focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 aria-[invalid=true]:border-error';
-
   return (
-    <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={2} totalSteps={6} />
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">
-          Location & Insurance
-        </h1>
-        <p className="mt-1 text-sm text-on-surface-variant font-manrope">
-          Optional — helps with billing and connecting you to nearby care. You can skip any field.
-        </p>
-      </div>
-
+    <OnboardingShell step={2} totalSteps={6} title="Location & Insurance" subtitle="Optional — helps with billing and connecting you to nearby care. You can skip any field.">
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
         <FormField id="ob2-address" label="Address" error={errors.address?.message}>
-          <input type="text" autoComplete="street-address" placeholder="123 Mabini St." className={inputClass} {...register('address')} />
+          <input type="text" autoComplete="street-address" placeholder="123 Mabini St." className={onboardingInputClass} {...register('address')} />
         </FormField>
 
         <div className="grid grid-cols-2 gap-4">
           <FormField id="ob2-city" label="City" error={errors.city?.message}>
-            <input type="text" autoComplete="address-level2" placeholder="Quezon City" className={inputClass} {...register('city')} />
+            <input type="text" autoComplete="address-level2" placeholder="Quezon City" className={onboardingInputClass} {...register('city')} />
           </FormField>
           <FormField id="ob2-region" label="Region" error={errors.region?.message}>
-            <input type="text" autoComplete="address-level1" placeholder="NCR" className={inputClass} {...register('region')} />
+            <input type="text" autoComplete="address-level1" placeholder="NCR" className={onboardingInputClass} {...register('region')} />
           </FormField>
         </div>
 
@@ -82,7 +70,7 @@ export default function OnboardingStep2() {
             type="text"
             inputMode="numeric"
             placeholder="12-345678901-2"
-            className={inputClass}
+            className={onboardingInputClass}
             {...register('philhealthId', {
               onChange: (e) => {
                 setValue('philhealthId', formatPhilHealth(e.target.value), { shouldValidate: true });
@@ -93,13 +81,13 @@ export default function OnboardingStep2() {
 
         <div className="grid grid-cols-2 gap-4">
           <FormField id="ob2-hmoProvider" label="HMO Provider" error={errors.hmoProvider?.message}>
-            <input type="text" placeholder="Maxicare" className={inputClass} {...register('hmoProvider')} />
+            <input type="text" placeholder="Maxicare" className={onboardingInputClass} {...register('hmoProvider')} />
           </FormField>
           <FormField id="ob2-hmoCardNo" label="HMO Card No." error={errors.hmoCardNo?.message}>
             <input
               type="text"
               placeholder="XXXX-XXXX-XXXX"
-              className={inputClass}
+              className={onboardingInputClass}
               {...register('hmoCardNo', {
                 onChange: (e) => {
                   setValue('hmoCardNo', formatHmoCard(e.target.value), { shouldValidate: true });
@@ -109,11 +97,8 @@ export default function OnboardingStep2() {
           </FormField>
         </div>
 
-        <div className="flex justify-between pt-2">
-          <Button id="ob2-back" type="button" variant="outline" size="lg" onClick={() => router.push('/onboarding/1')}>← Back</Button>
-          <Button id="ob2-next" type="submit" size="lg" className="min-w-[140px]">Continue →</Button>
-        </div>
+        <OnboardingNav onBack={() => router.push('/onboarding/1')} submitLabel="Continue →" />
       </form>
-    </div>
+    </OnboardingShell>
   );
 }

@@ -9,9 +9,10 @@ import {
   type MedicalHistorySchema,
 } from '@/lib/schemas/onboarding.schemas';
 import { useOnboarding } from '@/context/onboarding-context';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { OnboardingShell } from '@/components/ui/onboarding-shell';
+import { OnboardingNav } from '@/components/ui/onboarding-nav';
+import { onboardingInputClass, onboardingTextareaClass } from '@/lib/onboarding-styles';
 import { FormField } from '@/components/ui/form-field';
-import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
@@ -81,25 +82,12 @@ export default function OnboardingStep4() {
     router.push('/onboarding/5');
   };
 
-  const inputClass =
-    'w-full rounded-md border border-outline-variant bg-surface-white px-3 py-2.5 text-sm text-on-surface font-manrope placeholder:text-outline transition-colors focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 aria-[invalid=true]:border-error';
-  const textareaClass =
-    'w-full rounded-md border border-outline-variant bg-surface-white px-3 py-2.5 text-sm text-on-surface font-manrope placeholder:text-outline transition-colors resize-y min-h-[80px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 aria-[invalid=true]:border-error';
-
   return (
-    <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={4} totalSteps={6} />
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Medical History</h1>
-        <p className="mt-1 text-sm text-on-surface-variant font-manrope">
-          Helps your doctor understand your health context. All optional and kept private — separate items with commas.
-        </p>
-      </div>
-
+    <OnboardingShell step={4} totalSteps={6} title="Medical History" subtitle="Helps your doctor understand your health context. All optional and kept private — separate items with commas.">
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
         <div className="grid grid-cols-2 gap-4">
           <FormField id="ob4-bloodType" label="Blood type" error={errors.bloodType?.message}>
-            <select className={inputClass} {...register('bloodType')}>
+            <select className={onboardingInputClass} {...register('bloodType')}>
               <option value="">Select…</option>
               {BLOOD_TYPES.map((bt) => (
                 <option key={bt} value={bt}>{bt}</option>
@@ -107,7 +95,7 @@ export default function OnboardingStep4() {
             </select>
           </FormField>
           <FormField id="ob4-smokingStatus" label="Smoking status" error={errors.smokingStatus?.message}>
-            <select className={inputClass} {...register('smokingStatus')}>
+            <select className={onboardingInputClass} {...register('smokingStatus')}>
               {SMOKING_OPTIONS.map((o) => (
                 <option key={o.label} value={o.value}>{o.label}</option>
               ))}
@@ -122,7 +110,7 @@ export default function OnboardingStep4() {
                 <Chip key={v} selected={isChipSelected('allergies', v)} onClick={() => toggleChip('allergies', v)}>{v}</Chip>
               ))}
             </div>
-            <input type="text" placeholder="Penicillin, Peanuts" className={inputClass} {...register('allergies')} />
+            <input type="text" placeholder="Penicillin, Peanuts" className={onboardingInputClass} {...register('allergies')} />
           </div>
         </FormField>
 
@@ -133,7 +121,7 @@ export default function OnboardingStep4() {
                 <Chip key={v} selected={isChipSelected('chronicConditions', v)} onClick={() => toggleChip('chronicConditions', v)}>{v}</Chip>
               ))}
             </div>
-            <input type="text" placeholder="Hypertension, Asthma" className={inputClass} {...register('chronicConditions')} />
+            <input type="text" placeholder="Hypertension, Asthma" className={onboardingInputClass} {...register('chronicConditions')} />
           </div>
         </FormField>
 
@@ -144,23 +132,20 @@ export default function OnboardingStep4() {
                 <Chip key={v} selected={isChipSelected('currentMedications', v)} onClick={() => toggleChip('currentMedications', v)}>{v}</Chip>
               ))}
             </div>
-            <input type="text" placeholder="Amlodipine 5mg, Metformin" className={inputClass} {...register('currentMedications')} />
+            <input type="text" placeholder="Amlodipine 5mg, Metformin" className={onboardingInputClass} {...register('currentMedications')} />
           </div>
         </FormField>
 
         <FormField id="ob4-pastSurgeries" label="Past surgeries" error={errors.pastSurgeries?.message}>
-          <textarea placeholder="e.g. Appendectomy (2018)" className={textareaClass} {...register('pastSurgeries')} />
+          <textarea placeholder="e.g. Appendectomy (2018)" className={onboardingTextareaClass} {...register('pastSurgeries')} />
         </FormField>
 
         <FormField id="ob4-familyHistory" label="Family history" error={errors.familyHistory?.message}>
-          <textarea placeholder="e.g. Diabetes (mother), Heart disease (father)" className={textareaClass} {...register('familyHistory')} />
+          <textarea placeholder="e.g. Diabetes (mother), Heart disease (father)" className={onboardingTextareaClass} {...register('familyHistory')} />
         </FormField>
 
-        <div className="flex justify-between pt-2">
-          <Button id="ob4-back" type="button" variant="outline" size="lg" onClick={() => router.push('/onboarding/3')}>← Back</Button>
-          <Button id="ob4-next" type="submit" size="lg" className="min-w-[140px]">Continue →</Button>
-        </div>
+        <OnboardingNav onBack={() => router.push('/onboarding/3')} submitLabel="Continue →" />
       </form>
-    </div>
+    </OnboardingShell>
   );
 }

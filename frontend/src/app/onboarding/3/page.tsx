@@ -7,9 +7,10 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { step2Schema, type Step2Schema } from '@/lib/schemas/onboarding.schemas';
 import { useOnboarding } from '@/context/onboarding-context';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { OnboardingShell } from '@/components/ui/onboarding-shell';
+import { OnboardingNav } from '@/components/ui/onboarding-nav';
+import { onboardingInputClass } from '@/lib/onboarding-styles';
 import { FormField } from '@/components/ui/form-field';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 type WeightUnit = 'kg' | 'lbs';
@@ -142,19 +143,8 @@ export default function OnboardingStep3() {
     return { label: 'Obese', color: 'bg-red-100 text-red-700' };
   };
 
-  const inputClass =
-    'w-full rounded-md border border-outline-variant bg-surface-white px-3 py-2.5 text-sm text-on-surface font-manrope placeholder:text-outline transition-colors focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 aria-[invalid=true]:border-error';
-
   return (
-    <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={3} totalSteps={6} />
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Body Metrics</h1>
-        <p className="mt-1 text-sm text-on-surface-variant font-manrope">
-          Your weight and height help doctors give accurate advice.
-        </p>
-      </div>
-
+    <OnboardingShell step={3} totalSteps={6} title="Body Metrics" subtitle="Your weight and height help doctors give accurate advice.">
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
         <FormField id="ob3-weight" label="Weight" error={errors.weightKg?.message} required>
           <div className="flex gap-3 items-start">
@@ -175,7 +165,7 @@ export default function OnboardingStep3() {
                 min="0"
                 value={displayWeight}
                 placeholder={weightUnit === 'kg' ? '65' : '143'}
-                className={cn(inputClass, 'pl-10')}
+                className={cn(onboardingInputClass, 'pl-10')}
                 onChange={(e) => handleWeightChange(e.target.value)}
                 aria-invalid={errors.weightKg ? true : undefined}
               />
@@ -203,7 +193,7 @@ export default function OnboardingStep3() {
                 min="0"
                 value={displayHeight}
                 placeholder={heightUnit === 'cm' ? '165' : '5.4'}
-                className={cn(inputClass, 'pl-10')}
+                className={cn(onboardingInputClass, 'pl-10')}
                 onChange={(e) => handleHeightChange(e.target.value)}
                 aria-invalid={errors.heightCm ? true : undefined}
               />
@@ -239,11 +229,8 @@ export default function OnboardingStep3() {
         <input type="hidden" {...register('weightKg', { valueAsNumber: true })} />
         <input type="hidden" {...register('heightCm', { valueAsNumber: true })} />
 
-        <div className="flex justify-between pt-2">
-          <Button id="ob3-back" type="button" variant="outline" size="lg" onClick={() => router.push('/onboarding/2')}>← Back</Button>
-          <Button id="ob3-next" type="submit" size="lg" className="min-w-[140px]">Continue →</Button>
-        </div>
+        <OnboardingNav onBack={() => router.push('/onboarding/2')} submitLabel="Continue →" />
       </form>
-    </div>
+    </OnboardingShell>
   );
 }
