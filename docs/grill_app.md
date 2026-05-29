@@ -33,7 +33,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 
 ## Appearance, design & a11y
 - [ ] **V1** Design tokens: gradient + warning token; route the ~17 hardcoded `#48cab6/#31a795` files through them
-- [ ] **V2** One `<Alert variant="error|success">` (kill the two different reds)
+- [x] **V2** Shared `<Alert>` component; profile pages migrated (kills two-reds there) — `1e89b8f`
 - [x] **V3** Wordmark font unified to font-serif across login boundary — `2041293`
 - [x] **V4** Truncation tooltips on review-id-card name/subtitle — `2041293`
 - [x] **V5** De-duped double specialization render (`doctors/[id]`) — `2041293`
