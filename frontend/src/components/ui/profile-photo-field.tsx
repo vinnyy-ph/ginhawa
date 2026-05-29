@@ -12,9 +12,11 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 export function ProfilePhotoField({
   value,
   onChange,
+  readOnly = false,
 }: {
   value: string | null;
   onChange: (url: string) => void;
+  readOnly?: boolean;
 }) {
   const { data: session } = useSession();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -85,30 +87,32 @@ export function ProfilePhotoField({
           </svg>
         )}
       </div>
-      <div className="flex flex-col gap-1.5">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => inputRef.current?.click()}
-          disabled={uploading}
-        >
-          {uploading ? 'Uploading…' : 'Change photo'}
-        </Button>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="sr-only"
-          aria-label="Upload profile picture"
-          onChange={handleChange}
-        />
-        {error && (
-          <p role="alert" className="text-xs text-error font-manrope">
-            {error}
-          </p>
-        )}
-      </div>
+      {!readOnly && (
+        <div className="flex flex-col gap-1.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+          >
+            {uploading ? 'Uploading…' : 'Change photo'}
+          </Button>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="sr-only"
+            aria-label="Upload profile picture"
+            onChange={handleChange}
+          />
+          {error && (
+            <p role="alert" className="text-xs text-error font-manrope">
+              {error}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

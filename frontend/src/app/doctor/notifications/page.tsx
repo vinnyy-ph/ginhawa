@@ -50,13 +50,13 @@ export default function DoctorNotificationsPage() {
     if (!token) return;
     try {
       // Optimistic update
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.id === id ? { ...n, readAt: new Date().toISOString() } : n)
       );
-      
-      await apiRequest(`/notifications/${id}/read`, { 
+
+      await apiRequest(`/notifications/${id}/read`, {
         method: 'PATCH',
-        token 
+        token
       });
     } catch (err) {
       console.error("Failed to mark as read", err);
@@ -75,8 +75,8 @@ export default function DoctorNotificationsPage() {
 
   return (
     <DashboardLayout role="doctor">
-      <div className="animate-in fade-in duration-500 max-w-3xl mx-auto">
-        
+      <div className="animate-in fade-in duration-500 mx-auto">
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
@@ -92,7 +92,7 @@ export default function DoctorNotificationsPage() {
               System alerts, appointment updates, and reminders.
             </p>
           </div>
-          
+
           {unreadCount > 0 && (
             <Button variant="outline" size="sm" onClick={markAllAsRead} className="shrink-0">
               <CheckIcon className="w-4 h-4 mr-2" />
@@ -126,12 +126,12 @@ export default function DoctorNotificationsPage() {
               {notifications.map(notif => {
                 const isUnread = !notif.readAt;
                 const href = notificationHref(notif.type, "doctor");
-                
+
                 const timeStr = formatRelativeTime(notif.createdAt);
 
                 return (
-                  <div 
-                    key={notif.id} 
+                  <div
+                    key={notif.id}
                     className={cn(
                       "p-5 transition-colors flex gap-4 items-start",
                       href ? "cursor-pointer group" : "cursor-default",
@@ -154,7 +154,7 @@ export default function DoctorNotificationsPage() {
                         <span className="absolute top-0 right-0 w-3 h-3 bg-error border-2 border-surface-white rounded-full" />
                       )}
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-2 mb-1">
                         <h4 className={cn("font-semibold text-text-primary", isUnread && "font-bold")}>

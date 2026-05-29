@@ -56,7 +56,7 @@ function RecordsContent() {
   return (
     <DashboardLayout role="patient">
       <div className="animate-in fade-in duration-500">
-        
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold font-serif text-text-primary mb-2">Medical Records</h1>
@@ -75,7 +75,7 @@ function RecordsContent() {
             {error}
           </div>
         ) : records.length === 0 ? (
-          <div className="bg-surface-white rounded-xl shadow-soft p-12 text-center border border-outline-variant/30 max-w-2xl mx-auto">
+          <div className="bg-surface-white rounded-xl shadow-soft p-12 text-center border border-outline-variant/30 mx-auto">
             <div className="w-20 h-20 rounded-full bg-surface-container mx-auto mb-6 flex items-center justify-center">
               <FileTextIcon className="w-10 h-10 text-on-surface-variant/50" />
             </div>
@@ -91,12 +91,12 @@ function RecordsContent() {
                 weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
               });
               const doc = record.doctor;
-              
+
               return (
                 <div key={record.id} className="relative">
                   {/* Timeline dot */}
                   <div className="absolute -left-[33px] md:-left-[49px] top-6 w-4 h-4 rounded-full bg-primary ring-4 ring-surface-white" />
-                  
+
                   <div
                     id={`record-${record.appointmentId}`}
                     className={cn(
@@ -125,10 +125,10 @@ function RecordsContent() {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Body */}
                     <div className="p-6 space-y-6">
-                      
+
                       {record.notes && (
                         <div>
                           <h4 className="flex items-center gap-2 font-bold font-serif text-text-primary mb-2">
@@ -140,14 +140,14 @@ function RecordsContent() {
                           </div>
                         </div>
                       )}
-                      
+
                       {(record.prescriptions?.length || record.prescription) && (
                         <>
                           <hr className="border-outline-variant/30" />
                           <PrescriptionDisplay prescriptions={record.prescriptions} fallbackText={record.prescription} />
                         </>
                       )}
-                      
+
                       {record.recommendations && (
                         <>
                           <hr className="border-outline-variant/30" />
@@ -162,7 +162,7 @@ function RecordsContent() {
                           </div>
                         </>
                       )}
-                      
+
                       {record.followUpAdvice && (
                         <>
                           <hr className="border-outline-variant/30" />
@@ -177,9 +177,9 @@ function RecordsContent() {
                           </div>
                         </>
                       )}
-                      
+
                     </div>
-                    
+
                     {/* Footer */}
                     {record.appointment?.reasonForVisit && (
                       <div className="bg-surface px-6 py-3 border-t border-outline-variant/30 text-xs text-on-surface-variant flex items-start gap-2">

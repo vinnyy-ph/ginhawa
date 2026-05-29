@@ -309,7 +309,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
             </button>
           </div>
         </header>
-        <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </div>
       </main>

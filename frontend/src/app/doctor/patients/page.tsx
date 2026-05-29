@@ -84,7 +84,7 @@ export default function DoctorPatientsPage() {
 
   return (
     <DashboardLayout role="doctor">
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-serif font-bold text-text-primary">Patients</h1>
           <p className="text-on-surface-variant mt-1">
@@ -155,10 +155,10 @@ export default function DoctorPatientsPage() {
                     <span className="text-text-primary font-medium">
                       {row.lastVisit
                         ? formatPHDate(row.lastVisit, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
                         : "—"}
                     </span>
                   </span>

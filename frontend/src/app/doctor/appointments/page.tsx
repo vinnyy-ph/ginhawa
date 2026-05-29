@@ -199,7 +199,7 @@ function DoctorAppointmentsContent() {
             {error}
           </div>
         ) : filteredAppointments.length === 0 ? (
-          <div className="bg-surface-white rounded-xl shadow-soft p-12 text-center border border-outline-variant/30 max-w-2xl mx-auto">
+          <div className="bg-surface-white rounded-xl shadow-soft p-12 text-center border border-outline-variant/30 mx-auto">
             <div className="w-20 h-20 rounded-full bg-surface-container mx-auto mb-6 flex items-center justify-center">
               <CalendarIcon className="w-10 h-10 text-on-surface-variant/50" />
             </div>
