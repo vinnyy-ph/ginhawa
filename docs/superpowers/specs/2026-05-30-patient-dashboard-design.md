@@ -33,7 +33,7 @@ A prominent patient identity card sits at the top of the sidebar, below the bran
 - Patient avatar (profile picture if available, else initial-based gradient fallback)
 - Patient full name
 - "Patient Portal" badge
-- Profile completion progress bar (fetched from `/patients/profile`)
+- Profile completion progress bar: percentage of 7 key fields filled (`fullName`, `birthdate`, `contactDetails`, `profilePictureUrl`, `address`, `city`, `region`), calculated client-side from the `/patients/profile` response
 
 ---
 
@@ -57,7 +57,7 @@ A prominent patient identity card sits at the top of the sidebar, below the bran
   →  Log out
 ```
 
-Mobile bottom nav (5 items, picks the 5 most-used): Overview, Appointments, Doctors, Records, Profile.
+Mobile bottom nav (5 fixed items): Overview (`/`), Appointments (`/appointments`), Find a Doctor (`/doctors`), Records (`/records`), Profile (`/profile`).
 
 ---
 
@@ -65,7 +65,7 @@ Mobile bottom nav (5 items, picks the 5 most-used): Overview, Appointments, Doct
 
 - **Appointments**: shows count of PENDING + CONFIRMED appointments (fetched alongside patient profile)
 - **Notifications**: shows count of unread notifications (fetched alongside patient profile)
-- Badge data is fetched once on mount in `DashboardLayout` when `role="patient"`, refreshed every 60 seconds
+- Badge data is fetched once on mount in `DashboardLayout` when `role="patient"`. No auto-refresh — counts update when the user navigates (component remounts).
 
 ---
 
