@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { DatePicker } from "@/components/ui/date-picker";
-import { format, parseISO } from "date-fns";
+import { TimeField } from "@/components/ui/time-field";
+import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
 import { ClockIcon, PlusIcon, TrashIcon, CheckCircledIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import type { AvailabilitySlot, DoctorProfile, SlotStatus } from "@/types/api";
@@ -227,33 +228,20 @@ export default function DoctorSchedulePage() {
                 <div className="w-full md:w-auto flex-1">
                   <label className="block text-sm font-semibold text-text-primary mb-1">Date</label>
                   <DatePicker
-                    date={formDate ? parseISO(formDate) : undefined}
-                    setDate={(date) => setFormDate(date ? format(date, "yyyy-MM-dd") : "")}
-                    placeholder="Pick a date"
-                    fromDate={new Date()} // Cannot be in the past
+                    value={formDate}
+                    onChange={setFormDate}
+                    minDate={localTodayISO()}
                   />
                 </div>
                 
                 <div className="w-full md:w-auto flex-1">
                   <label className="block text-sm font-semibold text-text-primary mb-1">Start Time</label>
-                  <input
-                    type="time"
-                    required
-                    value={formStartTime}
-                    onChange={(e) => setFormStartTime(e.target.value)}
-                    className="w-full rounded-md border border-outline-variant px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface"
-                  />
+                  <TimeField value={formStartTime} onChange={setFormStartTime} aria-label="Start time" />
                 </div>
                 
                 <div className="w-full md:w-auto flex-1">
                   <label className="block text-sm font-semibold text-text-primary mb-1">End Time</label>
-                  <input
-                    type="time"
-                    required
-                    value={formEndTime}
-                    onChange={(e) => setFormEndTime(e.target.value)}
-                    className="w-full rounded-md border border-outline-variant px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface"
-                  />
+                  <TimeField value={formEndTime} onChange={setFormEndTime} aria-label="End time" />
                 </div>
                 
                 <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto min-w-[120px]">
