@@ -16,10 +16,11 @@ export function StarRating({
   const rounded = Math.round(rating);
   return (
     <span
+      role="img"
       className={cn("flex items-center gap-1.5", className)}
       aria-label={`Rated ${rating.toFixed(1)} out of 5 from ${count} review${count === 1 ? '' : 's'}`}
     >
-      <span className="flex">
+      <span className="flex" aria-hidden="true">
         {[1, 2, 3, 4, 5].map((i) =>
           i <= rounded ? (
             <StarFilledIcon key={i} className="w-4 h-4 text-[#f59e0b]" />
