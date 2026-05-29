@@ -17,7 +17,7 @@ export const formatPhilHealth = (value: string) => {
 
 /** Format an HMO card no. as uppercase alphanumeric grouped every 4 chars with dashes. */
 export const formatHmoCard = (value: string) => {
-  const c = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16);
+  const c = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 12);
   return (c.match(/.{1,4}/g) ?? []).join('-');
 };
 
