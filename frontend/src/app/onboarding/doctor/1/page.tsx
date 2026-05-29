@@ -7,6 +7,8 @@ import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
 import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
+import { Button } from '@/components/ui/button';
+import { CameraCapture } from '@/components/ui/camera-capture';
 import { onboardingInputClass } from '@/lib/onboarding-styles';
 import { apiUpload, ApiError } from '@/lib/api-client';
 
@@ -27,12 +29,10 @@ export default function DoctorOnboardingStep1() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const acceptFile = (file: File) => {
     setServerError(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-
     if (!ALLOWED_TYPES.includes(file.type)) {
       setServerError('Please upload a JPEG, PNG, or WebP image.');
       return;
@@ -41,11 +41,15 @@ export default function DoctorOnboardingStep1() {
       setServerError('Image must be under 5MB.');
       return;
     }
-
     setSelectedFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => setPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) acceptFile(file);
   };
 
   const handleNext = async () => {
@@ -116,6 +120,9 @@ export default function DoctorOnboardingStep1() {
           )}
         </div>
         <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleFileChange} />
+        <Button type="button" variant="outline" size="sm" onClick={() => setCameraOpen(true)}>
+          Take photo
+        </Button>
         {serverError && <p className="text-xs text-error font-manrope">{serverError}</p>}
       </div>
 
@@ -155,6 +162,7 @@ export default function DoctorOnboardingStep1() {
       </div>
 
       <OnboardingNav submitType="button" onSubmit={handleNext} loading={uploading} loadingLabel="Uploading…" submitLabel="Continue →" />
+      <CameraCapture open={cameraOpen} onClose={() => setCameraOpen(false)} onCapture={acceptFile} />
     </OnboardingShell>
   );
 }
