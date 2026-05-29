@@ -29,7 +29,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 - [ ] **D4** Confirm-booking success toast
 - [ ] **D5** Decline-with-reason (distinct from Cancel)
 - [ ] **D6** Mobile Notifications reachable + doctor mobile top header
-- [ ] **D7** Identity papercuts: "Dr. Dr." greeting, email fallback, raw-UUID patient id → name/age
+- [x] **D7** Identity papercuts: clean greeting (no "Dr. Dr."), dropped raw-UUID patient id — `44f3de6`
 
 ## Appearance, design & a11y
 - [ ] **V1** Design tokens: gradient + warning token; route the ~17 hardcoded `#48cab6/#31a795` files through them
