@@ -39,7 +39,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 - [x] **V5** De-duped double specialization render (`doctors/[id]`) — `2041293`
 - [x] **V6** Footer indentation + unified headers + removed empty trust-badge placeholders — `2041293`
 - [ ] **V7** `prefers-reduced-motion` / `motion-reduce` (esp. emergency Call-911 bounce+pulse)
-- [ ] **V8** a11y: real `<button>`s (cards/notification rows), focus rings, skip-to-content, 44px touch targets
+- [x] **V8** a11y: skip-link, real toggle button + aria-expanded, accordion focus ring, larger touch targets — `747e7bc`
 - [ ] **V9** De-dup: shared relative-time formatter, `/features` CTA → `<CTASection/>`, photo-capture/dead `ProfilePhotoField`, `DashboardLayout` role-prop dead code
 
 ---
