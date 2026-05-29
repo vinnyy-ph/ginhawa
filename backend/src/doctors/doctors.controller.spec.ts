@@ -93,28 +93,35 @@ describe('DoctorsController', () => {
 
   describe('findAll', () => {
     it('should return all doctor profiles formatted publicly', async () => {
-      const mockProfiles = [{ id: '1' }, { id: '2' }];
+      const mockProfiles = [
+        { id: '1', avgRating: 5, reviewCount: 2 },
+        { id: '2', avgRating: 0, reviewCount: 0 },
+      ];
       mockDoctorsService.searchAll.mockResolvedValue(mockProfiles);
 
-      const result = await controller.findAll('search', 'specialization');
+      const result = await controller.findAll('search', 'specialization', 'rating');
 
       expect(mockDoctorsService.searchAll).toHaveBeenCalledWith(
         'search',
         'specialization',
+        'rating',
       );
-      expect(result).toEqual([{ id: '1' }, { id: '2' }]);
+      expect(result).toEqual([
+        { id: '1', avgRating: 5, reviewCount: 2 },
+        { id: '2', avgRating: 0, reviewCount: 0 },
+      ]);
     });
   });
 
   describe('findOne', () => {
     it('should return one doctor profile formatted publicly', async () => {
-      const mockProfile = { id: '1' };
+      const mockProfile = { id: '1', avgRating: 4, reviewCount: 3 };
       mockDoctorsService.findById.mockResolvedValue(mockProfile);
 
       const result = await controller.findOne('1');
 
       expect(mockDoctorsService.findById).toHaveBeenCalledWith('1');
-      expect(result).toEqual({ id: '1' });
+      expect(result).toEqual({ id: '1', avgRating: 4, reviewCount: 3 });
     });
   });
 });

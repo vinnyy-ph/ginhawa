@@ -97,7 +97,7 @@ export class DoctorsService {
     });
   }
 
-  async searchAll(search?: string, specialization?: string) {
+  async searchAll(search?: string, specialization?: string, sortBy?: string) {
     const where: Prisma.DoctorProfileWhereInput = {
       isActive: true,
       isVerified: true,
@@ -117,11 +117,41 @@ export class DoctorsService {
       };
     }
 
-    return this.prisma.doctorProfile.findMany({
+    const profiles = await this.prisma.doctorProfile.findMany({
       where,
       include: {
         availabilitySlots: true,
       },
+    });
+
+    const withRatings = await this.attachRatings(profiles);
+
+    if (sortBy === 'rating') {
+      withRatings.sort((a, b) => b.avgRating - a.avgRating);
+    }
+
+    return withRatings;
+  }
+
+  private async attachRatings<T extends { id: string }>(profiles: T[]) {
+    if (profiles.length === 0) {
+      return [] as (T & { avgRating: number; reviewCount: number })[];
+    }
+    const ids = profiles.map((p) => p.id);
+    const grouped = await this.prisma.review.groupBy({
+      by: ['doctorId'],
+      where: { doctorId: { in: ids }, isVisible: true },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+    const byDoctor = new Map(grouped.map((g) => [g.doctorId, g]));
+    return profiles.map((p) => {
+      const g = byDoctor.get(p.id);
+      return {
+        ...p,
+        avgRating: g?._avg.rating ?? 0,
+        reviewCount: g?._count.rating ?? 0,
+      };
     });
   }
 
@@ -135,6 +165,7 @@ export class DoctorsService {
     if (!profile) {
       throw new NotFoundException('Doctor profile not found');
     }
-    return profile;
+    const [withRating] = await this.attachRatings([profile]);
+    return withRating;
   }
 }

@@ -24,6 +24,7 @@ describe('DoctorsService', () => {
       update: jest.fn(),
       findMany: jest.fn(),
     },
+    review: { groupBy: jest.fn().mockResolvedValue([]) },
     $transaction: jest.fn(),
   };
 
@@ -196,7 +197,9 @@ describe('DoctorsService', () => {
       mockPrismaService.doctorProfile.findMany.mockResolvedValue(expected);
 
       const result = await service.searchAll();
-      expect(result).toEqual(expected);
+      expect(result).toEqual([
+        { id: '1', fullName: 'Dr. Smith', avgRating: 0, reviewCount: 0 },
+      ]);
     });
 
     it('should use search and specialization params', async () => {
@@ -258,6 +261,39 @@ describe('DoctorsService', () => {
     });
   });
 
+  describe('searchAll ratings', () => {
+    it('attaches avgRating and reviewCount, and sorts by rating', async () => {
+      mockPrismaService.doctorProfile.findMany.mockResolvedValue([
+        { id: 'doctor-1', fullName: 'A' },
+        { id: 'doctor-2', fullName: 'B' },
+      ]);
+      mockPrismaService.review.groupBy.mockResolvedValue([
+        { doctorId: 'doctor-1', _avg: { rating: 3 }, _count: { rating: 2 } },
+        { doctorId: 'doctor-2', _avg: { rating: 5 }, _count: { rating: 4 } },
+      ]);
+
+      const result = await service.searchAll(undefined, undefined, 'rating');
+
+      expect(mockPrismaService.review.groupBy).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ isVisible: true }) }),
+      );
+      expect(result[0].id).toBe('doctor-2');
+      expect(result[0].avgRating).toBe(5);
+      expect(result[0].reviewCount).toBe(4);
+      expect(result[1].avgRating).toBe(3);
+    });
+
+    it('defaults missing ratings to zero', async () => {
+      mockPrismaService.doctorProfile.findMany.mockResolvedValue([{ id: 'doctor-3', fullName: 'C' }]);
+      mockPrismaService.review.groupBy.mockResolvedValue([]);
+
+      const result = await service.searchAll();
+
+      expect(result[0].avgRating).toBe(0);
+      expect(result[0].reviewCount).toBe(0);
+    });
+  });
+
   describe('findById', () => {
     const profileId = '550e8400-e29b-41d4-a716-446655440000';
 
@@ -266,7 +302,7 @@ describe('DoctorsService', () => {
       mockPrismaService.doctorProfile.findUnique.mockResolvedValue(expected);
 
       const result = await service.findById(profileId);
-      expect(result).toEqual(expected);
+      expect(result).toEqual({ ...expected, avgRating: 0, reviewCount: 0 });
       expect(mockPrismaService.doctorProfile.findUnique).toHaveBeenCalledWith({
         where: { id: profileId },
         include: {
