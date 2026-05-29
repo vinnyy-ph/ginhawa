@@ -73,6 +73,17 @@ async function main() {
             consultationFee: parseFloat(faker.commerce.price({ min: 50, max: 300 })),
             isVerified: true,
             verifiedAt: new Date(),
+            specializations: {
+              create: {
+                isPrimary: true,
+                specialization: {
+                  connectOrCreate: {
+                    where: { name: specialization },
+                    create: { name: specialization },
+                  },
+                },
+              },
+            },
           },
         },
       },
