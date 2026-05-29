@@ -37,7 +37,7 @@ export function ProgressIndicator({
             className={cn(
               'h-1.5 flex-1 rounded-full transition-all duration-300',
               i < currentStep
-                ? 'bg-gradient-to-r from-[#48cab6] to-[#31a795]'
+                ? 'bg-gradient-to-r from-brand-light to-brand'
                 : 'bg-outline-variant',
             )}
           />

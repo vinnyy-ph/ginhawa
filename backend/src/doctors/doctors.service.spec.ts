@@ -121,12 +121,45 @@ describe('DoctorsService', () => {
         consultationFocusAreas: undefined,
         availabilitySummary: undefined,
         profilePictureUrl: undefined,
+        prcLicenseNo: undefined,
+        prcLicenseExpiry: undefined,
+        ptrNo: undefined,
+        region: undefined,
+        city: undefined,
       };
       expect(mockUpsertTx.doctorProfile.upsert).toHaveBeenCalledWith({
         where: { userId },
         update: profileData,
         create: { userId, ...profileData },
       });
+    });
+
+    it('persists PRC license fields and coerces expiry to a Date', async () => {
+      const userId = 'user-1';
+      const dto = {
+        fullName: 'Dr. John',
+        professionalTitle: 'MD',
+        specialization: 'General',
+        prcLicenseNo: '1234567',
+        prcLicenseExpiry: '2027-05-30',
+        ptrNo: '12345678',
+        region: 'NCR',
+        city: 'Makati',
+      };
+
+      await service.upsertProfile(userId, dto);
+
+      expect(mockUpsertTx.doctorProfile.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({
+            prcLicenseNo: '1234567',
+            prcLicenseExpiry: new Date('2027-05-30'),
+            ptrNo: '12345678',
+            region: 'NCR',
+            city: 'Makati',
+          }),
+        }),
+      );
     });
   });
 

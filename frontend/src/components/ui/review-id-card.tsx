@@ -83,11 +83,11 @@ export function ReviewIdCard({
             <span className="text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase font-plus-jakarta mb-1">
               {idLabel}
             </span>
-            <h2 className="text-2xl font-bold font-plus-jakarta tracking-tight leading-tight truncate">
+            <h2 className="text-2xl font-bold font-plus-jakarta tracking-tight leading-tight truncate" title={name}>
               {name || '—'}
             </h2>
             {subtitle && (
-              <p className="text-sm text-white/80 font-manrope mt-0.5 truncate">{subtitle}</p>
+              <p className="text-sm text-white/80 font-manrope mt-0.5 truncate" title={subtitle}>{subtitle}</p>
             )}
             <div className="flex items-center gap-2 mt-2">
               <span className="h-2 w-2 rounded-full bg-white animate-pulse" />

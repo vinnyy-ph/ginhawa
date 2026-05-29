@@ -12,8 +12,30 @@ interface OnboardingContextValue {
 
 const OnboardingContext = React.createContext<OnboardingContextValue | null>(null);
 
+const STORAGE_KEY = 'ginhawa.onboarding.patient';
+
+function loadInitial(): OnboardingData {
+  if (typeof window === 'undefined') return ONBOARDING_DEFAULTS;
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return ONBOARDING_DEFAULTS;
+    return { ...ONBOARDING_DEFAULTS, ...(JSON.parse(raw) as Partial<OnboardingData>) };
+  } catch {
+    return ONBOARDING_DEFAULTS;
+  }
+}
+
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = React.useState<OnboardingData>(ONBOARDING_DEFAULTS);
+  const [data, setData] = React.useState<OnboardingData>(loadInitial);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      /* storage unavailable — non-fatal */
+    }
+  }, [data]);
 
   const update = React.useCallback((patch: Partial<OnboardingData>) => {
     setData((prev) => ({ ...prev, ...patch }));
@@ -21,6 +43,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   const reset = React.useCallback(() => {
     setData(ONBOARDING_DEFAULTS);
+    try {
+      window.sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* non-fatal */
+    }
   }, []);
 
   return (

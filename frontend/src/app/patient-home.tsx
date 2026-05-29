@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { PatientShell } from "@/components/layout/patient-shell";
 import { apiRequest } from "@/lib/api-client";
+import { formatPHTime, formatPHDate } from '@/lib/datetime';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
@@ -133,7 +134,7 @@ export function PatientHome() {
 
             <Link href="/doctors" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <MagnifyingGlassIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -145,7 +146,7 @@ export function PatientHome() {
 
             <Link href="/recommendations" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <ActivityLogIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -157,7 +158,7 @@ export function PatientHome() {
 
             <Link href="/records" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <FileTextIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -192,8 +193,8 @@ export function PatientHome() {
               <div className="space-y-4">
                 {recentAppointments.map(appt => {
                   const doc = appt.doctor;
-                  const dateStr = appt.slot ? new Date(appt.slot.startTime).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric' }) : 'Unknown Date';
-                  const timeStr = appt.slot ? new Date(appt.slot.startTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' }) : '';
+                  const dateStr = appt.slot ? formatPHDate(appt.slot.startTime, { weekday: 'short', month: 'short', day: 'numeric' }) : 'Unknown Date';
+                  const timeStr = appt.slot ? formatPHTime(appt.slot.startTime) : '';
 
                   return (
                     <div key={appt.id} className="bg-surface-white p-5 rounded-xl shadow-soft flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border-l-4 border-l-primary/30 hover:border-l-primary transition-colors">

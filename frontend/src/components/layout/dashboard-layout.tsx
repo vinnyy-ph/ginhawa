@@ -42,6 +42,12 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-surface flex">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:rounded-md focus:bg-surface-white focus:px-4 focus:py-2 focus:text-primary focus:shadow-lifted"
+      >
+        Skip to content
+      </a>
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-surface-white border-r border-outline-variant shrink-0 fixed h-full z-20">
         {/* Brand */}
@@ -97,7 +103,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
         <div className="p-4 border-t border-outline-variant">
           {session?.user?.email && (
             <div className="flex items-center gap-3 mb-3 px-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center text-white text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-light to-brand flex items-center justify-center text-white text-xs font-bold shrink-0">
                 {(session.user.name || session.user.email).charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
@@ -149,7 +155,33 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
       </nav>
 
       {/* Main content */}
-      <main className="flex-1 lg:ml-64 pb-20 lg:pb-0 min-h-screen">
+      <main id="main-content" className="flex-1 lg:ml-64 pb-20 lg:pb-0 min-h-screen">
+        {/* Mobile top header */}
+        <header className="lg:hidden sticky top-0 z-20 flex items-center justify-between bg-surface-white border-b border-outline-variant px-4 py-3">
+          <Link href="/doctor/dashboard" className="flex items-center gap-2">
+            <Logo size={24} className="h-6 w-auto" />
+            <span className="text-base font-bold tracking-tight text-text-primary font-serif">Ginhawa</span>
+          </Link>
+          <div className="flex items-center gap-1">
+            <Link
+              href="/doctor/notifications"
+              aria-label="Notifications"
+              className={cn(
+                "p-2 rounded-full hover:bg-surface-container transition-colors",
+                pathname.startsWith('/doctor/notifications') ? 'text-primary' : 'text-on-surface-variant',
+              )}
+            >
+              <BellIcon className="w-5 h-5" />
+            </Link>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              aria-label="Log out"
+              className="p-2 rounded-full text-on-surface-variant hover:bg-error/5 hover:text-error transition-colors"
+            >
+              <ExitIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </header>
         <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </div>

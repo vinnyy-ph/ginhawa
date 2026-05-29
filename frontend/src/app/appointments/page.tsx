@@ -26,10 +26,10 @@ export default function PatientAppointmentsPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const fetchAppointments = useCallback(async () => {
+  const fetchAppointments = useCallback(async (silent = false) => {
     if (!token) return;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await apiRequest<Appointment[]>("/appointments/patient", { token });
       // Sort descending by start time
       data.sort((a, b) => new Date(b.slot?.startTime || 0).getTime() - new Date(a.slot?.startTime || 0).getTime());
@@ -37,7 +37,7 @@ export default function PatientAppointmentsPage() {
     } catch {
       setError("Failed to load your appointments.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [token]);
 
@@ -46,6 +46,14 @@ export default function PatientAppointmentsPage() {
       fetchAppointments();
     });
   }, [fetchAppointments]);
+
+  useEffect(() => {
+    if (!token) return;
+    const id = setInterval(() => {
+      fetchAppointments(true);
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [token, fetchAppointments]);
 
   const updateStatus = async (id: string, status: AppointmentStatus) => {
     if (!token) return;

@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, ChevronDownIcon, ClockIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
+import { formatPHTime, formatPHDate } from '@/lib/datetime';
 import type { Appointment, AppointmentStatus } from "@/types/api";
 import { RescheduleDialog } from "@/components/booking/reschedule-dialog";
 
@@ -15,7 +16,7 @@ export interface AppointmentCardProps {
 
   // Common props
   isUpdating?: boolean;
-  onUpdateStatus?: (id: string, status: AppointmentStatus) => void;
+  onUpdateStatus?: (id: string, status: AppointmentStatus, cancelReason?: string) => void;
   token?: string;
   onRescheduled?: () => void;
 
@@ -33,13 +34,13 @@ function isWithinJoinWindow(appt: Appointment): boolean {
   return now >= start - 15 * 60 * 1000 && now <= end;
 }
 
-function hasConsultStarted(appt: Appointment): boolean {
+function hasConsultEnded(appt: Appointment): boolean {
   if (!appt.slot) return false;
-  return Date.now() >= new Date(appt.slot.startTime).getTime();
+  return Date.now() >= new Date(appt.slot.endTime).getTime();
 }
 
 const statusConfig: Record<string, { variant: "secondary" | "success" | "destructive" | "info" | "outline", border: string }> = {
-  PENDING: { variant: "secondary", border: "border-l-[#f59e0b]" },
+  PENDING: { variant: "secondary", border: "border-l-warning" },
   CONFIRMED: { variant: "success", border: "border-l-primary" },
   CANCELLED: { variant: "destructive", border: "border-l-error" },
   COMPLETED: { variant: "info", border: "border-l-info" },
@@ -59,18 +60,26 @@ export function AppointmentCard({
   const slot = appt.slot;
   const config = statusConfig[appt.status] || { variant: "outline", border: "border-l-outline" };
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   if (role === "patient") {
     const doc = appt.doctor;
-    const dateStr = slot ? new Date(slot.startTime).toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown Date';
-    const timeStr = slot ? `${new Date(slot.startTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })} - ${new Date(slot.endTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}` : '';
+    const dateStr = slot ? formatPHDate(slot.startTime, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown Date';
+    const timeStr = slot ? `${formatPHTime(slot.startTime)} - ${formatPHTime(slot.endTime)} (PHT)` : '';
 
     return (
       <div className={cn("bg-surface-white rounded-xl shadow-soft overflow-hidden border-l-4 transition-all duration-200", config.border)}>
         {/* Card Header (Always visible) */}
-        <div
-          className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-surface-container/30"
+        <button
+          type="button"
+          className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-surface-container/30 w-full text-left"
           onClick={onToggleExpand}
+          aria-expanded={isExpanded}
         >
           <div className="flex gap-4 items-center">
             <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary font-serif font-bold text-xl shrink-0">
@@ -98,11 +107,11 @@ export function AppointmentCard({
             <Badge variant={config.variant} className="capitalize px-3 py-1 text-xs">
               {appt.status.toLowerCase()}
             </Badge>
-            <button className="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/5">
+            <span className="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/5">
               <ChevronDownIcon className={cn("w-5 h-5 transition-transform duration-200", isExpanded && "rotate-180")} />
-            </button>
+            </span>
           </div>
-        </div>
+        </button>
 
         {/* Expanded Content */}
         <div
@@ -166,8 +175,13 @@ export function AppointmentCard({
                           </button>
                         </div>
                       )}
+                      {appt.status === "CONFIRMED" && !isWithinJoinWindow(appt) && slot && Date.now() < new Date(slot.startTime).getTime() && (
+                        <span className="text-xs font-semibold text-on-surface-variant self-center">
+                          Join opens at {formatPHTime(slot.startTime)} (PHT)
+                        </span>
+                      )}
                       {appt.status === "CONFIRMED" && isWithinJoinWindow(appt) && (
-                        <Button asChild size="sm" className="bg-[#31a795] text-white hover:bg-[#006b5e]">
+                        <Button asChild size="sm" className="bg-brand text-white hover:bg-brand-dark">
                           <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
                         </Button>
                       )}
@@ -192,8 +206,8 @@ export function AppointmentCard({
 
   if (role === "doctor") {
     const pat = appt.patient;
-    const dateStr = slot ? new Date(slot.startTime).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown Date';
-    const timeStr = slot ? `${new Date(slot.startTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}` : '';
+    const dateStr = slot ? formatPHDate(slot.startTime, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown Date';
+    const timeStr = slot ? `${formatPHTime(slot.startTime)} (PHT)` : '';
 
     return (
       <div className={cn(
@@ -211,7 +225,6 @@ export function AppointmentCard({
                 <h3 className="font-bold text-text-primary leading-tight">
                   {pat?.fullName || 'Patient'}
                 </h3>
-                <p className="text-xs text-on-surface-variant">Patient ID: {pat?.id.slice(0, 8)}</p>
               </div>
             </div>
             <Badge variant={config.variant} className="capitalize px-2.5 py-0.5 text-[10px]">
@@ -249,23 +262,31 @@ export function AppointmentCard({
                   onClick={() => setConfirmCancel(true)}
                   className="bg-error/10 text-error hover:bg-error/20 border-0"
                 >
-                  Cancel
+                  Decline
                 </Button>
               ) : (
-                <div className="flex items-center gap-2 text-xs font-semibold">
-                  <span className="text-error">Cancel?</span>
-                  <button
-                    onClick={() => { onUpdateStatus?.(appt.id, "CANCELLED"); setConfirmCancel(false); }}
-                    className="px-2 py-1 bg-error text-white rounded shadow-sm hover:bg-error/90"
-                  >
-                    Yes
-                  </button>
-                  <button
-                    onClick={() => setConfirmCancel(false)}
-                    className="px-2 py-1 bg-surface-container text-on-surface-variant rounded hover:bg-surface-variant"
-                  >
-                    No
-                  </button>
+                <div className="flex flex-col gap-2 w-full text-xs font-semibold">
+                  <textarea
+                    rows={2}
+                    value={declineReason}
+                    onChange={e => setDeclineReason(e.target.value)}
+                    placeholder="Reason for declining (optional, shared with the patient)"
+                    className="w-full resize-none rounded-md border border-outline-variant/50 bg-surface px-2.5 py-1.5 text-xs text-on-surface-variant placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => { onUpdateStatus?.(appt.id, "CANCELLED", declineReason.trim() || undefined); setConfirmCancel(false); }}
+                      className="px-2 py-1 bg-error text-white rounded shadow-sm hover:bg-error/90"
+                    >
+                      Send decline
+                    </button>
+                    <button
+                      onClick={() => setConfirmCancel(false)}
+                      className="px-2 py-1 bg-surface-container text-on-surface-variant rounded hover:bg-surface-variant"
+                    >
+                      Back
+                    </button>
+                  </div>
                 </div>
               )}
               <Button variant="default" size="sm" onClick={() => onUpdateStatus?.(appt.id, "CONFIRMED")}>
@@ -313,11 +334,11 @@ export function AppointmentCard({
                 }
               />
               {appt.id && isWithinJoinWindow(appt) && (
-                <Button size="sm" asChild className="bg-[#31a795] text-white hover:bg-[#006b5e]">
+                <Button size="sm" asChild className="bg-brand text-white hover:bg-brand-dark">
                   <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
                 </Button>
               )}
-              {appt.id && hasConsultStarted(appt) && (
+              {appt.id && hasConsultEnded(appt) && (
                 <Button size="sm" asChild variant="outline">
                   <Link href={`/doctor/finalize/${appt.id}`}>Complete &amp; Document</Link>
                 </Button>

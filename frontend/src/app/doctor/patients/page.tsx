@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
+import { formatPHDate } from '@/lib/datetime';
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { MagnifyingGlassIcon, PersonIcon } from "@radix-ui/react-icons";
@@ -153,7 +154,7 @@ export default function DoctorPatientsPage() {
                     Last visit:{" "}
                     <span className="text-text-primary font-medium">
                       {row.lastVisit
-                        ? new Date(row.lastVisit).toLocaleDateString("en-PH", {
+                        ? formatPHDate(row.lastVisit, {
                             month: "short",
                             day: "numeric",
                             year: "numeric",

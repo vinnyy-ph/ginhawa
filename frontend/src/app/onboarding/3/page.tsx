@@ -229,7 +229,10 @@ export default function OnboardingStep3() {
         <input type="hidden" {...register('weightKg', { valueAsNumber: true })} />
         <input type="hidden" {...register('heightCm', { valueAsNumber: true })} />
 
-        <OnboardingNav onBack={() => router.push('/onboarding/2')} submitLabel="Continue →" />
+        {(!watchedWeight || watchedWeight <= 0 || !watchedHeight || watchedHeight <= 0) && (
+          <p className="mt-2 text-xs text-on-surface-variant">Enter your weight and height to continue.</p>
+        )}
+        <OnboardingNav onBack={() => router.push('/onboarding/2')} submitLabel="Continue →" onSkip={() => router.push('/onboarding/6')} />
       </form>
     </OnboardingShell>
   );

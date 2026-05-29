@@ -18,7 +18,7 @@ import { useDoctorDetail } from "@/components/doctors/use-doctor-detail";
 function PageSkeleton() {
   return (
     <div className="min-h-screen bg-surface">
-      <div className="bg-gradient-to-br from-[#004d43] via-[#31a795] to-[#48cab6] py-10">
+      <div className="bg-gradient-to-br from-[#004d43] via-brand to-brand-light py-10">
         <div className="max-w-5xl mx-auto px-4 animate-pulse">
           <div className="h-4 bg-white/20 w-24 rounded mb-8" />
           <div className="flex gap-6 items-start">
@@ -66,7 +66,7 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
   if (error || !doctor) {
     return (
       <div className="min-h-screen bg-surface">
-        <div className="bg-gradient-to-br from-[#004d43] via-[#31a795] to-[#48cab6] py-10">
+        <div className="bg-gradient-to-br from-[#004d43] via-brand to-brand-light py-10">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <Link
               href="/doctors"
@@ -105,7 +105,7 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
   return (
     <div className="min-h-screen bg-surface pb-12">
       {/* ── Gradient Hero ────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-[#004d43] via-[#31a795] to-[#48cab6]">
+      <div className="bg-gradient-to-br from-[#004d43] via-brand to-brand-light">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10">
           <Link
             href="/doctors"
@@ -138,9 +138,6 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
                 {doctor.professionalTitle ? `${doctor.professionalTitle} ` : ""}
                 {doctor.fullName}
               </h1>
-              <p className="text-white/75 text-base mb-4">
-                {doctor.specialization}
-              </p>
               <div className="flex flex-wrap gap-2">
                 <span className="bg-white/20 text-white text-sm px-3 py-1 rounded-full font-medium">
                   {doctor.specialization}
@@ -170,7 +167,7 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
 
           <div className="lg:col-span-1">
             <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden sticky top-24">
-              <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30">
+              <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-4 border-b border-outline-variant/30">
                 <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
                   <CalendarIcon className="w-5 h-5 text-primary" />
                   Book Appointment

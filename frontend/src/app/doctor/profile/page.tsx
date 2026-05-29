@@ -6,13 +6,12 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { CheckCircledIcon } from "@radix-ui/react-icons";
+import { Alert } from "@/components/ui/alert";
 import { FormField } from "@/components/ui/form-field";
 import { Chip } from "@/components/ui/chip";
 import { ProfileSection } from "@/components/ui/profile-section";
 import { ProfilePhotoField } from "@/components/ui/profile-photo-field";
 import { DatePicker } from "@/components/ui/date-picker";
-import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
 import { useSpecializations } from "@/hooks/use-specializations";
 import {
   onboardingInputClass,
@@ -176,15 +175,12 @@ export default function DoctorProfilePage() {
         ) : (
           <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-6">
             {success && (
-              <div className="mb-6 flex items-center gap-2 text-sm text-success bg-success/10 px-4 py-3 rounded-lg border border-success/20">
-                <CheckCircledIcon className="w-4 h-4 shrink-0" />
+              <Alert variant="success" className="mb-6">
                 Profile updated successfully.
-              </div>
+              </Alert>
             )}
             {error && (
-              <div className="mb-6 text-sm text-error bg-red-50 px-4 py-3 rounded-lg border border-red-100">
-                {error}
-              </div>
+              <Alert variant="error" className="mb-6">{error}</Alert>
             )}
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-8">
@@ -205,7 +201,7 @@ export default function DoctorProfilePage() {
                   <input id="d-prc" inputMode="numeric" placeholder="0123456" className={onboardingInputClass} value={prcLicenseNo} onChange={(e) => setPrcLicenseNo(formatPrc(e.target.value))} />
                 </FormField>
                 <FormField id="d-prcExpiry" label="PRC License Expiry">
-                  <DatePicker id="d-prcExpiry" value={prcLicenseExpiry} onChange={setPrcLicenseExpiry} minDate={localTodayISO()} />
+                  <DatePicker id="d-prcExpiry" value={prcLicenseExpiry} onChange={setPrcLicenseExpiry} />
                 </FormField>
                 <FormField id="d-ptr" label="PTR Number">
                   <input id="d-ptr" inputMode="numeric" placeholder="12345678" className={onboardingInputClass} value={ptrNo} onChange={(e) => setPtrNo(formatPtr(e.target.value))} />

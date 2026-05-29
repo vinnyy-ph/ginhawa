@@ -1,14 +1,13 @@
 import React from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { FadeIn } from "@/components/ui/fade-in";
-import { 
-  ActivityLogIcon, 
-  CalendarIcon, 
-  VideoIcon, 
-  ClipboardIcon 
+import { CTASection } from "@/components/layout/cta-section";
+import {
+  ActivityLogIcon,
+  CalendarIcon,
+  VideoIcon,
+  ClipboardIcon
 } from "@radix-ui/react-icons";
 
 export const metadata = {
@@ -137,14 +136,14 @@ export default function FeaturesPage() {
                     {/* Mock Video Feed */}
                     <div className="absolute inset-0 bg-gradient-to-br from-[#1a2724] to-[#0e1a18]" />
                     <div className="relative z-10 flex justify-end">
-                      <div className="bg-[#31a795] px-2 py-1 rounded-md flex items-center gap-1">
+                      <div className="bg-brand px-2 py-1 rounded-md flex items-center gap-1">
                          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                          <span className="text-[10px] font-bold text-white uppercase">Secure</span>
                       </div>
                     </div>
                     {/* PiP & Controls */}
                     <div className="relative z-10 flex justify-between items-end">
-                      <div className="w-24 h-32 bg-surface-container rounded-xl border-2 border-[#31a795]" />
+                      <div className="w-24 h-32 bg-surface-container rounded-xl border-2 border-brand" />
                       <div className="bg-[rgba(14,26,24,0.72)] backdrop-blur-md px-6 py-3 rounded-full flex gap-4">
                         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                           <VideoIcon className="w-5 h-5 text-white" />
@@ -199,28 +198,7 @@ export default function FeaturesPage() {
         </section>
 
         {/* ── CTA Section ────────────────────────────────────────────────── */}
-        <section className="py-20 bg-background relative overflow-hidden">
-          <div className="absolute inset-0 bg-primary/5 -skew-y-3 origin-right scale-110" />
-
-          <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <FadeIn>
-              <h2 className="text-3xl font-bold tracking-tight text-text-primary sm:text-5xl mb-6 font-serif">
-                Ready to find the right care?
-              </h2>
-              <p className="mx-auto max-w-2xl text-lg text-on-surface-variant mb-10">
-                Answer a few questions about your symptoms and <span className="text-primary font-bold">Ginhawa</span> will match you to the right specialist — free, no account needed.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Button size="lg" className="rounded-full px-10" asChild>
-                  <Link href="/recommendations">Check My Symptoms →</Link>
-                </Button>
-                <Button size="lg" variant="outline" className="rounded-full px-10" asChild>
-                  <Link href="/doctors">Browse all doctors →</Link>
-                </Button>
-              </div>
-            </FadeIn>
-          </div>
-        </section>
+        <CTASection />
       </main>
 
       <Footer />

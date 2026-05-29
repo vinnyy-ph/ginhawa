@@ -6,15 +6,16 @@ import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import { PatientShell } from "@/components/layout/patient-shell";
 import { apiRequest } from "@/lib/api-client";
+import { formatPHDate } from '@/lib/datetime';
 import { Spinner } from "@/components/ui/spinner";
-import { 
-  FileTextIcon, 
-  HeartIcon, 
-  ChatBubbleIcon, 
+import {
+  FileTextIcon,
+  ChatBubbleIcon,
   CheckCircledIcon,
   CalendarIcon
 } from "@radix-ui/react-icons";
 import type { MedicalRecord } from "@/types/api";
+import { PrescriptionDisplay } from "@/components/prescription-display";
 
 function RecordsContent() {
   const { data: session } = useSession();
@@ -86,8 +87,8 @@ function RecordsContent() {
         ) : (
           <div className="relative border-l-2 border-primary/20 ml-4 md:ml-6 pl-6 md:pl-10 pb-8 space-y-12">
             {records.map(record => {
-              const dateStr = new Date(record.createdAt).toLocaleDateString('en-PH', { 
-                weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' 
+              const dateStr = formatPHDate(record.createdAt, {
+                weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
               });
               const doc = record.doctor;
               
@@ -106,7 +107,7 @@ function RecordsContent() {
                     )}
                   >
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-5 border-b border-outline-variant/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-5 border-b border-outline-variant/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>
                         <h3 className="font-bold text-text-primary text-lg">
                           Consultation with {doc?.professionalTitle ? `${doc.professionalTitle} ` : ''}{doc?.fullName || 'Doctor'}
@@ -114,7 +115,7 @@ function RecordsContent() {
                         <p className="text-primary text-sm font-semibold">{doc?.specialization}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#31a795] bg-[#31a795]/10 px-2.5 py-1 rounded-full border border-[#31a795]/20">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-brand bg-brand/10 px-2.5 py-1 rounded-full border border-brand/20">
                           <CheckCircledIcon className="w-3.5 h-3.5" />
                           Doctor Reviewed
                         </div>
@@ -140,18 +141,10 @@ function RecordsContent() {
                         </div>
                       )}
                       
-                      {record.prescription && (
+                      {(record.prescriptions?.length || record.prescription) && (
                         <>
                           <hr className="border-outline-variant/30" />
-                          <div>
-                            <h4 className="flex items-center gap-2 font-bold font-serif text-text-primary mb-2">
-                              <HeartIcon className="w-4 h-4 text-[#ba1a1a]" />
-                              Prescription
-                            </h4>
-                            <div className="bg-red-50/50 p-4 rounded-lg text-sm text-on-surface whitespace-pre-line leading-relaxed border border-red-100">
-                              {record.prescription}
-                            </div>
-                          </div>
+                          <PrescriptionDisplay prescriptions={record.prescriptions} fallbackText={record.prescription} />
                         </>
                       )}
                       

@@ -13,6 +13,7 @@ import { TimeField } from "@/components/ui/time-field";
 import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
 import { ClockIcon, PlusIcon, TrashIcon, CheckCircledIcon } from "@radix-ui/react-icons";
 import { Chip } from "@/components/ui/chip";
+import { formatPHTime, formatPHDate } from '@/lib/datetime';
 import { generateSlots, type WeeklyTemplate } from "@/lib/generate-slots";
 import { cn } from "@/lib/utils";
 import type { AvailabilitySlot, DoctorProfile, SlotStatus } from "@/types/api";
@@ -265,7 +266,7 @@ export default function DoctorSchedulePage() {
   const slotsByDate = useMemo(() => {
     const groups: Record<string, AvailabilitySlot[]> = {};
     slots.forEach(slot => {
-      const dateStr = new Date(slot.startTime).toLocaleDateString('en-PH', {
+      const dateStr = formatPHDate(slot.startTime, {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
@@ -316,7 +317,7 @@ export default function DoctorSchedulePage() {
         {/* Add Slot Form */}
         {showAddForm && (
           <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden mb-8 animate-in slide-in-from-top-4 fade-in duration-300">
-            <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30 flex items-center gap-2">
+            <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-4 border-b border-outline-variant/30 flex items-center gap-2">
               <PlusIcon className="w-5 h-5 text-primary" />
               <h3 className="font-serif text-lg font-bold text-text-primary">Create New Slot</h3>
             </div>
@@ -356,7 +357,7 @@ export default function DoctorSchedulePage() {
         {/* Weekly Template Panel */}
         {showTemplate && (
           <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden mb-8 animate-in slide-in-from-top-4 fade-in duration-300">
-            <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30 flex items-center gap-2">
+            <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-4 border-b border-outline-variant/30 flex items-center gap-2">
               <ClockIcon className="w-5 h-5 text-primary" />
               <h3 className="font-serif text-lg font-bold text-text-primary">Set Weekly Schedule</h3>
             </div>
@@ -477,7 +478,7 @@ export default function DoctorSchedulePage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {daySlots.map(slot => {
-                    const timeStr = `${new Date(slot.startTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })} – ${new Date(slot.endTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}`;
+                    const timeStr = `${formatPHTime(slot.startTime)} – ${formatPHTime(slot.endTime)}`;
                     const isBooked = slot.status === "BOOKED";
                     const isAvailable = slot.status === "AVAILABLE";
                     const isBlocked = slot.status === "BLOCKED";

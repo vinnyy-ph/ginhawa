@@ -1,9 +1,14 @@
 import React from "react";
 import type { DoctorProfile } from "@/types/api";
+import { StarRating } from "@/components/ui/star-rating";
 
 export function DoctorAbout({ doctor }: { doctor: DoctorProfile }) {
   return (
     <div className="space-y-10">
+      <section>
+        <h2 className="text-2xl font-bold text-text-primary mb-3">Patient Reviews</h2>
+        <StarRating rating={doctor.avgRating ?? 0} count={doctor.reviewCount ?? 0} />
+      </section>
       <section>
         <h2 className="text-2xl font-bold text-text-primary mb-4">About</h2>
         <div className="text-on-surface-variant leading-relaxed space-y-4">

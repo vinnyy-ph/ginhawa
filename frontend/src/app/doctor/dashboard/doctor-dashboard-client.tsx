@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
+import { formatPHTime } from '@/lib/datetime';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
 import {
   CalendarIcon,
   BellIcon,
@@ -27,27 +29,33 @@ const statusColors: Record<string, "secondary" | "success" | "destructive" | "in
 export function DoctorDashboardClient() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
-  const doctorName = session?.user?.name || session?.user?.email?.split('@')[0] || "Doctor";
+  const rawName = session?.user?.name?.trim();
+  const greetingName = rawName
+    ? (/^dr\.?\s/i.test(rawName) ? rawName : `Dr. ${rawName}`)
+    : (session?.user?.email?.split('@')[0] ?? 'Doctor');
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const fetchData = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      setError(false);
+      const data = await apiRequest<Appointment[]>("/appointments/doctor", { token });
+      setAppointments(data);
+    } catch (err) {
+      console.error("Failed to load doctor dashboard data:", err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
   useEffect(() => {
-    async function fetchData() {
-      if (!token) return;
-      try {
-        setLoading(true);
-        const data = await apiRequest<Appointment[]>("/appointments/doctor", { token });
-        setAppointments(data);
-      } catch (err) {
-        console.error("Failed to load doctor dashboard data:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchData();
-  }, [token]);
+  }, [fetchData]);
 
   // Today's date string for comparison
   const todayStr = new Date().toDateString();
@@ -63,7 +71,8 @@ export function DoctorDashboardClient() {
 
   // Today's schedule
   const todaySchedule = appointments.filter(a =>
-    a.slot && new Date(a.slot.startTime).toDateString() === todayStr
+    a.slot && new Date(a.slot.startTime).toDateString() === todayStr &&
+    a.status !== 'CANCELLED' && a.status !== 'COMPLETED'
   ).sort((a, b) => new Date(a.slot!.startTime).getTime() - new Date(b.slot!.startTime).getTime());
 
   if (loading) {
@@ -76,6 +85,22 @@ export function DoctorDashboardClient() {
     );
   }
 
+  if (error) {
+    return (
+      <DashboardLayout role="doctor">
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <h2 className="text-xl font-bold font-serif text-text-primary mb-2">
+            Couldn&apos;t load your dashboard
+          </h2>
+          <p className="text-on-surface-variant mb-6">
+            We couldn&apos;t reach the server. Your appointments may not be shown.
+          </p>
+          <Button onClick={() => fetchData()}>Try Again</Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout role="doctor">
       <div className="space-y-8 animate-in fade-in duration-500">
@@ -83,7 +108,7 @@ export function DoctorDashboardClient() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold font-serif text-text-primary mb-2">
-            Welcome back, Dr. {doctorName}
+            Welcome back, {greetingName}
           </h1>
           <p className="text-on-surface-variant font-sans">
             Manage your schedule, appointments, and patient care.
@@ -92,35 +117,41 @@ export function DoctorDashboardClient() {
 
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-6 flex items-center justify-between border-0 shadow-soft hover:shadow-lifted transition-shadow">
-            <div>
-              <p className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Total Appointments</p>
-              <h3 className="text-3xl font-bold text-text-primary">{totalAppointments}</h3>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center">
-              <CalendarIcon className="w-6 h-6 text-on-surface-variant" />
-            </div>
-          </Card>
+          <Link href="/doctor/appointments" className="block">
+            <Card className="p-6 flex items-center justify-between border-0 shadow-soft hover:shadow-lifted transition-shadow">
+              <div>
+                <p className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Total Appointments</p>
+                <h3 className="text-3xl font-bold text-text-primary">{totalAppointments}</h3>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center">
+                <CalendarIcon className="w-6 h-6 text-on-surface-variant" />
+              </div>
+            </Card>
+          </Link>
 
-          <Card className="p-6 flex items-center justify-between border-0 shadow-soft hover:shadow-lifted transition-shadow">
-            <div>
-              <p className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Pending Requests</p>
-              <h3 className="text-3xl font-bold text-[#f59e0b]">{pendingCount}</h3>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-[#f59e0b]/10 flex items-center justify-center">
-              <BellIcon className="w-6 h-6 text-[#f59e0b]" />
-            </div>
-          </Card>
+          <Link href="/doctor/appointments?status=Pending" className="block">
+            <Card className="p-6 flex items-center justify-between border-0 shadow-soft hover:shadow-lifted transition-shadow">
+              <div>
+                <p className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Pending Requests</p>
+                <h3 className="text-3xl font-bold text-warning">{pendingCount}</h3>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center">
+                <BellIcon className="w-6 h-6 text-warning" />
+              </div>
+            </Card>
+          </Link>
 
-          <Card className="p-6 flex items-center justify-between border-0 shadow-soft hover:shadow-lifted transition-shadow">
-            <div>
-              <p className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Confirmed Today</p>
-              <h3 className="text-3xl font-bold text-primary">{confirmedToday}</h3>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <CheckCircledIcon className="w-6 h-6 text-primary" />
-            </div>
-          </Card>
+          <Link href="/doctor/appointments?status=Confirmed" className="block">
+            <Card className="p-6 flex items-center justify-between border-0 shadow-soft hover:shadow-lifted transition-shadow">
+              <div>
+                <p className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Confirmed Today</p>
+                <h3 className="text-3xl font-bold text-primary">{confirmedToday}</h3>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <CheckCircledIcon className="w-6 h-6 text-primary" />
+              </div>
+            </Card>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -130,7 +161,7 @@ export function DoctorDashboardClient() {
 
             <Link href="/doctor/schedule" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <ClockIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -142,7 +173,7 @@ export function DoctorDashboardClient() {
 
             <Link href="/doctor/appointments" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <CalendarIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -154,7 +185,7 @@ export function DoctorDashboardClient() {
 
             <Link href="/doctor/notifications" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <BellIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -166,7 +197,7 @@ export function DoctorDashboardClient() {
 
             <Link href="/doctor/patients" className="block group">
               <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-light to-brand flex items-center justify-center shrink-0">
                   <PersonIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -198,7 +229,7 @@ export function DoctorDashboardClient() {
               <div className="space-y-4">
                 {todaySchedule.map(appt => {
                   const pat = appt.patient;
-                  const timeStr = appt.slot ? `${new Date(appt.slot.startTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}` : '';
+                  const timeStr = appt.slot ? formatPHTime(appt.slot.startTime) : '';
 
                   return (
                     <div key={appt.id} className="bg-surface-white p-4 rounded-xl shadow-soft flex items-center justify-between border-l-4 border-l-primary/30">
@@ -215,10 +246,17 @@ export function DoctorDashboardClient() {
                         </div>
                       </div>
 
-                      <div>
+                      <div className="flex items-center gap-2">
                         <Badge variant={statusColors[appt.status] || "outline"}>
                           {appt.status}
                         </Badge>
+                        {appt.status === 'CONFIRMED' && appt.slot &&
+                          Date.now() >= new Date(appt.slot.startTime).getTime() - 15 * 60 * 1000 &&
+                          Date.now() <= new Date(appt.slot.endTime).getTime() && (
+                            <Button asChild size="sm" className="bg-brand text-white hover:bg-brand-dark">
+                              <Link href={`/consultation/${appt.id}`}>Join</Link>
+                            </Button>
+                          )}
                       </div>
                     </div>
                   );

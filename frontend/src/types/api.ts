@@ -26,6 +26,8 @@ export interface DoctorProfile {
   consultationFee?: number;
   consultationFocusAreas?: string;
   availabilitySlots?: AvailabilitySlot[];
+  avgRating?: number;
+  reviewCount?: number;
 }
 
 // ─── Availability Slot ───────────────────────────────────────────────────────

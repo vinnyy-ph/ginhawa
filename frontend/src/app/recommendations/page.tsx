@@ -50,12 +50,16 @@ function RecommendationsContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional mount-only: pre-fill once from URL, don't reset if URL changes later
   }, []);
 
-  useEffect(() => {
+  const loadHistory = React.useCallback(() => {
     if (!token) return;
     apiRequest<RecommendationLog[]>("/recommendations", { token })
       .then(setHistory)
       .catch(() => setHistory([]));
   }, [token]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
   const handleTranscript = (text: string) => {
     setSymptoms((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
@@ -74,7 +78,10 @@ function RecommendationsContent() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recommendations`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ symptomInput: symptoms }),
       });
 
@@ -114,6 +121,7 @@ function RecommendationsContent() {
       }
       const completeLog = { id: 'temp-' + Date.now(), symptomInput: symptoms, createdAt: new Date().toISOString(), aiExplanation: finalParsed.explanation, matchedSpecialization: finalParsed.specialization } as RecommendationLog;
       setResult(completeLog);
+      if (token) loadHistory();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setStep(2);

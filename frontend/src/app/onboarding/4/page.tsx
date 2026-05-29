@@ -144,7 +144,7 @@ export default function OnboardingStep4() {
           <textarea placeholder="e.g. Diabetes (mother), Heart disease (father)" className={onboardingTextareaClass} {...register('familyHistory')} />
         </FormField>
 
-        <OnboardingNav onBack={() => router.push('/onboarding/3')} submitLabel="Continue →" />
+        <OnboardingNav onBack={() => router.push('/onboarding/3')} submitLabel="Continue →" onSkip={() => router.push('/onboarding/6')} />
       </form>
     </OnboardingShell>
   );

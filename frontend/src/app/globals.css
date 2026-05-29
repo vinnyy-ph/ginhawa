@@ -41,6 +41,12 @@
   /* Text aliases */
   --color-text-primary: #1a3a35;
 
+  /* Brand colors */
+  --color-brand: #31a795;
+  --color-brand-light: #48cab6;
+  --color-brand-dark: #006b5e;
+  --color-warning: #f59e0b;
+
   /* Status colors */
   --color-success: #006b5e;
   --color-info: #006064;
@@ -95,5 +101,16 @@ body {
 @layer base {
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif tracking-tight;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

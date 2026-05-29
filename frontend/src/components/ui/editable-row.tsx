@@ -59,11 +59,11 @@ export function EditableRow<T extends Record<string, unknown>>({
         <span className="text-[10px] uppercase tracking-wider font-bold text-outline font-plus-jakarta">{label}</span>
         {editing ? (
           <div className="flex items-center gap-3">
-            <button type="button" onClick={save} className="text-[10px] font-bold text-primary hover:underline">SAVE</button>
-            <button type="button" onClick={cancel} className="text-[10px] font-bold text-outline hover:underline">CANCEL</button>
+            <button type="button" onClick={save} className="text-xs px-2 py-1 font-bold text-primary hover:underline">SAVE</button>
+            <button type="button" onClick={cancel} className="text-xs px-2 py-1 font-bold text-outline hover:underline">CANCEL</button>
           </div>
         ) : (
-          <button type="button" onClick={start} className="text-[10px] font-bold text-primary hover:underline">EDIT</button>
+          <button type="button" onClick={start} className="text-xs px-2 py-1 font-bold text-primary hover:underline">EDIT</button>
         )}
       </div>
       {editing ? (

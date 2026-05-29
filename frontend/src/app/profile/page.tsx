@@ -6,7 +6,7 @@ import { PatientShell } from "@/components/layout/patient-shell";
 import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { CheckCircledIcon } from "@radix-ui/react-icons";
+import { Alert } from "@/components/ui/alert";
 import { FormField } from "@/components/ui/form-field";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Chip } from "@/components/ui/chip";
@@ -203,15 +203,12 @@ export default function PatientProfilePage() {
         ) : (
           <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-6">
             {success && (
-              <div className="mb-6 flex items-center gap-2 text-sm text-success bg-success/10 px-4 py-3 rounded-lg border border-success/20">
-                <CheckCircledIcon className="w-4 h-4 shrink-0" />
+              <Alert variant="success" className="mb-6">
                 Profile updated successfully.
-              </div>
+              </Alert>
             )}
             {error && (
-              <div className="mb-6 text-sm text-error bg-red-50 px-4 py-3 rounded-lg border border-red-100">
-                {error}
-              </div>
+              <Alert variant="error" className="mb-6">{error}</Alert>
             )}
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-8">

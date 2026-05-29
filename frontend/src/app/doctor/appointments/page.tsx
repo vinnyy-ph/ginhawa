@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
@@ -14,16 +15,24 @@ import { AppointmentCard } from "@/components/appointment-card";
 
 type FilterTab = "All" | "Pending" | "Confirmed" | "Completed" | "Cancelled";
 
-export default function DoctorAppointmentsPage() {
+function DoctorAppointmentsContent() {
   const { data: session, status } = useSession();
   const token = session?.user?.accessToken;
+
+  const searchParams = useSearchParams();
+  const statusParam = searchParams.get('status');
+  const initialTab: FilterTab =
+    statusParam && (["Pending", "Confirmed", "Completed", "Cancelled", "All"] as string[]).includes(statusParam)
+      ? (statusParam as FilterTab)
+      : "All";
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<FilterTab>("All");
+  const [activeTab, setActiveTab] = useState<FilterTab>(initialTab);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -36,10 +45,19 @@ export default function DoctorAppointmentsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, status]);
 
-  async function fetchAppointments() {
+  useEffect(() => {
+    if (!token) return;
+    const id = setInterval(() => {
+      fetchAppointments(true);
+    }, 30_000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  async function fetchAppointments(silent = false) {
     if (!token) return;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await apiRequest<Appointment[]>("/appointments/doctor", { token });
       // Sort descending by start time
       data.sort((a, b) => new Date(b.slot?.startTime || 0).getTime() - new Date(a.slot?.startTime || 0).getTime());
@@ -47,13 +65,14 @@ export default function DoctorAppointmentsPage() {
     } catch {
       setError("Failed to load your appointments.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
-  async function updateStatus(id: string, newStatus: AppointmentStatus) {
+  async function updateStatus(id: string, newStatus: AppointmentStatus, cancelReason?: string) {
     if (!token) return;
     setActionError(null);
+    setActionSuccess(null);
 
     try {
       setUpdatingId(id);
@@ -62,8 +81,19 @@ export default function DoctorAppointmentsPage() {
       await apiRequest(`/appointments/${id}/status`, {
         method: "PATCH",
         token,
-        body: { status: newStatus }
+        body: { status: newStatus, ...(cancelReason ? { cancelReason } : {}) }
       });
+
+      setActionSuccess(
+        newStatus === 'CONFIRMED'
+          ? 'Request confirmed — the patient has been notified.'
+          : newStatus === 'CANCELLED'
+          ? (cancelReason
+              ? 'Request declined — the patient has been notified.'
+              : 'Appointment cancelled — the patient has been notified.')
+          : 'Appointment updated.',
+      );
+      setTimeout(() => setActionSuccess(null), 4000);
 
     } catch (err: unknown) {
       console.error("Failed to update status", err);
@@ -110,6 +140,19 @@ export default function DoctorAppointmentsPage() {
               onClick={() => setActionError(null)}
               className="text-error hover:text-error/70 font-semibold shrink-0"
               aria-label="Dismiss error"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {actionSuccess && (
+          <div className="mb-4 flex items-center justify-between gap-4 bg-success/10 text-success px-5 py-3 rounded-lg border border-success/20 text-sm">
+            <span>{actionSuccess}</span>
+            <button
+              onClick={() => setActionSuccess(null)}
+              className="text-success hover:text-success/70 font-semibold shrink-0"
+              aria-label="Dismiss"
             >
               ✕
             </button>
@@ -182,5 +225,13 @@ export default function DoctorAppointmentsPage() {
         )}
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function DoctorAppointmentsPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <DoctorAppointmentsContent />
+    </React.Suspense>
   );
 }

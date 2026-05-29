@@ -58,7 +58,7 @@ export function AuthCard({ title, subtitle, children, className, type = 'login' 
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
             <Logo size={40} />
-            <span className="text-xl font-bold font-plus-jakarta tracking-wide text-text-primary">
+            <span className="text-xl font-bold font-serif tracking-wide text-text-primary">
               Ginhawa
             </span>
           </Link>
@@ -111,7 +111,7 @@ export function AuthCard({ title, subtitle, children, className, type = 'login' 
         <header className="lg:hidden absolute top-8 left-0 w-full flex justify-center">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Logo size={36} />
-            <span className="text-xl font-bold font-plus-jakarta tracking-wide text-text-primary">
+            <span className="text-xl font-bold font-serif tracking-wide text-text-primary">
               Ginhawa
             </span>
           </Link>

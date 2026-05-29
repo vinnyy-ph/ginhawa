@@ -39,6 +39,11 @@ export class DoctorsService {
       consultationFocusAreas: dto.consultationFocusAreas,
       availabilitySummary: dto.availabilitySummary,
       profilePictureUrl: dto.profilePictureUrl,
+      prcLicenseNo: dto.prcLicenseNo,
+      prcLicenseExpiry: dto.prcLicenseExpiry ? new Date(dto.prcLicenseExpiry) : undefined,
+      ptrNo: dto.ptrNo,
+      region: dto.region,
+      city: dto.city,
     };
 
     const profile = await this.prisma.$transaction(async (tx) => {
@@ -91,10 +96,14 @@ export class DoctorsService {
 
   async update(userId: string, data: UpdateDoctorDto) {
     const profile = await this.findByUserId(userId);
+    const updateData =
+      data.prcLicenseExpiry !== undefined
+        ? { ...data, prcLicenseExpiry: data.prcLicenseExpiry ? new Date(data.prcLicenseExpiry) : null }
+        : data;
     return this.prisma.$transaction(async (tx) => {
       const saved = await tx.doctorProfile.update({
         where: { id: profile.id },
-        data,
+        data: updateData,
       });
       if (data.specialization) {
         await this.syncPrimarySpecialization(tx, saved.id, data.specialization);
