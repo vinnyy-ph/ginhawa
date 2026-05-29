@@ -290,19 +290,16 @@ export function AppointmentCard({
                 </Button>
               )}
               {appt.id && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/doctor/notes/${appt.id}`}>Add Notes</Link>
+                <Button size="sm" asChild variant="outline">
+                  <Link href={`/doctor/finalize/${appt.id}`}>Complete &amp; Document</Link>
                 </Button>
               )}
-              <Button size="sm" asChild variant="outline">
-                <Link href={`/doctor/finalize/${appt.id}`}>Mark Complete</Link>
-              </Button>
             </>
           )}
 
           {appt.status === "COMPLETED" && appt.id && (
             <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
-              <Link href={`/doctor/notes/${appt.id}`}>View / Edit Notes</Link>
+              <Link href={`/doctor/finalize/${appt.id}`}>View Record</Link>
             </Button>
           )}
 
