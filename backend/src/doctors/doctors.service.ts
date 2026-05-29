@@ -41,16 +41,42 @@ export class DoctorsService {
       profilePictureUrl: dto.profilePictureUrl,
     };
 
-    const profile = await this.prisma.doctorProfile.upsert({
-      where: { userId },
-      update: profileData,
-      create: { userId, ...profileData },
+    const profile = await this.prisma.$transaction(async (tx) => {
+      const saved = await tx.doctorProfile.upsert({
+        where: { userId },
+        update: profileData,
+        create: { userId, ...profileData },
+      });
+      await this.syncPrimarySpecialization(tx, saved.id, dto.specialization);
+      return saved;
     });
 
     return {
       profileComplete: true,
       profile,
     };
+  }
+
+  private async syncPrimarySpecialization(
+    tx: Prisma.TransactionClient,
+    doctorId: string,
+    name: string,
+  ) {
+    const spec = await tx.specialization.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+    await tx.doctorSpecialization.deleteMany({
+      where: { doctorId, isPrimary: true },
+    });
+    await tx.doctorSpecialization.upsert({
+      where: {
+        doctorId_specializationId: { doctorId, specializationId: spec.id },
+      },
+      update: { isPrimary: true },
+      create: { doctorId, specializationId: spec.id, isPrimary: true },
+    });
   }
 
   async findByUserId(userId: string) {

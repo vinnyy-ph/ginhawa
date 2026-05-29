@@ -7,6 +7,15 @@ import { CreateDoctorDto } from './dto/create-doctor.dto';
 describe('DoctorsService', () => {
   let service: DoctorsService;
 
+  const mockUpsertTx = {
+    doctorProfile: { upsert: jest.fn() },
+    specialization: { upsert: jest.fn() },
+    doctorSpecialization: {
+      deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+      upsert: jest.fn().mockResolvedValue({}),
+    },
+  };
+
   const mockPrismaService = {
     doctorProfile: {
       findUnique: jest.fn(),
@@ -15,6 +24,7 @@ describe('DoctorsService', () => {
       update: jest.fn(),
       findMany: jest.fn(),
     },
+    $transaction: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -70,6 +80,13 @@ describe('DoctorsService', () => {
   });
 
   describe('upsertProfile', () => {
+    beforeEach(() => {
+      const profile = { id: 'profile-1', userId: 'user-1', fullName: 'Dr. John' };
+      mockUpsertTx.doctorProfile.upsert.mockResolvedValue(profile);
+      mockUpsertTx.specialization.upsert.mockResolvedValue({ id: 'spec-1', name: 'General' });
+      (mockPrismaService.$transaction as jest.Mock).mockImplementation(async (cb) => cb(mockUpsertTx));
+    });
+
     it('should create or return existing profile and set profileComplete', async () => {
       const userId = 'user-1';
       const dto = {
@@ -78,8 +95,6 @@ describe('DoctorsService', () => {
         specialization: 'General',
         bio: 'Hello',
       };
-
-      mockPrismaService.doctorProfile.upsert.mockResolvedValue({ ...dto, userId, id: 'profile-1' });
 
       const result = await service.upsertProfile(userId, dto);
 
@@ -97,11 +112,46 @@ describe('DoctorsService', () => {
         availabilitySummary: undefined,
         profilePictureUrl: undefined,
       };
-      expect(mockPrismaService.doctorProfile.upsert).toHaveBeenCalledWith({
+      expect(mockUpsertTx.doctorProfile.upsert).toHaveBeenCalledWith({
         where: { userId },
         update: profileData,
         create: { userId, ...profileData },
       });
+    });
+  });
+
+  describe('upsertProfile junction', () => {
+    const mockTx = {
+      doctorProfile: { upsert: jest.fn().mockResolvedValue({ id: 'doctor-1' }) },
+      specialization: { upsert: jest.fn().mockResolvedValue({ id: 'spec-1', name: 'Cardiology' }) },
+      doctorSpecialization: {
+        deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+        upsert: jest.fn().mockResolvedValue({}),
+      },
+    };
+
+    beforeEach(() => {
+      (mockPrismaService.$transaction as jest.Mock).mockImplementation(async (cb) => cb(mockTx));
+    });
+
+    it('creates a primary DoctorSpecialization row from the specialization string', async () => {
+      await service.upsertProfile('user-1', {
+        fullName: 'Dr. A',
+        professionalTitle: 'MD',
+        specialization: 'Cardiology',
+      } as any);
+
+      expect(mockTx.specialization.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { name: 'Cardiology' } }),
+      );
+      expect(mockTx.doctorSpecialization.deleteMany).toHaveBeenCalledWith({
+        where: { doctorId: 'doctor-1', isPrimary: true },
+      });
+      expect(mockTx.doctorSpecialization.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: { doctorId: 'doctor-1', specializationId: 'spec-1', isPrimary: true },
+        }),
+      );
     });
   });
 
