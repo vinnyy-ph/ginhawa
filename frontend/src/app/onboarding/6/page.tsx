@@ -1,19 +1,19 @@
 // frontend/src/app/onboarding/6/page.tsx
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { apiRequest, apiUpload, ApiError } from '@/lib/api-client';
 import { useOnboarding } from '@/context/onboarding-context';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import { Toast } from '@/components/ui/toast';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { cn } from '@/lib/utils';
 import { formatPhone, formatPhilHealth, formatHmoCard, isValidPhilHealth, isValidHmoCard } from '@/lib/format';
 import { EditableRow, editInputClass } from '@/components/ui/editable-row';
+import { OnboardingShell } from '@/components/ui/onboarding-shell';
+import { OnboardingNav } from '@/components/ui/onboarding-nav';
+import { ReviewIdCard, ReviewErrorAlert } from '@/components/ui/review-id-card';
 import type { CreatePatientProfileBody, UpdateMedicalHistoryBody } from '@/types/patient';
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
@@ -42,7 +42,6 @@ export default function OnboardingStep6() {
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
-  const photoInputRef = useRef<HTMLInputElement>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
 
@@ -146,66 +145,21 @@ export default function OnboardingStep6() {
   };
 
   return (
-    <div className="flex flex-col gap-8">
-      <ProgressIndicator currentStep={6} totalSteps={6} />
-
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-text-primary font-plus-jakarta tracking-tight">One last check</h1>
-        <p className="mt-2 text-on-surface-variant font-manrope">Tap EDIT on any field to fix it right here.</p>
-      </div>
-
-      <div className="bg-surface-white rounded-3xl border border-outline-variant/30 shadow-lifted overflow-hidden transition-all duration-300 hover:shadow-hover">
-        <div className="bg-gradient-to-br from-primary to-primary-container p-8 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="flex items-center gap-6 relative z-10">
-            <div className="relative">
-              <div className="h-24 w-24 rounded-2xl bg-white/20 backdrop-blur-md border-2 border-white/30 overflow-hidden flex items-center justify-center shadow-inner">
-                {data.profilePictureUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={data.profilePictureUrl} alt={data.fullName} className="h-full w-full object-cover" />
-                ) : (
-                  <svg className="w-12 h-12 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 0116 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => photoInputRef.current?.click()}
-                disabled={uploadingPhoto}
-                className="absolute -bottom-2 -right-2 bg-white text-primary p-2 rounded-xl shadow-lg hover:scale-110 transition-transform disabled:opacity-60 disabled:hover:scale-100"
-                aria-label="Change photo"
-              >
-                {uploadingPhoto ? (
-                  <Spinner className="w-4 h-4" />
-                ) : (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  </svg>
-                )}
-              </button>
-              <input
-                ref={photoInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="sr-only"
-                aria-label="Upload profile picture"
-                onChange={handlePhotoChange}
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase font-plus-jakarta mb-1">Digital Patient ID</span>
-              <h2 className="text-2xl font-bold font-plus-jakarta tracking-tight leading-tight">{data.fullName || '—'}</h2>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
-                <span className="text-xs font-medium text-white/80">Profile Complete</span>
-              </div>
-              {photoError && <span role="alert" className="text-xs font-medium text-white/90 mt-1">{photoError}</span>}
-            </div>
-          </div>
-        </div>
-
-        <div className="p-8 grid grid-cols-2 gap-x-8 gap-y-8">
+    <>
+      <OnboardingShell
+        step={6}
+        totalSteps={6}
+        title="One last check"
+        subtitle="Tap EDIT on any field to fix it right here."
+      >
+        <ReviewIdCard
+          idLabel="Digital Patient ID"
+          name={data.fullName}
+          photoUrl={data.profilePictureUrl}
+          uploadingPhoto={uploadingPhoto}
+          photoError={photoError}
+          onPhotoChange={handlePhotoChange}
+        >
           <EditableRow
             label="Full Name"
             display={data.fullName}
@@ -379,33 +333,19 @@ export default function OnboardingStep6() {
               )}
             </>
           )}
-        </div>
-      </div>
+        </ReviewIdCard>
 
-      {serverError && (
-        <div role="alert" className="flex items-center gap-3 rounded-2xl border border-error/20 bg-error/5 p-4 text-sm text-error font-manrope animate-in fade-in slide-in-from-top-2">
-          <svg className="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
-          <span className="flex-1 font-medium">{serverError}</span>
-          <button onClick={handleSubmit} className="text-xs font-bold uppercase tracking-wider hover:underline focus:outline-none bg-error text-white px-3 py-1 rounded-lg">Retry</button>
-        </div>
-      )}
+        {serverError && <ReviewErrorAlert message={serverError} onRetry={handleSubmit} />}
 
-      <div className="flex gap-4 pt-4">
-        <Button id="ob6-back" type="button" variant="outline" size="lg" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => router.push('/onboarding/5')} disabled={submitting}>
-          Back
-        </Button>
-        <Button id="ob6-complete" type="button" size="lg" className="flex-[2] h-14 rounded-2xl font-bold shadow-lifted hover:shadow-hover transition-all" disabled={submitting} onClick={handleSubmit}>
-          {submitting ? (
-            <span className="flex items-center gap-2"><Spinner className="w-5 h-5" /> Processing…</span>
-          ) : (
-            'Generate ID Card ✓'
-          )}
-        </Button>
-      </div>
-
+        <OnboardingNav
+          onBack={() => router.push('/onboarding/5')}
+          submitType="button"
+          onSubmit={handleSubmit}
+          loading={submitting}
+          submitLabel="Generate ID Card ✓"
+        />
+      </OnboardingShell>
       {showToast && <Toast message="Profile verified! Redirecting to dashboard..." variant="success" />}
-    </div>
+    </>
   );
 }
