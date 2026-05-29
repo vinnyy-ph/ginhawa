@@ -3,7 +3,11 @@
 import React, { useEffect, useState, useRef, use } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import DailyIframe, { DailyCall, DailyEventObjectAppMessage } from "@daily-co/daily-js";
+import DailyIframe, {
+  DailyCall,
+  DailyEventObjectAppMessage,
+  DailyEventObjectParticipantLeft,
+} from "@daily-co/daily-js";
 import { apiRequest } from "@/lib/api-client";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -59,16 +63,22 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
 
     const handleAppMessage = (event: DailyEventObjectAppMessage) => {
       if (event.data?.type === 'call-ended') {
-        router.push('/records');
+        router.push('/appointments');
       }
+    };
+    const handleParticipantLeft = (_event: DailyEventObjectParticipantLeft) => {
+      // In a 1:1 consult, the only other participant is the doctor.
+      router.push('/appointments');
     };
     if (!isDoctor) {
       callFrame.on('app-message', handleAppMessage);
+      callFrame.on('participant-left', handleParticipantLeft);
     }
 
     return () => {
       if (!isDoctor) {
         callFrame.off('app-message', handleAppMessage);
+        callFrame.off('participant-left', handleParticipantLeft);
       }
       callFrame.destroy();
       callFrameRef.current = null;
