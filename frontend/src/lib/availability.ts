@@ -31,8 +31,7 @@ export function getEarliestAvailability(
     d.toLocaleDateString("en-PH", { timeZone: PH_TZ, year: "numeric", month: "2-digit", day: "2-digit" });
 
   const todayStr = toPhDate(now);
-  const tomorrowDate = new Date(now);
-  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   const tomorrowStr = toPhDate(tomorrowDate);
   const earliestStr = toPhDate(earliest);
 
