@@ -9,6 +9,7 @@ import { formatPHTime } from '@/lib/datetime';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
 import {
   CalendarIcon,
   BellIcon,
@@ -32,23 +33,26 @@ export function DoctorDashboardClient() {
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const fetchData = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      setError(false);
+      const data = await apiRequest<Appointment[]>("/appointments/doctor", { token });
+      setAppointments(data);
+    } catch (err) {
+      console.error("Failed to load doctor dashboard data:", err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
   useEffect(() => {
-    async function fetchData() {
-      if (!token) return;
-      try {
-        setLoading(true);
-        const data = await apiRequest<Appointment[]>("/appointments/doctor", { token });
-        setAppointments(data);
-      } catch (err) {
-        console.error("Failed to load doctor dashboard data:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchData();
-  }, [token]);
+  }, [fetchData]);
 
   // Today's date string for comparison
   const todayStr = new Date().toDateString();
@@ -72,6 +76,22 @@ export function DoctorDashboardClient() {
       <DashboardLayout role="doctor">
         <div className="flex justify-center py-20">
           <Spinner size="lg" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout role="doctor">
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <h2 className="text-xl font-bold font-serif text-text-primary mb-2">
+            Couldn&apos;t load your dashboard
+          </h2>
+          <p className="text-on-surface-variant mb-6">
+            We couldn&apos;t reach the server. Your appointments may not be shown.
+          </p>
+          <Button onClick={() => fetchData()}>Try Again</Button>
         </div>
       </DashboardLayout>
     );
