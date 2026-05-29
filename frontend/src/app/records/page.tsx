@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import { PatientShell } from "@/components/layout/patient-shell";
 import { apiRequest } from "@/lib/api-client";
@@ -14,13 +16,16 @@ import {
 } from "@radix-ui/react-icons";
 import type { MedicalRecord } from "@/types/api";
 
-export default function PatientRecordsPage() {
+function RecordsContent() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
 
   const [records, setRecords] = useState<MedicalRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get("appointment");
 
   useEffect(() => {
     async function fetchRecords() {
@@ -40,6 +45,12 @@ export default function PatientRecordsPage() {
     }
     fetchRecords();
   }, [token]);
+
+  useEffect(() => {
+    if (!highlightId || records.length === 0) return;
+    const el = document.getElementById(`record-${highlightId}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightId, records]);
 
   return (
     <PatientShell>
@@ -85,7 +96,15 @@ export default function PatientRecordsPage() {
                   {/* Timeline dot */}
                   <div className="absolute -left-[33px] md:-left-[49px] top-6 w-4 h-4 rounded-full bg-primary ring-4 ring-surface-white" />
                   
-                  <div className="bg-surface-white rounded-xl shadow-soft overflow-hidden border border-outline-variant/30 hover:shadow-lifted transition-shadow">
+                  <div
+                    id={`record-${record.appointmentId}`}
+                    className={cn(
+                      "bg-surface-white rounded-xl shadow-soft overflow-hidden border hover:shadow-lifted transition-shadow",
+                      record.appointmentId === highlightId
+                        ? "border-primary ring-2 ring-primary/40"
+                        : "border-outline-variant/30",
+                    )}
+                  >
                     {/* Header */}
                     <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-5 border-b border-outline-variant/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>
@@ -183,5 +202,13 @@ export default function PatientRecordsPage() {
         )}
       </div>
     </PatientShell>
+  );
+}
+
+export default function PatientRecordsPage() {
+  return (
+    <Suspense fallback={null}>
+      <RecordsContent />
+    </Suspense>
   );
 }
