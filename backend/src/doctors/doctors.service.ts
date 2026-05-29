@@ -40,7 +40,9 @@ export class DoctorsService {
       availabilitySummary: dto.availabilitySummary,
       profilePictureUrl: dto.profilePictureUrl,
       prcLicenseNo: dto.prcLicenseNo,
-      prcLicenseExpiry: dto.prcLicenseExpiry ? new Date(dto.prcLicenseExpiry) : undefined,
+      prcLicenseExpiry: dto.prcLicenseExpiry
+        ? new Date(dto.prcLicenseExpiry)
+        : undefined,
       ptrNo: dto.ptrNo,
       region: dto.region,
       city: dto.city,
@@ -98,7 +100,12 @@ export class DoctorsService {
     const profile = await this.findByUserId(userId);
     const updateData =
       data.prcLicenseExpiry !== undefined
-        ? { ...data, prcLicenseExpiry: data.prcLicenseExpiry ? new Date(data.prcLicenseExpiry) : null }
+        ? {
+            ...data,
+            prcLicenseExpiry: data.prcLicenseExpiry
+              ? new Date(data.prcLicenseExpiry)
+              : null,
+          }
         : data;
     return this.prisma.$transaction(async (tx) => {
       const saved = await tx.doctorProfile.update({
@@ -175,6 +182,7 @@ export class DoctorsService {
       where: { id },
       include: {
         availabilitySlots: true,
+        specializations: { include: { specialization: true } },
       },
     });
     if (!profile) {
