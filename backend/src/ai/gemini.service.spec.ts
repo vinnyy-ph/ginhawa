@@ -63,21 +63,21 @@ describe('GeminiService', () => {
       );
     });
 
-    it('switches to the next model after a rate-limited model fails twice', async () => {
+    it('switches to the next model when one is unavailable (503/429)', async () => {
       mockGenerateContent
-        .mockRejectedValueOnce({ status: 429, retryDelay: 1 })
-        .mockRejectedValueOnce({ status: 429, retryDelay: 1 })
+        .mockRejectedValueOnce({ status: 503 })
         .mockResolvedValueOnce({ response: { text: () => '{"ok":true}' } });
       const result = await service.generateJson<{ ok: boolean }>('p');
       expect(result).toEqual({ ok: true });
-      expect(mockGenerateContent).toHaveBeenCalledTimes(3);
+      expect(mockGenerateContent).toHaveBeenCalledTimes(2);
     });
 
-    it('throws HttpException 429 when all models are rate limited', async () => {
-      mockGenerateContent.mockRejectedValue({ status: 429, retryDelay: 1 });
+    it('throws HttpException when every model is unavailable', async () => {
+      mockGenerateContent.mockRejectedValue({ status: 503 });
       await expect(service.generateJson('p')).rejects.toBeInstanceOf(
         HttpException,
       );
+      expect(mockGenerateContent).toHaveBeenCalledTimes(4);
     });
 
     it('rethrows a non-rate-limit error immediately', async () => {
