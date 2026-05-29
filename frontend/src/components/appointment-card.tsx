@@ -25,8 +25,13 @@ export interface AppointmentCardProps {
   onToggleExpand?: () => void;
 }
 
+// MVP/TESTING: join always enabled regardless of time.
+// TODO(prod): set to false to restore the 15-min-before-start → slot-end window.
+const ALWAYS_ALLOW_JOIN = true;
+
 function isWithinJoinWindow(appt: Appointment): boolean {
   if (!appt.slot) return false;
+  if (ALWAYS_ALLOW_JOIN) return true;
   const now = Date.now();
   const start = new Date(appt.slot.startTime).getTime();
   const end = new Date(appt.slot.endTime).getTime();
@@ -82,9 +87,14 @@ export function AppointmentCard({
           aria-expanded={isExpanded}
         >
           <div className="flex gap-4 items-center">
-            <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary font-serif font-bold text-xl shrink-0">
-              {doc?.fullName.charAt(0) || 'D'}
-            </div>
+            {doc?.profilePictureUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={doc.profilePictureUrl} alt={doc.fullName} className="w-12 h-12 rounded-full object-cover shrink-0" />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary font-serif font-bold text-xl shrink-0">
+                {doc?.fullName.charAt(0) || 'D'}
+              </div>
+            )}
             <div>
               <h3 className="font-bold text-text-primary text-lg leading-tight">
                 {doc?.professionalTitle ? `${doc.professionalTitle} ` : ''}{doc?.fullName}

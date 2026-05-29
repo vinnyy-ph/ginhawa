@@ -199,9 +199,14 @@ export function PatientHome() {
                   return (
                     <div key={appt.id} className="bg-surface-white p-5 rounded-xl shadow-soft flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border-l-4 border-l-primary/30 hover:border-l-primary transition-colors">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-serif font-bold text-xl shrink-0">
-                          {doc?.fullName.charAt(0) || 'D'}
-                        </div>
+                        {doc?.profilePictureUrl ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={doc.profilePictureUrl} alt={doc.fullName} className="w-12 h-12 rounded-full object-cover shrink-0" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-serif font-bold text-xl shrink-0">
+                            {doc?.fullName.charAt(0) || 'D'}
+                          </div>
+                        )}
                         <div>
                   <h3 className="font-bold text-text-primary">{doc?.professionalTitle ? `${doc.professionalTitle} ` : ''}{doc?.fullName}</h3>
                           <p className="text-xs text-primary font-medium mb-1">{doc?.specialization}</p>

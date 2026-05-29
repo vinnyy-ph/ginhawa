@@ -177,7 +177,7 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
             <DoctorAbout doctor={doctor} reviews={reviews} />
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 w-fit">
             <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden sticky top-24">
               <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-4 border-b border-outline-variant/30">
                 <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
