@@ -9,7 +9,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { Alert } from "@/components/ui/alert";
 import { FormField } from "@/components/ui/form-field";
 import { Chip } from "@/components/ui/chip";
-import { ProfileSection } from "@/components/ui/profile-section";
 import { ProfilePhotoField } from "@/components/ui/profile-photo-field";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useSpecializations } from "@/hooks/use-specializations";
@@ -46,12 +45,22 @@ const COMMON_LANGUAGES = ["English", "Tagalog", "Cebuano", "Ilocano"];
 
 const toItems = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 
-/** Display a field value in read-only mode */
-function DisplayValue({ value }: { value: string | null | undefined }) {
+/** Muted placeholder for empty read-only fields */
+function Empty() {
+  return <span className="text-on-surface-variant/40 italic text-sm">Not set</span>;
+}
+
+/** A labelled read-only display row */
+function InfoRow({ label, value }: { label: string; value?: string | null }) {
   return (
-    <p className="py-2 text-sm text-text-primary font-manrope leading-relaxed">
-      {value?.trim() || <span className="text-on-surface-variant/50 italic">Not set</span>}
-    </p>
+    <div className="flex flex-col gap-0.5">
+      <span className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant/60 font-manrope">
+        {label}
+      </span>
+      <span className="text-sm text-text-primary font-manrope leading-relaxed">
+        {value?.trim() ? value.trim() : <Empty />}
+      </span>
+    </div>
   );
 }
 
@@ -78,13 +87,11 @@ export default function DoctorProfilePage() {
   const [fullName, setFullName] = useState("");
   const [professionalTitle, setProfessionalTitle] = useState("");
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
-
   const [prcLicenseNo, setPrcLicenseNo] = useState("");
   const [prcLicenseExpiry, setPrcLicenseExpiry] = useState("");
   const [ptrNo, setPtrNo] = useState("");
   const [region, setRegion] = useState("");
   const [city, setCity] = useState("");
-
   const [specialization, setSpecialization] = useState("");
   const [yearsOfExperience, setYearsOfExperience] = useState("");
   const [languagesSpoken, setLanguagesSpoken] = useState("");
@@ -117,7 +124,6 @@ export default function DoctorProfilePage() {
       .finally(() => setLoading(false));
   }, [token]);
 
-  // Keep an already-saved specialization selectable even if not in the fetched list.
   const specOptions =
     specialization && !specializations.includes(specialization)
       ? [specialization, ...specializations]
@@ -220,10 +226,14 @@ export default function DoctorProfilePage() {
   return (
     <DashboardLayout role="doctor">
       <div className="animate-in fade-in duration-500">
+
+        {/* ── Page header ── */}
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold font-serif text-text-primary mb-2">My Profile</h1>
-            <p className="text-on-surface-variant">Update your professional information visible to patients.</p>
+            <p className="text-on-surface-variant">
+              {isEditing ? "Make changes below, then save when you're done." : "Your professional information visible to patients."}
+            </p>
           </div>
           {isEditing ? (
             <div className="flex gap-2 shrink-0">
@@ -244,146 +254,344 @@ export default function DoctorProfilePage() {
         {loading ? (
           <div className="flex justify-center py-20"><Spinner size="lg" /></div>
         ) : (
-          <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-6">
-            {success && (
-              <Alert variant="success" className="mb-6">
-                Profile updated successfully.
-              </Alert>
-            )}
-            {error && (
-              <Alert variant="error" className="mb-6">{error}</Alert>
-            )}
+          <>
+            {success && <Alert variant="success" className="mb-6">Profile updated successfully.</Alert>}
+            {error && <Alert variant="error" className="mb-6">{error}</Alert>}
 
-            <form id="doctor-profile-form" onSubmit={handleSubmit} className="flex flex-col gap-8">
-              <ProfileSection title="Personal">
-                <ProfilePhotoField value={profilePictureUrl} onChange={setProfilePictureUrl} readOnly={!isEditing} />
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField id="d-fullName" label="Full name">
+            <form id="doctor-profile-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
+
+              {/* ══════════════════════════════════
+                  CARD 1 — Identity
+                  Photo · Name · Title · Bio
+              ══════════════════════════════════ */}
+              <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
+                {/* Coloured accent strip */}
+                <div className="h-1.5 bg-gradient-to-r from-brand-light to-brand" />
+
+                <div className="p-6 flex flex-col gap-6">
+                  {/* Photo + name row */}
+                  <div className="flex items-start gap-6">
+                    <ProfilePhotoField
+                      value={profilePictureUrl}
+                      onChange={setProfilePictureUrl}
+                      readOnly={!isEditing}
+                    />
+                    <div className="flex-1 flex flex-col gap-4 min-w-0">
+                      {isEditing ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField id="d-fullName" label="Full name">
+                            <input
+                              id="d-fullName"
+                              className={onboardingInputClass}
+                              placeholder="Dr. Juan dela Cruz"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                            />
+                          </FormField>
+                          <FormField id="d-title" label="Professional title">
+                            <input
+                              id="d-title"
+                              className={onboardingInputClass}
+                              placeholder="MD, FPCP"
+                              value={professionalTitle}
+                              onChange={(e) => setProfessionalTitle(e.target.value)}
+                            />
+                          </FormField>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-2xl font-bold font-serif text-text-primary leading-tight">
+                            {fullName || <span className="text-on-surface-variant/40 italic font-normal text-lg">Name not set</span>}
+                          </p>
+                          {professionalTitle && (
+                            <p className="text-sm text-on-surface-variant font-manrope mt-1">{professionalTitle}</p>
+                          )}
+                          {specialization && (
+                            <span className="inline-flex items-center mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary font-manrope">
+                              {specialization}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Bio */}
+                  <div className="border-t border-outline-variant/20 pt-5">
                     {isEditing ? (
-                      <input id="d-fullName" className={onboardingInputClass} value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                      <FormField id="d-bio" label="Professional bio">
+                        <textarea
+                          id="d-bio"
+                          className={`${onboardingTextareaClass} min-h-[100px]`}
+                          placeholder="Tell patients about your background, approach to care, and what makes you unique..."
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
+                        />
+                      </FormField>
                     ) : (
-                      <DisplayValue value={fullName} />
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60 font-manrope mb-2">About</p>
+                        <p className="text-sm text-text-primary font-manrope leading-relaxed">
+                          {bio?.trim() || <Empty />}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* ══════════════════════════════════
+                  CARD 2 — Practice Details
+                  Spec · Experience · Fee · Availability · Languages · Focus Areas
+              ══════════════════════════════════ */}
+              <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-6 flex flex-col gap-6">
+                <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-manrope">
+                  Practice Details
+                </p>
+
+                {/* Specialization + Years */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField id="d-spec" label="Primary specialization">
+                    {isEditing ? (
+                      specFetchFailed ? (
+                        <input
+                          id="d-spec"
+                          className={onboardingInputClass}
+                          placeholder="e.g. Cardiology"
+                          value={specialization}
+                          onChange={(e) => setSpecialization(e.target.value)}
+                        />
+                      ) : (
+                        <select
+                          id="d-spec"
+                          className={onboardingInputClass}
+                          value={specialization}
+                          onChange={(e) => setSpecialization(e.target.value)}
+                        >
+                          <option value="" disabled>
+                            {specsLoading ? "Loading…" : "Select specialization"}
+                          </option>
+                          {specOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      )
+                    ) : (
+                      <InfoRow label="" value={specialization} />
                     )}
                   </FormField>
-                  <FormField id="d-title" label="Professional title">
+                  <FormField id="d-years" label="Years of experience">
                     {isEditing ? (
-                      <input id="d-title" className={onboardingInputClass} placeholder="MD, FPCP" value={professionalTitle} onChange={(e) => setProfessionalTitle(e.target.value)} />
+                      <input
+                        id="d-years"
+                        type="number"
+                        min="0"
+                        className={onboardingInputClass}
+                        placeholder="0"
+                        value={yearsOfExperience}
+                        onChange={(e) => setYearsOfExperience(e.target.value)}
+                      />
                     ) : (
-                      <DisplayValue value={professionalTitle} />
+                      <InfoRow label="" value={yearsOfExperience ? `${yearsOfExperience} ${Number(yearsOfExperience) === 1 ? "year" : "years"}` : ""} />
                     )}
                   </FormField>
                 </div>
-              </ProfileSection>
 
-              <ProfileSection title="Credentials">
-                <FormField id="d-prc" label="PRC License Number">
-                  {isEditing ? (
-                    <input id="d-prc" inputMode="numeric" placeholder="0123456" className={onboardingInputClass} value={prcLicenseNo} onChange={(e) => setPrcLicenseNo(formatPrc(e.target.value))} />
-                  ) : (
-                    <DisplayValue value={prcLicenseNo} />
-                  )}
-                </FormField>
-                <FormField id="d-prcExpiry" label="PRC License Expiry">
-                  {isEditing ? (
-                    <DatePicker id="d-prcExpiry" value={prcLicenseExpiry} onChange={setPrcLicenseExpiry} />
-                  ) : (
-                    <DisplayValue value={prcLicenseExpiry} />
-                  )}
-                </FormField>
-                <FormField id="d-ptr" label="PTR Number">
-                  {isEditing ? (
-                    <input id="d-ptr" inputMode="numeric" placeholder="12345678" className={onboardingInputClass} value={ptrNo} onChange={(e) => setPtrNo(formatPtr(e.target.value))} />
-                  ) : (
-                    <DisplayValue value={ptrNo} />
-                  )}
-                </FormField>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField id="d-region" label="Region">
+                {/* Fee + Availability */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField id="d-fee" label="Consultation fee (₱)">
                     {isEditing ? (
-                      <input id="d-region" className={onboardingInputClass} placeholder="NCR" value={region} onChange={(e) => setRegion(e.target.value)} />
+                      <input
+                        id="d-fee"
+                        type="number"
+                        min="0"
+                        step="50"
+                        className={onboardingInputClass}
+                        placeholder="500"
+                        value={consultationFee}
+                        onChange={(e) => setConsultationFee(e.target.value)}
+                      />
                     ) : (
-                      <DisplayValue value={region} />
+                      <InfoRow label="" value={consultationFee ? `₱${Number(consultationFee).toLocaleString()}` : ""} />
                     )}
                   </FormField>
-                  <FormField id="d-city" label="City">
+                  <FormField id="d-avail" label="Availability">
                     {isEditing ? (
-                      <input id="d-city" className={onboardingInputClass} placeholder="Makati" value={city} onChange={(e) => setCity(e.target.value)} />
+                      <input
+                        id="d-avail"
+                        className={onboardingInputClass}
+                        placeholder="Weekdays 9 AM – 5 PM"
+                        value={availabilitySummary}
+                        onChange={(e) => setAvailabilitySummary(e.target.value)}
+                      />
                     ) : (
-                      <DisplayValue value={city} />
+                      <InfoRow label="" value={availabilitySummary} />
                     )}
                   </FormField>
                 </div>
-              </ProfileSection>
 
-              <ProfileSection title="Practice">
-                <FormField id="d-spec" label="Primary Specialization">
-                  {isEditing ? (
-                    specFetchFailed ? (
-                      <input id="d-spec" className={onboardingInputClass} placeholder="e.g. Cardiology" value={specialization} onChange={(e) => setSpecialization(e.target.value)} />
-                    ) : (
-                      <select id="d-spec" className={onboardingInputClass} value={specialization} onChange={(e) => setSpecialization(e.target.value)}>
-                        <option value="" disabled>{specsLoading ? "Loading…" : "Select your specialization"}</option>
-                        {specOptions.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    )
-                  ) : (
-                    <DisplayValue value={specialization} />
-                  )}
-                </FormField>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField id="d-years" label="Years of Experience">
-                    {isEditing ? (
-                      <input id="d-years" type="number" min="0" className={onboardingInputClass} value={yearsOfExperience} onChange={(e) => setYearsOfExperience(e.target.value)} />
-                    ) : (
-                      <DisplayValue value={yearsOfExperience ? `${yearsOfExperience} years` : ""} />
-                    )}
-                  </FormField>
-                  <FormField id="d-fee" label="Consultation Fee (₱)">
-                    {isEditing ? (
-                      <input id="d-fee" type="number" min="0" step="50" className={onboardingInputClass} value={consultationFee} onChange={(e) => setConsultationFee(e.target.value)} />
-                    ) : (
-                      <DisplayValue value={consultationFee ? `₱${Number(consultationFee).toLocaleString()}` : ""} />
-                    )}
-                  </FormField>
-                </div>
-                <FormField id="d-langs" label="Languages Spoken" hint={isEditing ? "Tap a suggestion or type your own, separated by commas" : undefined}>
+                {/* Languages */}
+                <FormField
+                  id="d-langs"
+                  label="Languages spoken"
+                  hint={isEditing ? "Tap a chip or type your own, comma-separated" : undefined}
+                >
                   {isEditing ? (
                     <div className="flex flex-col gap-2.5">
                       <div className="flex flex-wrap gap-2">
                         {COMMON_LANGUAGES.map((v) => (
-                          <Chip key={v} selected={toItems(languagesSpoken).includes(v)} onClick={() => toggleLanguage(v)}>{v}</Chip>
+                          <Chip
+                            key={v}
+                            selected={toItems(languagesSpoken).includes(v)}
+                            onClick={() => toggleLanguage(v)}
+                          >
+                            {v}
+                          </Chip>
                         ))}
                       </div>
-                      <input id="d-langs" className={onboardingInputClass} placeholder="English, Tagalog" value={languagesSpoken} onChange={(e) => setLanguagesSpoken(e.target.value)} />
+                      <input
+                        id="d-langs"
+                        className={onboardingInputClass}
+                        placeholder="English, Tagalog"
+                        value={languagesSpoken}
+                        onChange={(e) => setLanguagesSpoken(e.target.value)}
+                      />
                     </div>
                   ) : (
-                    <DisplayValue value={languagesSpoken} />
+                    <div className="flex flex-wrap gap-2 py-1">
+                      {toItems(languagesSpoken).length > 0
+                        ? toItems(languagesSpoken).map((lang) => (
+                          <span
+                            key={lang}
+                            className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-variant text-on-surface-variant font-manrope"
+                          >
+                            {lang}
+                          </span>
+                        ))
+                        : <Empty />
+                      }
+                    </div>
                   )}
                 </FormField>
-                <FormField id="d-bio" label="Professional Bio">
+
+                {/* Focus Areas */}
+                <FormField id="d-focus" label="Focus areas">
                   {isEditing ? (
-                    <textarea id="d-bio" className={`${onboardingTextareaClass} min-h-[120px]`} placeholder="Tell patients about your background and approach to care..." value={bio} onChange={(e) => setBio(e.target.value)} />
+                    <textarea
+                      id="d-focus"
+                      className={onboardingTextareaClass}
+                      placeholder="Hypertension management, Preventive cardiology, Cardiac rehabilitation…"
+                      value={consultationFocusAreas}
+                      onChange={(e) => setConsultationFocusAreas(e.target.value)}
+                    />
                   ) : (
-                    <DisplayValue value={bio} />
+                    <div className="flex flex-wrap gap-2 py-1">
+                      {toItems(consultationFocusAreas).length > 0
+                        ? toItems(consultationFocusAreas).map((area) => (
+                          <span
+                            key={area}
+                            className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/8 text-primary font-manrope border border-primary/20"
+                          >
+                            {area}
+                          </span>
+                        ))
+                        : <Empty />
+                      }
+                    </div>
                   )}
                 </FormField>
-                <FormField id="d-focus" label="Focus Areas (comma-separated)">
-                  {isEditing ? (
-                    <textarea id="d-focus" className={onboardingTextareaClass} placeholder="Hypertension management, Preventive cardiology..." value={consultationFocusAreas} onChange={(e) => setConsultationFocusAreas(e.target.value)} />
-                  ) : (
-                    <DisplayValue value={consultationFocusAreas} />
-                  )}
-                </FormField>
-                <FormField id="d-avail" label="Availability Summary">
-                  {isEditing ? (
-                    <input id="d-avail" className={onboardingInputClass} placeholder="Weekdays 9 AM - 5 PM" value={availabilitySummary} onChange={(e) => setAvailabilitySummary(e.target.value)} />
-                  ) : (
-                    <DisplayValue value={availabilitySummary} />
-                  )}
-                </FormField>
-              </ProfileSection>
+              </div>
+
+              {/* ══════════════════════════════════
+                  CARD 3 — Credentials & Location
+                  PRC · PTR · Region · City
+              ══════════════════════════════════ */}
+              <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-6 flex flex-col gap-6">
+                <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-manrope">
+                  Credentials &amp; Location
+                </p>
+
+                {/* PRC License No + Expiry */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField id="d-prc" label="PRC license number">
+                    {isEditing ? (
+                      <input
+                        id="d-prc"
+                        inputMode="numeric"
+                        placeholder="0123456"
+                        className={onboardingInputClass}
+                        value={prcLicenseNo}
+                        onChange={(e) => setPrcLicenseNo(formatPrc(e.target.value))}
+                      />
+                    ) : (
+                      <InfoRow label="" value={prcLicenseNo} />
+                    )}
+                  </FormField>
+                  <FormField id="d-prcExpiry" label="PRC license expiry">
+                    {isEditing ? (
+                      <DatePicker
+                        id="d-prcExpiry"
+                        value={prcLicenseExpiry}
+                        onChange={setPrcLicenseExpiry}
+                      />
+                    ) : (
+                      <InfoRow label="" value={prcLicenseExpiry} />
+                    )}
+                  </FormField>
+                </div>
+
+                {/* PTR Number */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField id="d-ptr" label="PTR number">
+                    {isEditing ? (
+                      <input
+                        id="d-ptr"
+                        inputMode="numeric"
+                        placeholder="12345678"
+                        className={onboardingInputClass}
+                        value={ptrNo}
+                        onChange={(e) => setPtrNo(formatPtr(e.target.value))}
+                      />
+                    ) : (
+                      <InfoRow label="" value={ptrNo} />
+                    )}
+                  </FormField>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-outline-variant/20" />
+
+                {/* Region + City */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField id="d-region" label="Region">
+                    {isEditing ? (
+                      <input
+                        id="d-region"
+                        className={onboardingInputClass}
+                        placeholder="NCR"
+                        value={region}
+                        onChange={(e) => setRegion(e.target.value)}
+                      />
+                    ) : (
+                      <InfoRow label="" value={region} />
+                    )}
+                  </FormField>
+                  <FormField id="d-city" label="City">
+                    {isEditing ? (
+                      <input
+                        id="d-city"
+                        className={onboardingInputClass}
+                        placeholder="Makati"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                      />
+                    ) : (
+                      <InfoRow label="" value={city} />
+                    )}
+                  </FormField>
+                </div>
+              </div>
+
             </form>
-          </div>
+          </>
         )}
       </div>
     </DashboardLayout>

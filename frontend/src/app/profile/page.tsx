@@ -10,7 +10,6 @@ import { Alert } from "@/components/ui/alert";
 import { FormField } from "@/components/ui/form-field";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Chip } from "@/components/ui/chip";
-import { ProfileSection } from "@/components/ui/profile-section";
 import { ProfilePhotoField } from "@/components/ui/profile-photo-field";
 import { DatePicker } from "@/components/ui/date-picker";
 import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
@@ -40,12 +39,55 @@ const COMMON_MEDICATIONS = ["Metformin", "Amlodipine", "Losartan", "Salbutamol"]
 
 const toItems = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 
-/** Display a field value in read-only mode */
-function DisplayValue({ value }: { value: string | null | undefined }) {
+function Empty() {
+  return <span className="text-on-surface-variant/40 italic text-sm">Not set</span>;
+}
+
+/** Muted label + value pair for read-only stat cells */
+function StatCell({ label, value }: { label: string; value?: string | null }) {
   return (
-    <p className="py-2 text-sm text-text-primary font-manrope leading-relaxed">
-      {value?.trim() || <span className="text-on-surface-variant/50 italic">Not set</span>}
-    </p>
+    <div className="flex flex-col gap-0.5">
+      <span className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant/60 font-manrope">
+        {label}
+      </span>
+      <span className="text-sm font-semibold text-text-primary font-manrope">
+        {value?.trim() ? value : <Empty />}
+      </span>
+    </div>
+  );
+}
+
+/** Generic read-only labelled row */
+function InfoRow({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant/60 font-manrope">
+        {label}
+      </span>
+      <span className="text-sm text-text-primary font-manrope leading-relaxed">
+        {value?.trim() ? value.trim() : <Empty />}
+      </span>
+    </div>
+  );
+}
+
+/** Pill tags for lists (allergies, conditions, meds, languages) */
+function PillList({ items, color = "neutral" }: { items: string[]; color?: "neutral" | "primary" | "warning" }) {
+  if (items.length === 0) return <Empty />;
+  const cls =
+    color === "primary"
+      ? "bg-primary/10 text-primary border border-primary/20"
+      : color === "warning"
+      ? "bg-amber-50 text-amber-700 border border-amber-200"
+      : "bg-surface-variant text-on-surface-variant border border-outline-variant/50";
+  return (
+    <div className="flex flex-wrap gap-2 py-1">
+      {items.map((item) => (
+        <span key={item} className={`px-2.5 py-0.5 rounded-full text-xs font-semibold font-manrope ${cls}`}>
+          {item}
+        </span>
+      ))}
+    </div>
   );
 }
 
@@ -73,7 +115,7 @@ export default function PatientProfilePage() {
   // Personal
   const [fullName, setFullName] = useState("");
   const [birthdate, setBirthdate] = useState("");
-  const [contactDigits, setContactDigits] = useState(""); // raw digits
+  const [contactDigits, setContactDigits] = useState("");
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
@@ -132,15 +174,17 @@ export default function PatientProfilePage() {
     return Math.round((w / (m * m)) * 10) / 10;
   }, [weight, height]);
 
-  const toggleChip = (
-    value: string,
-    current: string,
-    setter: (v: string) => void,
-  ) => {
+  const bmiCategory = useMemo(() => {
+    if (bmi === null) return null;
+    if (bmi < 18.5) return { label: "Underweight", color: "text-blue-500" };
+    if (bmi < 25) return { label: "Normal", color: "text-emerald-500" };
+    if (bmi < 30) return { label: "Overweight", color: "text-amber-500" };
+    return { label: "Obese", color: "text-red-500" };
+  }, [bmi]);
+
+  const toggleChip = (value: string, current: string, setter: (v: string) => void) => {
     const items = toItems(current);
-    const next = items.includes(value)
-      ? items.filter((i) => i !== value)
-      : [...items, value];
+    const next = items.includes(value) ? items.filter((i) => i !== value) : [...items, value];
     setter(next.join(", "));
   };
 
@@ -220,8 +264,6 @@ export default function PatientProfilePage() {
       });
       savedDetails = true;
 
-      // Edit semantics: send empty values explicitly so a cleared field is
-      // actually cleared server-side (not left unchanged).
       await apiRequest("/patients/medical-history", {
         method: "PATCH",
         token,
@@ -257,10 +299,14 @@ export default function PatientProfilePage() {
   return (
     <DashboardLayout role="patient">
       <div className="animate-in fade-in duration-500">
+
+        {/* ── Page header ── */}
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold font-serif text-text-primary mb-2">My Profile</h1>
-            <p className="text-on-surface-variant">Update your personal, location, and medical information.</p>
+            <p className="text-on-surface-variant">
+              {isEditing ? "Make changes below, then save when you're done." : "Your personal and medical information."}
+            </p>
           </div>
           {isEditing ? (
             <div className="flex gap-2 shrink-0">
@@ -281,139 +327,298 @@ export default function PatientProfilePage() {
         {loading ? (
           <div className="flex justify-center py-20"><Spinner size="lg" /></div>
         ) : (
-          <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-6">
-            {success && (
-              <Alert variant="success" className="mb-6">
-                Profile updated successfully.
-              </Alert>
-            )}
-            {error && (
-              <Alert variant="error" className="mb-6">{error}</Alert>
-            )}
+          <>
+            {success && <Alert variant="success" className="mb-6">Profile updated successfully.</Alert>}
+            {error && <Alert variant="error" className="mb-6">{error}</Alert>}
 
-            <form id="patient-profile-form" onSubmit={handleSubmit} className="flex flex-col gap-8">
-              <ProfileSection title="Personal">
-                <ProfilePhotoField value={profilePictureUrl} onChange={setProfilePictureUrl} readOnly={!isEditing} />
-                <FormField id="p-fullName" label="Full name">
-                  {isEditing ? (
-                    <input id="p-fullName" className={onboardingInputClass} value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                  ) : (
-                    <DisplayValue value={fullName} />
-                  )}
-                </FormField>
-                <FormField id="p-birthdate" label="Date of birth">
-                  {isEditing ? (
-                    <DatePicker id="p-birthdate" value={birthdate} onChange={setBirthdate} maxDate={localTodayISO()} />
-                  ) : (
-                    <DisplayValue value={birthdate} />
-                  )}
-                </FormField>
-                <FormField id="p-contact" label="Contact number">
-                  {isEditing ? (
-                    <PhoneInput
-                      placeholder="917 123 4567"
-                      value={formatPhone(contactDigits)}
-                      onChange={(e) =>
-                        setContactDigits(e.target.value.replace(/\D/g, "").replace(/^0/, "").slice(0, 10))
-                      }
+            <form id="patient-profile-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
+
+              {/* ══════════════════════════════════
+                  CARD 1 — Identity
+                  Photo · Name · Birthdate · Contact · Body metrics
+              ══════════════════════════════════ */}
+              <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
+                <div className="h-1.5 bg-gradient-to-r from-brand-light to-brand" />
+
+                <div className="p-6 flex flex-col gap-6">
+                  {/* Photo + name row */}
+                  <div className="flex items-start gap-6">
+                    <ProfilePhotoField
+                      value={profilePictureUrl}
+                      onChange={setProfilePictureUrl}
+                      readOnly={!isEditing}
                     />
-                  ) : (
-                    <DisplayValue value={contactDisplay} />
-                  )}
-                </FormField>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField id="p-weight" label="Weight (kg)">
-                    {isEditing ? (
-                      <input id="p-weight" type="number" min="0" step="0.1" className={onboardingInputClass} value={weight} onChange={(e) => setWeight(e.target.value)} />
-                    ) : (
-                      <DisplayValue value={weight ? `${weight} kg` : ""} />
-                    )}
-                  </FormField>
-                  <FormField id="p-height" label="Height (cm)">
-                    {isEditing ? (
-                      <input id="p-height" type="number" min="0" step="0.1" className={onboardingInputClass} value={height} onChange={(e) => setHeight(e.target.value)} />
-                    ) : (
-                      <DisplayValue value={height ? `${height} cm` : ""} />
-                    )}
-                  </FormField>
-                </div>
-                {bmi !== null && (
-                  <p className="text-xs text-on-surface-variant font-manrope">Estimated BMI: <span className="font-bold text-on-surface">{bmi}</span></p>
-                )}
-              </ProfileSection>
+                    <div className="flex-1 flex flex-col gap-4 min-w-0">
+                      {isEditing ? (
+                        <FormField id="p-fullName" label="Full name">
+                          <input
+                            id="p-fullName"
+                            className={onboardingInputClass}
+                            placeholder="Juan dela Cruz"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                          />
+                        </FormField>
+                      ) : (
+                        <div>
+                          <p className="text-2xl font-bold font-serif text-text-primary leading-tight">
+                            {fullName || <span className="text-on-surface-variant/40 italic font-normal text-lg">Name not set</span>}
+                          </p>
+                          {birthdate && (
+                            <p className="text-sm text-on-surface-variant font-manrope mt-1">
+                              Born {birthdate}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-              <ProfileSection title="Location & Insurance">
+                  {/* Contact + Birthdate row (edit only) or quick stats (view only) */}
+                  {isEditing ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField id="p-birthdate" label="Date of birth">
+                        <DatePicker id="p-birthdate" value={birthdate} onChange={setBirthdate} maxDate={localTodayISO()} />
+                      </FormField>
+                      <FormField id="p-contact" label="Contact number">
+                        <PhoneInput
+                          placeholder="917 123 4567"
+                          value={formatPhone(contactDigits)}
+                          onChange={(e) =>
+                            setContactDigits(e.target.value.replace(/\D/g, "").replace(/^0/, "").slice(0, 10))
+                          }
+                        />
+                      </FormField>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1">
+                      <StatCell label="Contact" value={contactDisplay} />
+                      <StatCell label="Date of Birth" value={birthdate} />
+                      <StatCell label="Weight" value={weight ? `${weight} kg` : null} />
+                      <StatCell label="Height" value={height ? `${height} cm` : null} />
+                    </div>
+                  )}
+
+                  {/* Body metrics (edit mode) + BMI */}
+                  {isEditing && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField id="p-weight" label="Weight (kg)">
+                        <input
+                          id="p-weight"
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          className={onboardingInputClass}
+                          placeholder="65"
+                          value={weight}
+                          onChange={(e) => setWeight(e.target.value)}
+                        />
+                      </FormField>
+                      <FormField id="p-height" label="Height (cm)">
+                        <input
+                          id="p-height"
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          className={onboardingInputClass}
+                          placeholder="170"
+                          value={height}
+                          onChange={(e) => setHeight(e.target.value)}
+                        />
+                      </FormField>
+                    </div>
+                  )}
+
+                  {/* BMI display */}
+                  {bmi !== null && (
+                    <div className="border-t border-outline-variant/20 pt-4 flex items-center gap-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant/60 font-manrope">
+                          Estimated BMI
+                        </span>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold text-text-primary font-manrope">{bmi}</span>
+                          {bmiCategory && (
+                            <span className={`text-sm font-semibold font-manrope ${bmiCategory.color}`}>
+                              {bmiCategory.label}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ══════════════════════════════════
+                  CARD 2 — Location & Insurance
+              ══════════════════════════════════ */}
+              <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-6 flex flex-col gap-6">
+                <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-manrope">
+                  Location &amp; Insurance
+                </p>
+
+                {/* Address */}
                 <FormField id="p-address" label="Address">
                   {isEditing ? (
-                    <input id="p-address" className={onboardingInputClass} value={address} onChange={(e) => setAddress(e.target.value)} />
+                    <input
+                      id="p-address"
+                      className={onboardingInputClass}
+                      placeholder="123 Rizal St., Barangay Poblacion"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                    />
                   ) : (
-                    <DisplayValue value={address} />
+                    <InfoRow label="" value={address} />
                   )}
                 </FormField>
-                <div className="grid grid-cols-2 gap-4">
+
+                {/* City + Region */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField id="p-city" label="City">
                     {isEditing ? (
-                      <input id="p-city" className={onboardingInputClass} value={city} onChange={(e) => setCity(e.target.value)} />
+                      <input
+                        id="p-city"
+                        className={onboardingInputClass}
+                        placeholder="Makati"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                      />
                     ) : (
-                      <DisplayValue value={city} />
+                      <InfoRow label="" value={city} />
                     )}
                   </FormField>
                   <FormField id="p-region" label="Region">
                     {isEditing ? (
-                      <input id="p-region" className={onboardingInputClass} value={region} onChange={(e) => setRegion(e.target.value)} />
+                      <input
+                        id="p-region"
+                        className={onboardingInputClass}
+                        placeholder="NCR"
+                        value={region}
+                        onChange={(e) => setRegion(e.target.value)}
+                      />
                     ) : (
-                      <DisplayValue value={region} />
+                      <InfoRow label="" value={region} />
                     )}
                   </FormField>
                 </div>
-                <FormField id="p-philhealth" label="PhilHealth ID">
-                  {isEditing ? (
-                    <input id="p-philhealth" inputMode="numeric" placeholder="12-345678901-2" className={onboardingInputClass} value={philhealthId} onChange={(e) => setPhilhealthId(formatPhilHealth(e.target.value))} />
-                  ) : (
-                    <DisplayValue value={philhealthId} />
-                  )}
-                </FormField>
-                <div className="grid grid-cols-2 gap-4">
+
+                <div className="border-t border-outline-variant/20" />
+
+                {/* PhilHealth */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField id="p-philhealth" label="PhilHealth ID">
+                    {isEditing ? (
+                      <input
+                        id="p-philhealth"
+                        inputMode="numeric"
+                        placeholder="12-345678901-2"
+                        className={onboardingInputClass}
+                        value={philhealthId}
+                        onChange={(e) => setPhilhealthId(formatPhilHealth(e.target.value))}
+                      />
+                    ) : (
+                      <InfoRow label="" value={philhealthId} />
+                    )}
+                  </FormField>
+                </div>
+
+                {/* HMO Provider + Card */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField id="p-hmoProvider" label="HMO Provider">
                     {isEditing ? (
-                      <input id="p-hmoProvider" className={onboardingInputClass} placeholder="Maxicare" value={hmoProvider} onChange={(e) => setHmoProvider(e.target.value)} />
+                      <input
+                        id="p-hmoProvider"
+                        className={onboardingInputClass}
+                        placeholder="Maxicare"
+                        value={hmoProvider}
+                        onChange={(e) => setHmoProvider(e.target.value)}
+                      />
                     ) : (
-                      <DisplayValue value={hmoProvider} />
+                      <InfoRow label="" value={hmoProvider} />
                     )}
                   </FormField>
                   <FormField id="p-hmoCardNo" label="HMO Card No.">
                     {isEditing ? (
-                      <input id="p-hmoCardNo" placeholder="XXXX-XXXX-XXXX" className={onboardingInputClass} value={hmoCardNo} onChange={(e) => setHmoCardNo(formatHmoCard(e.target.value))} />
+                      <input
+                        id="p-hmoCardNo"
+                        placeholder="XXXX-XXXX-XXXX"
+                        className={onboardingInputClass}
+                        value={hmoCardNo}
+                        onChange={(e) => setHmoCardNo(formatHmoCard(e.target.value))}
+                      />
                     ) : (
-                      <DisplayValue value={hmoCardNo} />
+                      <InfoRow label="" value={hmoCardNo} />
                     )}
                   </FormField>
                 </div>
-              </ProfileSection>
+              </div>
 
-              <ProfileSection title="Medical History">
-                <div className="grid grid-cols-2 gap-4">
+              {/* ══════════════════════════════════
+                  CARD 3 — Medical History
+              ══════════════════════════════════ */}
+              <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-6 flex flex-col gap-6">
+                <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-manrope">
+                  Medical History
+                </p>
+
+                {/* Blood type + Smoking */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField id="p-bloodType" label="Blood type">
                     {isEditing ? (
-                      <select id="p-bloodType" className={onboardingInputClass} value={bloodType} onChange={(e) => setBloodType(e.target.value)}>
+                      <select
+                        id="p-bloodType"
+                        className={onboardingInputClass}
+                        value={bloodType}
+                        onChange={(e) => setBloodType(e.target.value)}
+                      >
                         <option value="">Select…</option>
                         {BLOOD_TYPES.map((bt) => <option key={bt} value={bt}>{bt}</option>)}
                       </select>
                     ) : (
-                      <DisplayValue value={bloodType} />
+                      <div className="py-1">
+                        {bloodType
+                          ? <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-red-50 text-red-600 border border-red-200 font-manrope">{bloodType}</span>
+                          : <Empty />
+                        }
+                      </div>
                     )}
                   </FormField>
                   <FormField id="p-smoking" label="Smoking status">
                     {isEditing ? (
-                      <select id="p-smoking" className={onboardingInputClass} value={smokingStatus} onChange={(e) => setSmokingStatus(e.target.value)}>
+                      <select
+                        id="p-smoking"
+                        className={onboardingInputClass}
+                        value={smokingStatus}
+                        onChange={(e) => setSmokingStatus(e.target.value)}
+                      >
                         {SMOKING_OPTIONS.map((o) => <option key={o.label} value={o.value}>{o.label}</option>)}
                       </select>
                     ) : (
-                      <DisplayValue value={smokingLabel} />
+                      <div className="py-1">
+                        {smokingStatus
+                          ? <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border font-manrope ${
+                              smokingStatus === "Current"
+                                ? "bg-red-50 text-red-600 border-red-200"
+                                : smokingStatus === "Former"
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            }`}>{smokingLabel}</span>
+                          : <Empty />
+                        }
+                      </div>
                     )}
                   </FormField>
                 </div>
-                <FormField id="p-allergies" label="Allergies" hint={isEditing ? "Tap a suggestion or type your own, separated by commas" : undefined}>
+
+                <div className="border-t border-outline-variant/20" />
+
+                {/* Allergies */}
+                <FormField
+                  id="p-allergies"
+                  label="Allergies"
+                  hint={isEditing ? "Tap a suggestion or type your own, separated by commas" : undefined}
+                >
                   {isEditing ? (
                     <div className="flex flex-col gap-2.5">
                       <div className="flex flex-wrap gap-2">
@@ -421,13 +626,25 @@ export default function PatientProfilePage() {
                           <Chip key={v} selected={toItems(allergies).includes(v)} onClick={() => toggleChip(v, allergies, setAllergies)}>{v}</Chip>
                         ))}
                       </div>
-                      <input id="p-allergies" className={onboardingInputClass} placeholder="Penicillin, Peanuts" value={allergies} onChange={(e) => setAllergies(e.target.value)} />
+                      <input
+                        id="p-allergies"
+                        className={onboardingInputClass}
+                        placeholder="Penicillin, Peanuts"
+                        value={allergies}
+                        onChange={(e) => setAllergies(e.target.value)}
+                      />
                     </div>
                   ) : (
-                    <DisplayValue value={allergies} />
+                    <PillList items={toItems(allergies)} color="warning" />
                   )}
                 </FormField>
-                <FormField id="p-conditions" label="Chronic conditions" hint={isEditing ? "Tap a suggestion or type your own, separated by commas" : undefined}>
+
+                {/* Chronic conditions */}
+                <FormField
+                  id="p-conditions"
+                  label="Chronic conditions"
+                  hint={isEditing ? "Tap a suggestion or type your own, separated by commas" : undefined}
+                >
                   {isEditing ? (
                     <div className="flex flex-col gap-2.5">
                       <div className="flex flex-wrap gap-2">
@@ -435,13 +652,25 @@ export default function PatientProfilePage() {
                           <Chip key={v} selected={toItems(chronicConditions).includes(v)} onClick={() => toggleChip(v, chronicConditions, setChronicConditions)}>{v}</Chip>
                         ))}
                       </div>
-                      <input id="p-conditions" className={onboardingInputClass} placeholder="Hypertension, Asthma" value={chronicConditions} onChange={(e) => setChronicConditions(e.target.value)} />
+                      <input
+                        id="p-conditions"
+                        className={onboardingInputClass}
+                        placeholder="Hypertension, Asthma"
+                        value={chronicConditions}
+                        onChange={(e) => setChronicConditions(e.target.value)}
+                      />
                     </div>
                   ) : (
-                    <DisplayValue value={chronicConditions} />
+                    <PillList items={toItems(chronicConditions)} color="primary" />
                   )}
                 </FormField>
-                <FormField id="p-meds" label="Current medications" hint={isEditing ? "Tap a suggestion or type your own, separated by commas" : undefined}>
+
+                {/* Current medications */}
+                <FormField
+                  id="p-meds"
+                  label="Current medications"
+                  hint={isEditing ? "Tap a suggestion or type your own, separated by commas" : undefined}
+                >
                   {isEditing ? (
                     <div className="flex flex-col gap-2.5">
                       <div className="flex flex-wrap gap-2">
@@ -449,29 +678,58 @@ export default function PatientProfilePage() {
                           <Chip key={v} selected={toItems(currentMedications).includes(v)} onClick={() => toggleChip(v, currentMedications, setCurrentMedications)}>{v}</Chip>
                         ))}
                       </div>
-                      <input id="p-meds" className={onboardingInputClass} placeholder="Amlodipine 5mg, Metformin" value={currentMedications} onChange={(e) => setCurrentMedications(e.target.value)} />
+                      <input
+                        id="p-meds"
+                        className={onboardingInputClass}
+                        placeholder="Amlodipine 5mg, Metformin"
+                        value={currentMedications}
+                        onChange={(e) => setCurrentMedications(e.target.value)}
+                      />
                     </div>
                   ) : (
-                    <DisplayValue value={currentMedications} />
+                    <PillList items={toItems(currentMedications)} color="neutral" />
                   )}
                 </FormField>
-                <FormField id="p-surgeries" label="Past surgeries">
-                  {isEditing ? (
-                    <textarea id="p-surgeries" className={onboardingTextareaClass} placeholder="e.g. Appendectomy (2018)" value={pastSurgeries} onChange={(e) => setPastSurgeries(e.target.value)} />
-                  ) : (
-                    <DisplayValue value={pastSurgeries} />
-                  )}
-                </FormField>
-                <FormField id="p-family" label="Family history">
-                  {isEditing ? (
-                    <textarea id="p-family" className={onboardingTextareaClass} placeholder="e.g. Diabetes (mother)" value={familyHistory} onChange={(e) => setFamilyHistory(e.target.value)} />
-                  ) : (
-                    <DisplayValue value={familyHistory} />
-                  )}
-                </FormField>
-              </ProfileSection>
+
+                <div className="border-t border-outline-variant/20" />
+
+                {/* Past surgeries + Family history */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <FormField id="p-surgeries" label="Past surgeries">
+                    {isEditing ? (
+                      <textarea
+                        id="p-surgeries"
+                        className={onboardingTextareaClass}
+                        placeholder="e.g. Appendectomy (2018)"
+                        value={pastSurgeries}
+                        onChange={(e) => setPastSurgeries(e.target.value)}
+                      />
+                    ) : (
+                      <p className="text-sm text-text-primary font-manrope leading-relaxed py-1">
+                        {pastSurgeries?.trim() || <Empty />}
+                      </p>
+                    )}
+                  </FormField>
+                  <FormField id="p-family" label="Family history">
+                    {isEditing ? (
+                      <textarea
+                        id="p-family"
+                        className={onboardingTextareaClass}
+                        placeholder="e.g. Diabetes (mother), Hypertension (father)"
+                        value={familyHistory}
+                        onChange={(e) => setFamilyHistory(e.target.value)}
+                      />
+                    ) : (
+                      <p className="text-sm text-text-primary font-manrope leading-relaxed py-1">
+                        {familyHistory?.trim() || <Empty />}
+                      </p>
+                    )}
+                  </FormField>
+                </div>
+              </div>
+
             </form>
-          </div>
+          </>
         )}
       </div>
     </DashboardLayout>
