@@ -31,6 +31,16 @@ const VALID_SPECIALIZATIONS = [
   'EMERGENCY',
 ];
 
+type PatientContext = {
+  specializations: string[];
+  symptoms: string[];
+  medicalHistory?: {
+    allergies: string[];
+    chronicConditions: string[];
+    currentMedications: string[];
+  };
+};
+
 @Injectable()
 export class RecommendationsService {
   private readonly genAI: GoogleGenerativeAI;
@@ -42,15 +52,7 @@ export class RecommendationsService {
 
   private buildPrompt(
     symptomInput: string,
-    patientContext?: {
-      specializations: string[];
-      symptoms: string[];
-      medicalHistory?: {
-        allergies: string[];
-        chronicConditions: string[];
-        currentMedications: string[];
-      };
-    },
+    patientContext?: PatientContext,
   ): string {
     const mh = patientContext?.medicalHistory;
     const hasHistory =
@@ -101,15 +103,7 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
 
   private async *getAIRecommendationStream(
     symptomInput: string,
-    patientContext?: {
-      specializations: string[];
-      symptoms: string[];
-      medicalHistory?: {
-        allergies: string[];
-        chronicConditions: string[];
-        currentMedications: string[];
-      };
-    },
+    patientContext?: PatientContext,
   ): AsyncGenerator<string, { specialization: string; explanation: string }> {
     const generationConfig = {
       responseMimeType: 'application/json',
@@ -169,15 +163,7 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
     createRecommendationDto: CreateRecommendationDto,
   ) {
     let patientId: string | null = null;
-    let patientContext: {
-      specializations: string[];
-      symptoms: string[];
-      medicalHistory?: {
-        allergies: string[];
-        chronicConditions: string[];
-        currentMedications: string[];
-      };
-    } | undefined;
+    let patientContext: PatientContext | undefined;
 
     if (userId) {
       const patientProfile = await this.prisma.patientProfile.findUnique({ where: { userId } });
