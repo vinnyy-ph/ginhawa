@@ -13,6 +13,9 @@ describe('PatientsService', () => {
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    patientMedicalHistory: {
+      update: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -142,6 +145,21 @@ describe('PatientsService', () => {
       await expect(service.findByUserId(userId)).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('updateMedicalHistory', () => {
+    it('updates the history row for the caller patient profile', async () => {
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue({ id: 'patient-1' });
+      mockPrismaService.patientMedicalHistory.update.mockResolvedValue({ id: 'h1', allergies: ['nuts'] });
+
+      const result = await service.updateMedicalHistory('user-1', { allergies: ['nuts'] });
+
+      expect(mockPrismaService.patientMedicalHistory.update).toHaveBeenCalledWith({
+        where: { patientId: 'patient-1' },
+        data: { allergies: ['nuts'] },
+      });
+      expect(result.allergies).toEqual(['nuts']);
     });
   });
 
