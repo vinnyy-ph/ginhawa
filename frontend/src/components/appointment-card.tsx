@@ -34,9 +34,9 @@ function isWithinJoinWindow(appt: Appointment): boolean {
   return now >= start - 15 * 60 * 1000 && now <= end;
 }
 
-function hasConsultStarted(appt: Appointment): boolean {
+function hasConsultEnded(appt: Appointment): boolean {
   if (!appt.slot) return false;
-  return Date.now() >= new Date(appt.slot.startTime).getTime();
+  return Date.now() >= new Date(appt.slot.endTime).getTime();
 }
 
 const statusConfig: Record<string, { variant: "secondary" | "success" | "destructive" | "info" | "outline", border: string }> = {
@@ -327,7 +327,7 @@ export function AppointmentCard({
                   <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
                 </Button>
               )}
-              {appt.id && hasConsultStarted(appt) && (
+              {appt.id && hasConsultEnded(appt) && (
                 <Button size="sm" asChild variant="outline">
                   <Link href={`/doctor/finalize/${appt.id}`}>Complete &amp; Document</Link>
                 </Button>

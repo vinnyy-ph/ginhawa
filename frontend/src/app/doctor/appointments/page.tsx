@@ -24,6 +24,7 @@ export default function DoctorAppointmentsPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>("All");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -63,6 +64,7 @@ export default function DoctorAppointmentsPage() {
   async function updateStatus(id: string, newStatus: AppointmentStatus) {
     if (!token) return;
     setActionError(null);
+    setActionSuccess(null);
 
     try {
       setUpdatingId(id);
@@ -73,6 +75,15 @@ export default function DoctorAppointmentsPage() {
         token,
         body: { status: newStatus }
       });
+
+      setActionSuccess(
+        newStatus === 'CONFIRMED'
+          ? 'Request confirmed — the patient has been notified.'
+          : newStatus === 'CANCELLED'
+          ? 'Appointment cancelled.'
+          : 'Appointment updated.',
+      );
+      setTimeout(() => setActionSuccess(null), 4000);
 
     } catch (err: unknown) {
       console.error("Failed to update status", err);
@@ -119,6 +130,19 @@ export default function DoctorAppointmentsPage() {
               onClick={() => setActionError(null)}
               className="text-error hover:text-error/70 font-semibold shrink-0"
               aria-label="Dismiss error"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {actionSuccess && (
+          <div className="mb-4 flex items-center justify-between gap-4 bg-success/10 text-success px-5 py-3 rounded-lg border border-success/20 text-sm">
+            <span>{actionSuccess}</span>
+            <button
+              onClick={() => setActionSuccess(null)}
+              className="text-success hover:text-success/70 font-semibold shrink-0"
+              aria-label="Dismiss"
             >
               ✕
             </button>
