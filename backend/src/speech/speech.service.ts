@@ -19,7 +19,7 @@ export class SpeechService {
       });
 
       return { text: transcription.text };
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException('Speech transcription failed');
     }
   }

@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Schema } from '@google/genai';
 
 // gemini-3.1-flash-lite first: fast and currently healthy. The heavier
 // gemini-3.5-flash has been returning 503 (overloaded), so it sits behind
@@ -28,9 +28,12 @@ export class GeminiService {
     if (typeof error !== 'object' || error === null) return false;
     const e = error as Record<string, unknown>;
     const status = e['status'];
-    const msg = String(e['message'] ?? '');
+    const msg = typeof e['message'] === 'string' ? e['message'] : '';
     return (
-      status === 429 || status === 503 || msg.includes('429') || msg.includes('503')
+      status === 429 ||
+      status === 503 ||
+      msg.includes('429') ||
+      msg.includes('503')
     );
   }
 
@@ -42,7 +45,7 @@ export class GeminiService {
       thinkingConfig: { thinkingBudget: 0 },
       temperature: 0.2,
       maxOutputTokens: 1024,
-      ...(opts?.schema ? { responseSchema: opts.schema as any } : {}),
+      ...(opts?.schema ? { responseSchema: opts.schema as Schema } : {}),
     };
   }
 
@@ -61,7 +64,9 @@ export class GeminiService {
       try {
         return JSON.parse(clean) as T;
       } catch {
-        throw new Error('AI returned an unparseable response. Please try again.');
+        throw new Error(
+          'AI returned an unparseable response. Please try again.',
+        );
       }
     }
   }

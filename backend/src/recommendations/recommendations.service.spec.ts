@@ -1,10 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RecommendationsService } from './recommendations.service';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { GeminiService } from '../ai/gemini.service';
 
 const mockGenerateContentStream = jest.fn();
@@ -146,7 +143,7 @@ describe('RecommendationsService', () => {
       const stream = await service.createStream('user-1', {
         symptomInput: 'chest tightness',
       });
-      const output = await consumeStream(stream);
+      await consumeStream(stream);
 
       const promptArg = (
         mockGenerateContentStream.mock.calls[0][0] as { contents: string }

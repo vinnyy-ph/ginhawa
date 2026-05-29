@@ -83,7 +83,7 @@ export class ConsultationService {
     });
 
     if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
+      const err: unknown = await response.json().catch(() => ({}));
       throw new Error(
         `Daily.co room creation failed: ${(err as { error?: string }).error ?? response.statusText}`,
       );

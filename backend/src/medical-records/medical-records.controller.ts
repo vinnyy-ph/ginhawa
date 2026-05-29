@@ -39,7 +39,11 @@ export class MedicalRecordsController {
     @Param('id') id: string,
     @Body() updateMedicalRecordDto: UpdateMedicalRecordDto,
   ) {
-    return this.medicalRecordsService.update(req.user.id, id, updateMedicalRecordDto);
+    return this.medicalRecordsService.update(
+      req.user.id,
+      id,
+      updateMedicalRecordDto,
+    );
   }
 
   @Get('patient')

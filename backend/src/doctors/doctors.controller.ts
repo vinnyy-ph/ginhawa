@@ -10,7 +10,6 @@ import {
   Request,
 } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
-import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { toPublicDoctorProfile } from './dto/public-doctor.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';

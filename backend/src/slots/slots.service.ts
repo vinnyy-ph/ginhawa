@@ -81,12 +81,8 @@ export class SlotsService {
       select: { startTime: true, endTime: true },
     });
 
-    const overlaps = (
-      aStart: Date,
-      aEnd: Date,
-      bStart: Date,
-      bEnd: Date,
-    ) => aStart < bEnd && aEnd > bStart;
+    const overlaps = (aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) =>
+      aStart < bEnd && aEnd > bStart;
 
     const accepted: { doctorId: string; startTime: Date; endTime: Date }[] = [];
 
@@ -109,7 +105,10 @@ export class SlotsService {
       await this.prisma.availabilitySlot.createMany({ data: accepted });
     }
 
-    return { created: accepted.length, skipped: slots.length - accepted.length };
+    return {
+      created: accepted.length,
+      skipped: slots.length - accepted.length,
+    };
   }
 
   async findAllByDoctorProfileId(doctorProfileId: string) {

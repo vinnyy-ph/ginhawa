@@ -140,14 +140,15 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
         })
       : null;
 
-    const self = this;
+    const prisma = this.prisma;
+    const getAIRecommendationStream = this.getAIRecommendationStream.bind(this);
     async function* generateStream() {
       if (cachedLog && cachedLog.aiExplanation) {
         yield JSON.stringify({
           specialization: cachedLog.matchedSpecialization,
           explanation: cachedLog.aiExplanation,
         });
-        await self.prisma.recommendationLog.create({
+        await prisma.recommendationLog.create({
           data: {
             patientId,
             symptomInput: createRecommendationDto.symptomInput,
@@ -158,14 +159,14 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
         return;
       }
 
-      const streamGenerator = self.getAIRecommendationStream(
+      const streamGenerator = getAIRecommendationStream(
         createRecommendationDto.symptomInput,
         patientContext,
       );
 
       const parsedResult = yield* streamGenerator;
       try {
-        await self.prisma.recommendationLog.create({
+        await prisma.recommendationLog.create({
           data: {
             patientId,
             symptomInput: createRecommendationDto.symptomInput,

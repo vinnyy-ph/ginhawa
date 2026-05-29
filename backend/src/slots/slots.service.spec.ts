@@ -23,8 +23,14 @@ describe('SlotsService.createBulk', () => {
   });
 
   const candidates = [
-    { startTime: '2026-06-01T01:00:00.000Z', endTime: '2026-06-01T02:00:00.000Z' },
-    { startTime: '2026-06-01T02:00:00.000Z', endTime: '2026-06-01T03:00:00.000Z' },
+    {
+      startTime: '2026-06-01T01:00:00.000Z',
+      endTime: '2026-06-01T02:00:00.000Z',
+    },
+    {
+      startTime: '2026-06-01T02:00:00.000Z',
+      endTime: '2026-06-01T03:00:00.000Z',
+    },
   ];
 
   it('throws when the doctor profile is missing', async () => {
@@ -44,8 +50,16 @@ describe('SlotsService.createBulk', () => {
     expect(result).toEqual({ created: 2, skipped: 0 });
     expect(mockPrisma.availabilitySlot.createMany).toHaveBeenCalledWith({
       data: [
-        { doctorId: 'doctor-1', startTime: new Date(candidates[0].startTime), endTime: new Date(candidates[0].endTime) },
-        { doctorId: 'doctor-1', startTime: new Date(candidates[1].startTime), endTime: new Date(candidates[1].endTime) },
+        {
+          doctorId: 'doctor-1',
+          startTime: new Date(candidates[0].startTime),
+          endTime: new Date(candidates[0].endTime),
+        },
+        {
+          doctorId: 'doctor-1',
+          startTime: new Date(candidates[1].startTime),
+          endTime: new Date(candidates[1].endTime),
+        },
       ],
     });
   });
@@ -53,7 +67,10 @@ describe('SlotsService.createBulk', () => {
   it('skips candidates overlapping an existing slot', async () => {
     mockPrisma.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1' });
     mockPrisma.availabilitySlot.findMany.mockResolvedValue([
-      { startTime: new Date('2026-06-01T01:30:00.000Z'), endTime: new Date('2026-06-01T02:30:00.000Z') },
+      {
+        startTime: new Date('2026-06-01T01:30:00.000Z'),
+        endTime: new Date('2026-06-01T02:30:00.000Z'),
+      },
     ]);
     mockPrisma.availabilitySlot.createMany.mockResolvedValue({ count: 0 });
 
@@ -69,8 +86,14 @@ describe('SlotsService.createBulk', () => {
     mockPrisma.availabilitySlot.createMany.mockResolvedValue({ count: 1 });
 
     const dup = [
-      { startTime: '2026-06-01T01:00:00.000Z', endTime: '2026-06-01T02:00:00.000Z' },
-      { startTime: '2026-06-01T01:30:00.000Z', endTime: '2026-06-01T02:30:00.000Z' },
+      {
+        startTime: '2026-06-01T01:00:00.000Z',
+        endTime: '2026-06-01T02:00:00.000Z',
+      },
+      {
+        startTime: '2026-06-01T01:30:00.000Z',
+        endTime: '2026-06-01T02:30:00.000Z',
+      },
     ];
     const result = await service.createBulk('user-1', dup);
 
@@ -83,7 +106,10 @@ describe('SlotsService.createBulk', () => {
     mockPrisma.availabilitySlot.createMany.mockResolvedValue({ count: 0 });
 
     const bad = [
-      { startTime: '2026-06-01T02:00:00.000Z', endTime: '2026-06-01T01:00:00.000Z' },
+      {
+        startTime: '2026-06-01T02:00:00.000Z',
+        endTime: '2026-06-01T01:00:00.000Z',
+      },
     ];
     const result = await service.createBulk('user-1', bad);
 

@@ -108,11 +108,7 @@ export class MedicalRecordsService {
     return record;
   }
 
-  async update(
-    userId: string,
-    recordId: string,
-    dto: UpdateMedicalRecordDto,
-  ) {
+  async update(userId: string, recordId: string, dto: UpdateMedicalRecordDto) {
     const doctorProfile = await this.prisma.doctorProfile.findUnique({
       where: { userId },
     });
@@ -126,7 +122,9 @@ export class MedicalRecordsService {
       throw new NotFoundException('Medical record not found');
     }
     if (record.doctorId !== doctorProfile.id) {
-      throw new ForbiddenException('You are not authorized to amend this record');
+      throw new ForbiddenException(
+        'You are not authorized to amend this record',
+      );
     }
     return this.prisma.medicalRecord.update({
       where: { id: recordId },
