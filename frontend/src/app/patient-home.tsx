@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { PatientShell } from "@/components/layout/patient-shell";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
 import { formatPHTime, formatPHDate } from '@/lib/datetime';
 import { Card } from "@/components/ui/card";
@@ -71,16 +71,16 @@ export function PatientHome() {
 
   if (loading) {
     return (
-      <PatientShell>
+      <DashboardLayout role="patient">
         <div className="flex justify-center py-20">
           <Spinner size="lg" />
         </div>
-      </PatientShell>
+      </DashboardLayout>
     );
   }
 
   return (
-    <PatientShell>
+    <DashboardLayout role="patient">
       <div className="space-y-8 animate-in fade-in duration-500">
 
         {/* Header */}
@@ -231,6 +231,6 @@ export function PatientHome() {
         </div>
 
       </div>
-    </PatientShell>
+    </DashboardLayout>
   );
 }

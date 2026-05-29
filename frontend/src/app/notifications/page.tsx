@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { notificationHref } from "@/lib/notification-links";
-import { PatientShell } from "@/components/layout/patient-shell";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -68,7 +68,7 @@ export default function PatientNotificationsPage() {
   const unreadCount = notifications.filter(n => !n.readAt).length;
 
   return (
-    <PatientShell>
+    <DashboardLayout role="patient">
       <div className="animate-in fade-in duration-500 max-w-3xl mx-auto">
         
         {/* Header */}
@@ -169,6 +169,6 @@ export default function PatientNotificationsPage() {
           </div>
         )}
       </div>
-    </PatientShell>
+    </DashboardLayout>
   );
 }

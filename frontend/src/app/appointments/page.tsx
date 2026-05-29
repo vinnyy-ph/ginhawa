@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { PatientShell } from "@/components/layout/patient-shell";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -85,7 +85,7 @@ export default function PatientAppointmentsPage() {
   }, [appointments, activeTab]);
 
   return (
-    <PatientShell>
+    <DashboardLayout role="patient">
       <div className="animate-in fade-in duration-500">
         
         {/* Header */}
@@ -163,6 +163,6 @@ export default function PatientAppointmentsPage() {
           </div>
         )}
       </div>
-    </PatientShell>
+    </DashboardLayout>
   );
 }

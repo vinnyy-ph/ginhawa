@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
-import { PatientShell } from "@/components/layout/patient-shell";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
 import { formatPHDate } from '@/lib/datetime';
 import { Spinner } from "@/components/ui/spinner";
@@ -54,7 +54,7 @@ function RecordsContent() {
   }, [highlightId, records]);
 
   return (
-    <PatientShell>
+    <DashboardLayout role="patient">
       <div className="animate-in fade-in duration-500">
         
         {/* Header */}
@@ -194,7 +194,7 @@ function RecordsContent() {
           </div>
         )}
       </div>
-    </PatientShell>
+    </DashboardLayout>
   );
 }
 
