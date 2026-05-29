@@ -58,9 +58,13 @@ export class MedicalRecordsService {
         prescription: createMedicalRecordDto.prescription,
         recommendations: createMedicalRecordDto.recommendations,
         followUpAdvice: createMedicalRecordDto.followUpAdvice,
+        ...(createMedicalRecordDto.prescriptions?.length
+          ? { prescriptions: { create: createMedicalRecordDto.prescriptions } }
+          : {}),
       },
       include: {
         appointment: true,
+        prescriptions: true,
         patient: {
           include: { user: { select: { email: true } } },
         },
@@ -98,6 +102,7 @@ export class MedicalRecordsService {
           include: { user: { select: { email: true } } },
         },
         appointment: true,
+        prescriptions: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -119,6 +124,7 @@ export class MedicalRecordsService {
           include: { user: { select: { email: true } } },
         },
         appointment: true,
+        prescriptions: true,
       },
       orderBy: { createdAt: 'desc' },
     });
