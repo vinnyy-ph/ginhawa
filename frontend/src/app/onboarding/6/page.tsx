@@ -151,6 +151,7 @@ export default function OnboardingStep6() {
         totalSteps={6}
         title="One last check"
         subtitle="Tap EDIT on any field to fix it right here."
+        card={false}
       >
         <ReviewIdCard
           idLabel="Digital Patient ID"
@@ -207,7 +208,7 @@ export default function OnboardingStep6() {
 
           {hasLocationInsurance && (
             <>
-              <div className="col-span-2 h-px bg-outline-variant/30" />
+              <div className="col-span-full h-px bg-outline-variant/30" />
               <EditableRow
                 fullWidth
                 label="Location"
@@ -253,7 +254,7 @@ export default function OnboardingStep6() {
 
           {hasMedical && (
             <>
-              <div className="col-span-2 h-px bg-outline-variant/30" />
+              <div className="col-span-full h-px bg-outline-variant/30" />
               <EditableRow
                 label="Blood Type"
                 display={data.bloodType}
