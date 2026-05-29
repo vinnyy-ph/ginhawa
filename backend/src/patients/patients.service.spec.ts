@@ -123,9 +123,13 @@ describe('PatientsService', () => {
   });
 
   describe('findByUserId', () => {
-    it('should return a profile if found', async () => {
+    it('should return a profile (with medical history) if found', async () => {
       const userId = 'user123';
-      const expectedResult = { id: 'profile123', userId };
+      const expectedResult = {
+        id: 'profile123',
+        userId,
+        medicalHistoryRecord: { id: 'h1', allergies: ['nuts'] },
+      };
       mockPrismaService.patientProfile.findUnique.mockResolvedValue(
         expectedResult,
       );
@@ -134,6 +138,7 @@ describe('PatientsService', () => {
 
       expect(mockPrismaService.patientProfile.findUnique).toHaveBeenCalledWith({
         where: { userId },
+        include: { medicalHistoryRecord: true },
       });
       expect(result).toEqual(expectedResult);
     });

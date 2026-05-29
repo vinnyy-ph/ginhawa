@@ -36,6 +36,7 @@ export class PatientsService {
   async findByUserId(userId: string) {
     const profile = await this.prisma.patientProfile.findUnique({
       where: { userId },
+      include: { medicalHistoryRecord: true },
     });
     if (!profile) throw new NotFoundException('Profile not found');
     return profile;
