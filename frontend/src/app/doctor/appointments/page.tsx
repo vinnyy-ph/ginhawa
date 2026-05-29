@@ -39,16 +39,16 @@ export default function DoctorAppointmentsPage() {
   useEffect(() => {
     if (!token) return;
     const id = setInterval(() => {
-      fetchAppointments();
+      fetchAppointments(true);
     }, 30_000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  async function fetchAppointments() {
+  async function fetchAppointments(silent = false) {
     if (!token) return;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await apiRequest<Appointment[]>("/appointments/doctor", { token });
       // Sort descending by start time
       data.sort((a, b) => new Date(b.slot?.startTime || 0).getTime() - new Date(a.slot?.startTime || 0).getTime());
@@ -56,7 +56,7 @@ export default function DoctorAppointmentsPage() {
     } catch {
       setError("Failed to load your appointments.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
