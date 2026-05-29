@@ -1,9 +1,10 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('reviews')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -17,5 +18,11 @@ export class ReviewsController {
     @Body() createReviewDto: CreateReviewDto,
   ) {
     return this.reviewsService.create(req.user.id, createReviewDto);
+  }
+
+  @Public()
+  @Get('doctor/:doctorId')
+  findByDoctor(@Param('doctorId') doctorId: string) {
+    return this.reviewsService.findByDoctor(doctorId);
   }
 }
