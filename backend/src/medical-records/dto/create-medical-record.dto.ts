@@ -60,6 +60,7 @@ export class CreateMedicalRecordDto {
   prescriptions?: PrescriptionItemDto[];
 
   @IsString()
+  @IsNotEmpty()
   @IsOptional()
   followUpAppointmentId?: string;
 }

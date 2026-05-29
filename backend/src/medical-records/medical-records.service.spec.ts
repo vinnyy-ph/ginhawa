@@ -108,7 +108,22 @@ describe('MedicalRecordsService', () => {
           appointmentId: 'appt-1',
           followUpAppointmentId: 'followup-1',
         } as any),
-      ).rejects.toThrow('Invalid follow-up appointment');
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects a follow-up appointment that does not exist', async () => {
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1', fullName: 'Dr. S' });
+      mockPrismaService.appointment.findUnique
+        .mockResolvedValueOnce({ id: 'appt-1', doctorId: 'doctor-1', patientId: 'patient-1' })
+        .mockResolvedValueOnce(null);
+      mockPrismaService.medicalRecord.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.create('user-doctor-1', {
+          appointmentId: 'appt-1',
+          followUpAppointmentId: 'followup-missing',
+        } as any),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('links a valid follow-up appointment', async () => {
