@@ -56,15 +56,50 @@ export interface Appointment {
   status: AppointmentStatus;
   reasonForVisit: string;
   consultationLink?: string | null;
+  liveNotes?: string | null;
   bookedAt: string;
   updatedAt: string;
   // Included relations (from backend include: { doctor: true, slot: true })
   doctor?: DoctorProfile;
   patient?: PatientSummary;
   slot?: AvailabilitySlot;
+  medicalRecord?: MedicalRecord | null;
+}
+
+// ─── Doctor's patients (GET /appointments/doctor/patients) ──────────────────
+
+export interface DoctorPatientSummary {
+  patient: PatientSummary;
+  totalVisits: number;
+  upcomingCount: number;
+  lastVisit: string | null; // ISO datetime of latest past visit
+  searchText: string;
+}
+
+// GET /appointments/doctor/patients/:patientId
+export interface DoctorPatientHistory {
+  patient: PatientSummary & {
+    birthdate: string;
+    phoneNumber?: string | null;
+    city?: string | null;
+    region?: string | null;
+    medicalHistory?: string | null;
+  };
+  appointments: Appointment[]; // each may include medicalRecord + prescriptions
 }
 
 // ─── Medical Record ──────────────────────────────────────────────────────────
+
+export interface Prescription {
+  id: string;
+  medicalRecordId: string;
+  drugName: string;
+  dosage: string;
+  frequency: string;
+  durationDays?: number | null;
+  instructions?: string | null;
+  issuedAt: string;
+}
 
 export interface MedicalRecord {
   id: string;
@@ -79,6 +114,7 @@ export interface MedicalRecord {
   // Included relations
   doctor?: DoctorProfile;
   appointment?: Appointment;
+  prescriptions?: Prescription[];
 }
 
 // ─── Notification ─────────────────────────────────────────────────────────────
