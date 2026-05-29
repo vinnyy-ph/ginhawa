@@ -49,6 +49,17 @@ export const ONBOARDING_DEFAULTS: OnboardingData = {
   profilePictureUrl: null,
 };
 
+/** Structured medical history nested under GET /patients/profile */
+export interface PatientMedicalHistoryRecord {
+  bloodType: string | null;
+  allergies: string[];
+  chronicConditions: string[];
+  currentMedications: string[];
+  pastSurgeries: string | null;
+  familyHistory: string | null;
+  smokingStatus: string | null;
+}
+
 /** Shape returned by GET /patients/profile */
 export interface PatientProfile {
   id: string;
@@ -60,6 +71,13 @@ export interface PatientProfile {
   profilePictureUrl: string | null;
   contactDetails: string | null;
   medicalHistory: string | null;
+  address: string | null;
+  city: string | null;
+  region: string | null;
+  philhealthId: string | null;
+  hmoProvider: string | null;
+  hmoCardNo: string | null;
+  medicalHistoryRecord: PatientMedicalHistoryRecord | null;
   createdAt: string;
   updatedAt: string;
 }
