@@ -1,27 +1,45 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { CheckCircledIcon } from "@radix-ui/react-icons";
-import { SlotPicker } from "@/components/booking/slot-picker";
+import { BookingCalendar, phDateKey } from "@/components/booking/booking-calendar";
+import { formatPHTime } from "@/lib/datetime";
+import { cn } from "@/lib/utils";
 import type { AvailabilitySlot } from "@/types/api";
 
 export function DoctorBookingPanel({ slots }: { slots: AvailabilitySlot[] }) {
   const router = useRouter();
   const { data: session } = useSession();
 
+  const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
   const [reason, setReason] = useState("");
   const [isBooking, setIsBooking] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
 
+  const slotsForDay = useMemo(() => {
+    if (!selectedDateKey) return [];
+    return slots
+      .filter((s) => phDateKey(s.startTime) === selectedDateKey)
+      .sort(
+        (a, b) =>
+          new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+      );
+  }, [slots, selectedDateKey]);
+
+  function handleSelectDate(dateKey: string) {
+    setSelectedDateKey(dateKey);
+    setSelectedSlot(null);
+  }
+
   async function handleBookAppointment(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedSlot || !reason.trim() || reason.trim().length < 5) return;
+    if (!selectedSlot || reason.trim().length < 5) return;
     try {
       setIsBooking(true);
       setBookingError(null);
@@ -43,27 +61,68 @@ export function DoctorBookingPanel({ slots }: { slots: AvailabilitySlot[] }) {
     }
   }
 
+  if (slots.length === 0) {
+    return (
+      <div className="bg-surface py-6 px-4 rounded-lg text-center">
+        <p className="text-on-surface-variant text-sm">
+          No available slots at the moment.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
       {bookingSuccess && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
           <div className="bg-brand text-white px-6 py-3 rounded-xl shadow-lifted flex items-center gap-3">
             <CheckCircledIcon className="w-5 h-5" />
-            <span className="font-medium">Request sent — your doctor will confirm shortly.</span>
+            <span className="font-medium">
+              Request sent — your doctor will confirm shortly.
+            </span>
           </div>
         </div>
       )}
 
-      <div className="mb-6">
-        <h4 className="text-xs font-semibold text-text-primary mb-3 uppercase tracking-wider">
-          Available Slots
-        </h4>
-        <SlotPicker
-          slots={slots}
-          selectedSlot={selectedSlot}
-          onSelectSlot={setSelectedSlot}
-        />
-      </div>
+      <BookingCalendar
+        slots={slots}
+        selectedDateKey={selectedDateKey}
+        onSelectDate={handleSelectDate}
+      />
+
+      {selectedDateKey && (
+        <div className="mt-4">
+          <h4 className="text-xs font-semibold text-text-primary mb-3 uppercase tracking-wider">
+            Available Times
+          </h4>
+          {slotsForDay.length === 0 ? (
+            <p className="text-sm text-on-surface-variant">
+              No times left for this day.
+            </p>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {slotsForDay.map((slot) => {
+                const isSelected = selectedSlot?.id === slot.id;
+                return (
+                  <button
+                    type="button"
+                    key={slot.id}
+                    onClick={() => setSelectedSlot(slot)}
+                    className={cn(
+                      "py-2 px-1 text-xs font-medium rounded-md transition-all border text-center",
+                      isSelected
+                        ? "bg-primary text-white border-primary shadow-sm"
+                        : "bg-surface hover:border-primary/50 text-on-surface-variant border-outline-variant hover:text-primary"
+                    )}
+                  >
+                    {formatPHTime(slot.startTime)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {selectedSlot && (
         <div className="animate-in fade-in slide-in-from-top-4 duration-300">
@@ -95,7 +154,10 @@ export function DoctorBookingPanel({ slots }: { slots: AvailabilitySlot[] }) {
               {isBooking ? "Confirming…" : "Confirm Booking"}
             </Button>
             {reason.trim().length < 5 && (
-              <p className="mt-2 text-xs text-on-surface-variant">Add a brief reason for your visit (at least 5 characters) to continue.</p>
+              <p className="mt-2 text-xs text-on-surface-variant">
+                Add a brief reason for your visit (at least 5 characters) to
+                continue.
+              </p>
             )}
           </form>
         </div>
