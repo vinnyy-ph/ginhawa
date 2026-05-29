@@ -48,6 +48,10 @@ describe('AppointmentsService', () => {
     },
     appointment: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
+    },
+    doctorProfile: {
+      findUnique: jest.fn(),
     },
     $transaction: jest.fn(),
   };
@@ -68,10 +72,16 @@ describe('AppointmentsService', () => {
     service = module.get<AppointmentsService>(AppointmentsService);
     jest.clearAllMocks();
 
-    mockPrismaService.patientProfile.findUnique.mockResolvedValue({ id: 'patient-1', fullName: 'Jane Doe' });
+    mockPrismaService.patientProfile.findUnique.mockResolvedValue({
+      id: 'patient-1',
+      fullName: 'Jane Doe',
+    });
     mockPrismaService.$transaction.mockImplementation(async (cb) => cb(mockTx));
     mockTx.availabilitySlot.findUnique.mockResolvedValue(mockSlot);
-    mockTx.availabilitySlot.update.mockResolvedValue({ ...mockSlot, status: SlotStatus.BOOKED });
+    mockTx.availabilitySlot.update.mockResolvedValue({
+      ...mockSlot,
+      status: SlotStatus.BOOKED,
+    });
     mockTx.appointment.create.mockResolvedValue(mockAppointment);
     mockTx.payment.create.mockResolvedValue({ id: 'payment-1' });
   });
@@ -120,7 +130,9 @@ describe('AppointmentsService', () => {
   });
 
   it('includes payment when listing patient appointments', async () => {
-    mockPrismaService.patientProfile.findUnique.mockResolvedValue({ id: 'patient-1' });
+    mockPrismaService.patientProfile.findUnique.mockResolvedValue({
+      id: 'patient-1',
+    });
     mockPrismaService.appointment.findMany = jest.fn().mockResolvedValue([]);
 
     await service.findAllForPatient('user-1');
@@ -156,14 +168,24 @@ describe('AppointmentsService', () => {
     };
 
     beforeEach(() => {
-      mockPrismaService.appointment.findUnique = jest.fn().mockResolvedValue(oldAppt);
+      mockPrismaService.appointment.findUnique = jest
+        .fn()
+        .mockResolvedValue(oldAppt);
       rtx.availabilitySlot.findUnique.mockResolvedValue(newSlot);
-      rtx.appointment.create.mockResolvedValue({ id: 'appt-2', rescheduledFromId: 'appt-1' });
+      rtx.appointment.create.mockResolvedValue({
+        id: 'appt-2',
+        rescheduledFromId: 'appt-1',
+      });
       mockPrismaService.$transaction.mockImplementation(async (cb) => cb(rtx));
     });
 
     it('links the new appointment to the old and marks the old RESCHEDULED', async () => {
-      const result = await service.reschedule('user-patient-1', 'PATIENT', 'appt-1', 'slot-new');
+      const result = await service.reschedule(
+        'user-patient-1',
+        'PATIENT',
+        'appt-1',
+        'slot-new',
+      );
 
       expect(rtx.appointment.update).toHaveBeenCalledWith({
         where: { id: 'appt-1' },
@@ -182,7 +204,10 @@ describe('AppointmentsService', () => {
     });
 
     it('rejects a slot belonging to a different doctor', async () => {
-      rtx.availabilitySlot.findUnique.mockResolvedValue({ ...newSlot, doctorId: 'doctor-2' });
+      rtx.availabilitySlot.findUnique.mockResolvedValue({
+        ...newSlot,
+        doctorId: 'doctor-2',
+      });
       await expect(
         service.reschedule('user-patient-1', 'PATIENT', 'appt-1', 'slot-new'),
       ).rejects.toThrow('Slot belongs to a different doctor');
@@ -191,15 +216,20 @@ describe('AppointmentsService', () => {
 
   describe('findPatientsForDoctor', () => {
     beforeEach(() => {
-      mockPrismaService.doctorProfile = { findUnique: jest.fn() } as any;
-      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1' });
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({
+        id: 'doctor-1',
+      });
     });
 
     it('builds searchText from reason, record notes and prescriptions', async () => {
-      mockPrismaService.appointment.findMany = jest.fn().mockResolvedValue([
+      mockPrismaService.appointment.findMany.mockResolvedValue([
         {
           patientId: 'patient-1',
-          patient: { id: 'patient-1', fullName: 'Maria Santos', profilePictureUrl: null },
+          patient: {
+            id: 'patient-1',
+            fullName: 'Maria Santos',
+            profilePictureUrl: null,
+          },
           status: AppointmentStatus.COMPLETED,
           reasonForVisit: 'follow up',
           slot: { startTime: new Date(Date.now() - 86400000) },
@@ -209,7 +239,12 @@ describe('AppointmentsService', () => {
             followUpAdvice: null,
             prescription: null,
             prescriptions: [
-              { drugName: 'Paracetamol', dosage: '500mg', frequency: 'BID', instructions: 'after meals' },
+              {
+                drugName: 'Paracetamol',
+                dosage: '500mg',
+                frequency: 'BID',
+                instructions: 'after meals',
+              },
             ],
           },
         },
@@ -227,10 +262,14 @@ describe('AppointmentsService', () => {
     });
 
     it('handles appointments with no medical record', async () => {
-      mockPrismaService.appointment.findMany = jest.fn().mockResolvedValue([
+      mockPrismaService.appointment.findMany.mockResolvedValue([
         {
           patientId: 'patient-2',
-          patient: { id: 'patient-2', fullName: 'Jose Cruz', profilePictureUrl: null },
+          patient: {
+            id: 'patient-2',
+            fullName: 'Jose Cruz',
+            profilePictureUrl: null,
+          },
           status: AppointmentStatus.PENDING,
           reasonForVisit: 'cough',
           slot: { startTime: new Date(Date.now() + 86400000) },
