@@ -32,10 +32,8 @@ export default function DoctorOnboardingStep5() {
     ? [data.specialization, ...specializations]
     : specializations;
 
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoFile = async (file: File) => {
     setPhotoError(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
     if (!ALLOWED_TYPES.includes(file.type)) {
       setPhotoError('Please upload a JPEG, PNG, or WebP image.');
       return;
@@ -113,7 +111,7 @@ export default function DoctorOnboardingStep5() {
           photoUrl={data.profilePictureUrl}
           uploadingPhoto={uploadingPhoto}
           photoError={photoError}
-          onPhotoChange={handlePhotoChange}
+          onPhotoFile={handlePhotoFile}
         >
           <EditableRow label="Full Name" display={data.fullName} initial={{ fullName: data.fullName }} onSave={update}
             render={(d, set) => <input className={editInputClass} value={d.fullName} onChange={(e) => set('fullName', e.target.value)} />} />

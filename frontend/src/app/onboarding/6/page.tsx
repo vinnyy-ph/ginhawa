@@ -45,10 +45,8 @@ export default function OnboardingStep6() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
 
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoFile = async (file: File) => {
     setPhotoError(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
     if (!ALLOWED_TYPES.includes(file.type)) {
       setPhotoError('Please upload a JPEG, PNG, or WebP image.');
       return;
@@ -163,7 +161,7 @@ export default function OnboardingStep6() {
           photoUrl={data.profilePictureUrl}
           uploadingPhoto={uploadingPhoto}
           photoError={photoError}
-          onPhotoChange={handlePhotoChange}
+          onPhotoFile={handlePhotoFile}
         >
           <EditableRow
             label="Full Name"

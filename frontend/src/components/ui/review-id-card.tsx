@@ -2,8 +2,10 @@
 'use client';
 
 import * as React from 'react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Spinner } from './spinner';
+import { Button } from './button';
+import { CameraCapture } from './camera-capture';
 
 /**
  * Shared premium "ID card" header for review steps (patient + doctor).
@@ -17,7 +19,7 @@ export function ReviewIdCard({
   photoUrl,
   uploadingPhoto,
   photoError,
-  onPhotoChange,
+  onPhotoFile,
   statusLabel = 'Profile Complete',
   children,
 }: {
@@ -27,11 +29,12 @@ export function ReviewIdCard({
   photoUrl?: string | null;
   uploadingPhoto: boolean;
   photoError?: string | null;
-  onPhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onPhotoFile: (file: File) => void;
   statusLabel?: string;
   children: React.ReactNode;
 }) {
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   return (
     <div className="bg-surface-white rounded-lg shadow-lifted overflow-hidden">
@@ -70,7 +73,10 @@ export function ReviewIdCard({
               accept="image/jpeg,image/png,image/webp"
               className="sr-only"
               aria-label="Upload profile picture"
-              onChange={onPhotoChange}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onPhotoFile(file);
+              }}
             />
           </div>
           <div className="flex flex-col min-w-0">
@@ -90,6 +96,17 @@ export function ReviewIdCard({
             {photoError && (
               <span role="alert" className="text-xs font-medium text-white/90 mt-1">{photoError}</span>
             )}
+            <div className="mt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="bg-white/90 text-primary border-white/0 hover:bg-white"
+                onClick={() => setCameraOpen(true)}
+              >
+                Take photo
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -97,6 +114,7 @@ export function ReviewIdCard({
       <div className="p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
         {children}
       </div>
+      <CameraCapture open={cameraOpen} onClose={() => setCameraOpen(false)} onCapture={onPhotoFile} />
     </div>
   );
 }
