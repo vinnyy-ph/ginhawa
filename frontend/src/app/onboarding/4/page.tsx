@@ -85,7 +85,7 @@ export default function OnboardingStep4() {
   return (
     <OnboardingShell step={4} totalSteps={6} title="Medical History" subtitle="Helps your doctor understand your health context. All optional and kept private — separate items with commas.">
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField id="ob4-bloodType" label="Blood type" error={errors.bloodType?.message}>
             <select className={onboardingInputClass} {...register('bloodType')}>
               <option value="">Select…</option>

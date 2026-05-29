@@ -56,7 +56,7 @@ export default function OnboardingStep2() {
           <input type="text" autoComplete="street-address" placeholder="123 Mabini St." className={onboardingInputClass} {...register('address')} />
         </FormField>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField id="ob2-city" label="City" error={errors.city?.message}>
             <input type="text" autoComplete="address-level2" placeholder="Quezon City" className={onboardingInputClass} {...register('city')} />
           </FormField>
@@ -79,7 +79,7 @@ export default function OnboardingStep2() {
           />
         </FormField>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField id="ob2-hmoProvider" label="HMO Provider" error={errors.hmoProvider?.message}>
             <input type="text" placeholder="Maxicare" className={onboardingInputClass} {...register('hmoProvider')} />
           </FormField>
