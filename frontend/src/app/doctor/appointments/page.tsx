@@ -69,7 +69,7 @@ function DoctorAppointmentsContent() {
     }
   }
 
-  async function updateStatus(id: string, newStatus: AppointmentStatus) {
+  async function updateStatus(id: string, newStatus: AppointmentStatus, cancelReason?: string) {
     if (!token) return;
     setActionError(null);
     setActionSuccess(null);
@@ -81,14 +81,16 @@ function DoctorAppointmentsContent() {
       await apiRequest(`/appointments/${id}/status`, {
         method: "PATCH",
         token,
-        body: { status: newStatus }
+        body: { status: newStatus, ...(cancelReason ? { cancelReason } : {}) }
       });
 
       setActionSuccess(
         newStatus === 'CONFIRMED'
           ? 'Request confirmed — the patient has been notified.'
           : newStatus === 'CANCELLED'
-          ? 'Appointment cancelled.'
+          ? (cancelReason
+              ? 'Request declined — the patient has been notified.'
+              : 'Appointment cancelled — the patient has been notified.')
           : 'Appointment updated.',
       );
       setTimeout(() => setActionSuccess(null), 4000);

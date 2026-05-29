@@ -16,7 +16,7 @@ export interface AppointmentCardProps {
 
   // Common props
   isUpdating?: boolean;
-  onUpdateStatus?: (id: string, status: AppointmentStatus) => void;
+  onUpdateStatus?: (id: string, status: AppointmentStatus, cancelReason?: string) => void;
   token?: string;
   onRescheduled?: () => void;
 
@@ -60,6 +60,7 @@ export function AppointmentCard({
   const slot = appt.slot;
   const config = statusConfig[appt.status] || { variant: "outline", border: "border-l-outline" };
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
   const [, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 30_000);
@@ -261,23 +262,31 @@ export function AppointmentCard({
                   onClick={() => setConfirmCancel(true)}
                   className="bg-error/10 text-error hover:bg-error/20 border-0"
                 >
-                  Cancel
+                  Decline
                 </Button>
               ) : (
-                <div className="flex items-center gap-2 text-xs font-semibold">
-                  <span className="text-error">Cancel?</span>
-                  <button
-                    onClick={() => { onUpdateStatus?.(appt.id, "CANCELLED"); setConfirmCancel(false); }}
-                    className="px-2 py-1 bg-error text-white rounded shadow-sm hover:bg-error/90"
-                  >
-                    Yes
-                  </button>
-                  <button
-                    onClick={() => setConfirmCancel(false)}
-                    className="px-2 py-1 bg-surface-container text-on-surface-variant rounded hover:bg-surface-variant"
-                  >
-                    No
-                  </button>
+                <div className="flex flex-col gap-2 w-full text-xs font-semibold">
+                  <textarea
+                    rows={2}
+                    value={declineReason}
+                    onChange={e => setDeclineReason(e.target.value)}
+                    placeholder="Reason for declining (optional, shared with the patient)"
+                    className="w-full resize-none rounded-md border border-outline-variant/50 bg-surface px-2.5 py-1.5 text-xs text-on-surface-variant placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => { onUpdateStatus?.(appt.id, "CANCELLED", declineReason.trim() || undefined); setConfirmCancel(false); }}
+                      className="px-2 py-1 bg-error text-white rounded shadow-sm hover:bg-error/90"
+                    >
+                      Send decline
+                    </button>
+                    <button
+                      onClick={() => setConfirmCancel(false)}
+                      className="px-2 py-1 bg-surface-container text-on-surface-variant rounded hover:bg-surface-variant"
+                    >
+                      Back
+                    </button>
+                  </div>
                 </div>
               )}
               <Button variant="default" size="sm" onClick={() => onUpdateStatus?.(appt.id, "CONFIRMED")}>
