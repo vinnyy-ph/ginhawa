@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api-client";
-import type { DoctorProfile, AvailabilitySlot } from "@/types/api";
+import type { DoctorProfile, AvailabilitySlot, DoctorReview } from "@/types/api";
 
 export function useDoctorDetail(id: string) {
   const [doctor, setDoctor] = useState<DoctorProfile | null>(null);
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
+  const [reviews, setReviews] = useState<DoctorReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,9 +14,10 @@ export function useDoctorDetail(id: string) {
       try {
         setLoading(true);
         setError(null);
-        const [doctorData, slotsData] = await Promise.all([
+        const [doctorData, slotsData, reviewsData] = await Promise.all([
           apiRequest<DoctorProfile>(`/doctors/${id}`),
           apiRequest<AvailabilitySlot[]>(`/doctors/${id}/slots`),
+          apiRequest<DoctorReview[]>(`/reviews/doctor/${id}`),
         ]);
         setDoctor(doctorData);
         const now = new Date();
@@ -26,6 +28,7 @@ export function useDoctorDetail(id: string) {
               new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
           );
         setSlots(availableSlots);
+        setReviews(reviewsData);
       } catch {
         setError(
           "Failed to load doctor profile. They may not exist or are unavailable."
@@ -37,5 +40,5 @@ export function useDoctorDetail(id: string) {
     if (id) fetchDoctorAndSlots();
   }, [id]);
 
-  return { doctor, slots, loading, error };
+  return { doctor, slots, reviews, loading, error };
 }
