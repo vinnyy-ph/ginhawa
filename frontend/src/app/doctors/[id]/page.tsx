@@ -138,9 +138,6 @@ export default function DoctorProfilePage({ params }: { params: Promise<{ id: st
                 {doctor.professionalTitle ? `${doctor.professionalTitle} ` : ""}
                 {doctor.fullName}
               </h1>
-              <p className="text-white/75 text-base mb-4">
-                {doctor.specialization}
-              </p>
               <div className="flex flex-wrap gap-2">
                 <span className="bg-white/20 text-white text-sm px-3 py-1 rounded-full font-medium">
                   {doctor.specialization}

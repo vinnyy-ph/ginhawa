@@ -18,29 +18,24 @@ export function Footer() {
             </p>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-text-primary mb-4 uppercase tracking-wider">Product</h3>
+            <h3 className="text-sm font-bold text-text-primary mb-4 font-serif">Product</h3>
             <ul className="space-y-2 text-sm text-on-surface-variant">
               <li><Link href="/features" className="hover:text-primary transition-colors">Features</Link></li>
               <li><Link href="/for-doctors" className="hover:text-primary transition-colors">For Doctors</Link></li>
-              </ul>
-              </div>
-              <div>
-              <h3 className="font-bold text-text-primary mb-4 font-serif">Legal</h3>
-              <ul className="space-y-2 text-sm text-on-surface-variant">
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-text-primary mb-4 font-serif">Legal</h3>
+            <ul className="space-y-2 text-sm text-on-surface-variant">
               <li><span className="hover:text-primary transition-colors cursor-not-allowed">Privacy Policy</span></li>
               <li><span className="hover:text-primary transition-colors cursor-not-allowed">Terms of Service</span></li>
-              </ul>
-              </div>
+            </ul>
+          </div>
         </div>
         <div className="border-t border-outline-variant pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-on-surface-variant">
             © {new Date().getFullYear()} Ginhawa Telehealth. All rights reserved.
           </p>
-          <div className="flex gap-6 grayscale opacity-50">
-            {/* Placeholder icons for trust badges */}
-            <div className="h-6 w-20 bg-on-surface-variant/20 rounded" />
-            <div className="h-6 w-20 bg-on-surface-variant/20 rounded" />
-          </div>
         </div>
       </div>
     </footer>
