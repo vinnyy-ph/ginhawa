@@ -27,7 +27,7 @@ const statusColors: Record<string, "secondary" | "success" | "destructive" | "in
 export function DoctorDashboardClient() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
-  const doctorName = session?.user?.email?.split('@')[0] || "Doctor";
+  const doctorName = session?.user?.name || session?.user?.email?.split('@')[0] || "Doctor";
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);

@@ -29,7 +29,7 @@ const statusColors: Record<string, "secondary" | "success" | "destructive" | "in
 export function DashboardClient() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
-  const patientEmail = session?.user?.email || "Patient";
+  const patientName = session?.user?.name || session?.user?.email?.split('@')[0] || "Patient";
   
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -85,7 +85,7 @@ export function DashboardClient() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold font-serif text-text-primary mb-2">
-            Welcome back, {patientEmail.split('@')[0]}
+            Welcome back, {patientName}
           </h1>
           <p className="text-on-surface-variant font-sans">
             Here&apos;s an overview of your health journey with Ginhawa.

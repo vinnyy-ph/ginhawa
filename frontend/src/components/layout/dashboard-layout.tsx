@@ -110,10 +110,10 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
           {session?.user?.email && (
             <div className="flex items-center gap-3 mb-3 px-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                {session.user.email.charAt(0).toUpperCase()}
+                {(session.user.name || session.user.email).charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-on-surface truncate">{session.user.email}</p>
+                <p className="text-xs font-semibold text-on-surface truncate">{session.user.name || session.user.email}</p>
                 <p className="text-xs text-on-surface-variant capitalize">{role}</p>
               </div>
             </div>

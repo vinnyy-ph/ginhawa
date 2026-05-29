@@ -84,26 +84,27 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should return access token and user info with role and without name', () => {
+    it('should include doctor profile fullName as name', () => {
       const user = {
         id: '1',
         email: 'test@example.com',
         role: Role.DOCTOR,
         createdAt: new Date(),
         updatedAt: new Date(),
+        doctorProfile: { fullName: 'Dr. Jane Cruz' },
       };
       const token = 'jwtToken';
       mockJwtService.sign.mockReturnValue(token);
 
       const result = service.login(user);
 
-      expect(result.user).not.toHaveProperty('name');
       expect(result).toEqual({
         access_token: token,
         user: {
           id: user.id,
           email: user.email,
           role: Role.DOCTOR,
+          name: 'Dr. Jane Cruz',
         },
       });
       expect(mockJwtService.sign).toHaveBeenCalledWith({
@@ -111,6 +112,37 @@ describe('AuthService', () => {
         sub: user.id,
         role: user.role,
       });
+    });
+
+    it('should include patient profile fullName as name', () => {
+      const user = {
+        id: '2',
+        email: 'pat@example.com',
+        role: Role.PATIENT,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        patientProfile: { fullName: 'Juan Dela Cruz' },
+      };
+      mockJwtService.sign.mockReturnValue('t');
+
+      const result = service.login(user);
+
+      expect(result.user.name).toBe('Juan Dela Cruz');
+    });
+
+    it('should set name to null when no profile exists', () => {
+      const user = {
+        id: '3',
+        email: 'new@example.com',
+        role: Role.PATIENT,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      mockJwtService.sign.mockReturnValue('t');
+
+      const result = service.login(user);
+
+      expect(result.user.name).toBeNull();
     });
   });
 
@@ -139,7 +171,7 @@ describe('AuthService', () => {
       expect(mockUsersService.create).toHaveBeenCalledWith(createUserDto);
       expect(result).toEqual({
         access_token: token,
-        user: { id: '2', email: 'new@example.com', role: Role.PATIENT },
+        user: { id: '2', email: 'new@example.com', role: Role.PATIENT, name: null },
       });
     });
   });
