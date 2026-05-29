@@ -23,7 +23,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 - [ ] **P8** Patient mobile bottom-nav
 
 ## Doctor UX
-- [ ] **D1** Dashboard launchpad: clickable stat cards, today-only filter, Join in schedule rows
+- [x] **D1** Dashboard launchpad: clickable stats (deep-linked), actionable today schedule, Join in rows — `5dfca75`
 - [x] **D2** Dashboard load-fail → error + Retry (not false empty) — `615c5ec`
 - [x] **D3** Gate Complete & Document until slot ends (no overlap with Join) — `1b3acf5`
 - [x] **D4** Confirm/cancel success banner on doctor appointments — `1b3acf5`
