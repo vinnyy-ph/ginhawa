@@ -20,6 +20,10 @@ export function DoctorCardCompact({ doctor }: DoctorCardCompactProps) {
     ? doctor.consultationFocusAreas.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
 
+  const hasMeta =
+    (doctor.yearsOfExperience !== undefined && doctor.yearsOfExperience !== null) ||
+    (doctor.consultationFee !== undefined && doctor.consultationFee !== null);
+
   // Availability status (ported from DoctorCard)
   let availabilityStatus = "Fully Booked";
   let badgeColor =
@@ -121,7 +125,8 @@ export function DoctorCardCompact({ doctor }: DoctorCardCompactProps) {
       )}
 
       {/* Meta + action, pinned to bottom */}
-      <div className="mt-auto pt-5">
+      <div className="mt-auto">
+        {hasMeta && (
         <div className="flex items-center gap-6 pt-4 border-t border-outline-variant/20 mb-4">
           {doctor.yearsOfExperience !== undefined &&
             doctor.yearsOfExperience !== null && (
@@ -147,6 +152,7 @@ export function DoctorCardCompact({ doctor }: DoctorCardCompactProps) {
               </div>
             )}
         </div>
+        )}
 
         <Link
           href={`/doctors/${doctor.id}`}
