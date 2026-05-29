@@ -134,9 +134,13 @@ export default function OnboardingStep6() {
         await apiRequest('/patients/medical-history', { method: 'PATCH', body: medicalBody, token });
       }
 
-      reset();
       setShowToast(true);
-      setTimeout(() => router.push('/dashboard'), 1800);
+      // Clear context only as we navigate away — resetting now would blank the
+      // ID-card fields during the 1.8s toast window.
+      setTimeout(() => {
+        reset();
+        router.push('/dashboard');
+      }, 1800);
     } catch {
       setServerError('Something went wrong. Please try again.');
     } finally {
