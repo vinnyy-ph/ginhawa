@@ -5,7 +5,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 ## Showstoppers
 - [x] **S1** Onboarding state persistence (sessionStorage) — `f5dc719`
 - [x] **S2** PRC license saved (no verification, MVP) — `b3a0265`
-- [ ] **S3** Show ratings + credentials (DoctorCard / DoctorAbout / hero)
+- [x] **S3** Show ratings (stars + count) on DoctorCard + DoctorAbout — `ac8e9d4`
 - [x] **S4** Patient not ejected on transient call drop (reconnecting + manual return) — `6fb0948`
 - [x] **S5** Camera/mic permission error UX + retry (consultation join) — `a59956d`
 - [x] **S6** AI-prescription verify gate + publish confirm + amend path + field labels aligned — `d831c55`, `579bbbd`
