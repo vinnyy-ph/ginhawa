@@ -39,6 +39,7 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
   const callFrameRef = useRef<DailyCall | null>(null);
   const hasJoinedRef = useRef(false);
 
+  const [deviceError, setDeviceError] = useState<string | null>(null);
   const [doctorDisconnected, setDoctorDisconnected] = useState(false);
   const [showReturn, setShowReturn] = useState(false);
   const returnTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -61,8 +62,22 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
     });
     callFrameRef.current = callFrame;
 
-    callFrame.join({ url: roomUrl, userName: userName ?? undefined });
-    callFrame.on('joined-meeting', () => { hasJoinedRef.current = true; });
+    callFrame.join({ url: roomUrl, userName: userName ?? undefined }).catch(() => {
+      setDeviceError(
+        "We couldn't start your camera or microphone. Check that your browser has permission, then retry.",
+      );
+    });
+    callFrame.on('joined-meeting', () => {
+      hasJoinedRef.current = true;
+      setDeviceError(null);
+    });
+
+    const handleDeviceError = () => {
+      setDeviceError(
+        "Camera or microphone access is blocked. Allow access from your browser's address bar, then click Retry.",
+      );
+    };
+    callFrame.on('camera-error', handleDeviceError);
 
     const handleAppMessage = (event: DailyEventObjectAppMessage) => {
       if (event.data?.type === 'call-ended') {
@@ -97,6 +112,7 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
         callFrame.off('participant-left', handleParticipantLeft);
         callFrame.off('participant-joined', handleParticipantJoined);
       }
+      callFrame.off('camera-error', handleDeviceError);
       if (returnTimerRef.current) clearTimeout(returnTimerRef.current);
       callFrame.destroy();
       callFrameRef.current = null;
@@ -165,6 +181,20 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
                   Return to appointments
                 </button>
               )}
+            </div>
+          </div>
+        )}
+        {deviceError && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#0a0a0a]/80 p-4">
+            <div className="bg-surface-white rounded-xl shadow-lifted px-6 py-5 max-w-sm text-center space-y-3">
+              <p className="text-sm font-semibold text-text-primary">Camera / microphone unavailable</p>
+              <p className="text-sm text-on-surface-variant">{deviceError}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="text-sm font-medium text-white bg-[#31a795] hover:bg-[#006b5e] rounded-md px-4 py-2 transition-colors"
+              >
+                Retry
+              </button>
             </div>
           </div>
         )}
