@@ -1,171 +1,120 @@
 // frontend/src/app/onboarding/4/page.tsx
 'use client';
 
-import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { apiUpload, ApiError } from '@/lib/api-client';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  medicalHistorySchema,
+  type MedicalHistorySchema,
+} from '@/lib/schemas/onboarding.schemas';
 import { useOnboarding } from '@/context/onboarding-context';
 import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { FormField } from '@/components/ui/form-field';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 
-const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
+const SMOKING_OPTIONS = [
+  { value: '', label: 'Prefer not to say' },
+  { value: 'Never', label: 'Never' },
+  { value: 'Former', label: 'Former' },
+  { value: 'Current', label: 'Current' },
+];
 
 export default function OnboardingStep4() {
   const router = useRouter();
-  const { data: session } = useSession();
   const { data, update } = useOnboarding();
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  const [preview, setPreview] = useState<string | null>(data.profilePictureUrl ?? null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileError, setFileError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<MedicalHistorySchema>({
+    resolver: zodResolver(medicalHistorySchema),
+    defaultValues: {
+      bloodType: data.bloodType,
+      allergies: data.allergies,
+      chronicConditions: data.chronicConditions,
+      currentMedications: data.currentMedications,
+      pastSurgeries: data.pastSurgeries,
+      familyHistory: data.familyHistory,
+      smokingStatus: data.smokingStatus,
+    },
+    mode: 'onBlur',
+  });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFileError(null);
-    setServerError(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setFileError('Please upload a JPEG, PNG, or WebP image.');
-      return;
-    }
-    if (file.size > MAX_BYTES) {
-      setFileError('Image must be under 5MB.');
-      return;
-    }
-
-    setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => setPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
+  const onSubmit = (values: MedicalHistorySchema) => {
+    update({
+      bloodType: values.bloodType ?? '',
+      allergies: values.allergies ?? '',
+      chronicConditions: values.chronicConditions ?? '',
+      currentMedications: values.currentMedications ?? '',
+      pastSurgeries: values.pastSurgeries ?? '',
+      familyHistory: values.familyHistory ?? '',
+      smokingStatus: values.smokingStatus ?? '',
+    });
+    router.push('/onboarding/5');
   };
 
-  const handleUploadAndContinue = async () => {
-    setServerError(null);
-
-    if (!selectedFile) {
-      if (data.profilePictureUrl) {
-        router.push('/onboarding/5');
-        return;
-      }
-
-      setServerError('Please upload a profile picture to continue.');
-      return;
-    }
-
-    setUploading(true);
-
-    const token = session?.user?.accessToken;
-    if (!token) {
-      setServerError('Session expired. Please log in again.');
-      setUploading(false);
-      return;
-    }
-
-    try {
-      const { url } = await apiUpload<{ url: string }>('/uploads/profile-picture', 'file', selectedFile, token);
-      update({ profilePictureUrl: url });
-      router.push('/onboarding/5');
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setServerError(err.message ?? 'Upload failed. Please try again.');
-      } else {
-        setServerError('Something went wrong. Please try again.');
-      }
-    } finally {
-      setUploading(false);
-    }
-  };
+  const inputClass =
+    'w-full rounded-md border border-outline-variant bg-surface-white px-3 py-2.5 text-sm text-on-surface font-manrope placeholder:text-outline transition-colors focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 aria-[invalid=true]:border-error';
+  const textareaClass =
+    'w-full rounded-md border border-outline-variant bg-surface-white px-3 py-2.5 text-sm text-on-surface font-manrope placeholder:text-outline transition-colors resize-y min-h-[80px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 aria-[invalid=true]:border-error';
 
   return (
     <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={4} totalSteps={5} />
+      <ProgressIndicator currentStep={4} totalSteps={6} />
       <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Profile Picture</h1>
+        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Medical History</h1>
         <p className="mt-1 text-sm text-on-surface-variant font-manrope">
-          Add a photo so doctors can recognise you.
+          Helps your doctor understand your health context. All optional and kept private — separate items with commas.
         </p>
       </div>
 
-      <div className="flex flex-col items-center gap-5">
-        <div
-          className="h-32 w-32 rounded-full bg-surface-container border-2 border-dashed border-outline-variant overflow-hidden flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
-          onClick={() => inputRef.current?.click()}
-          role="button"
-          tabIndex={0}
-          aria-label="Choose profile picture"
-          onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
-        >
-          {preview ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={preview} alt="Preview" className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex flex-col items-center gap-1 text-outline">
-              <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" />
-              </svg>
-              <span className="text-xs font-manrope">Click to upload</span>
-            </div>
-          )}
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
+        <div className="grid grid-cols-2 gap-4">
+          <FormField id="ob4-bloodType" label="Blood type" error={errors.bloodType?.message}>
+            <select className={inputClass} {...register('bloodType')}>
+              <option value="">Select…</option>
+              {BLOOD_TYPES.map((bt) => (
+                <option key={bt} value={bt}>{bt}</option>
+              ))}
+            </select>
+          </FormField>
+          <FormField id="ob4-smokingStatus" label="Smoking status" error={errors.smokingStatus?.message}>
+            <select className={inputClass} {...register('smokingStatus')}>
+              {SMOKING_OPTIONS.map((o) => (
+                <option key={o.label} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </FormField>
         </div>
 
-        <input
-          ref={inputRef}
-          id="ob4-file-input"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="sr-only"
-          aria-label="Upload profile picture"
-          onChange={handleFileChange}
-        />
+        <FormField id="ob4-allergies" label="Allergies" error={errors.allergies?.message} hint='Comma-separated, e.g. "Penicillin, Peanuts"'>
+          <input type="text" placeholder="Penicillin, Peanuts" className={inputClass} {...register('allergies')} />
+        </FormField>
 
-        {preview && (
-          <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
-            Change photo
-          </Button>
-        )}
+        <FormField id="ob4-chronicConditions" label="Chronic conditions" error={errors.chronicConditions?.message} hint='Comma-separated, e.g. "Hypertension, Asthma"'>
+          <input type="text" placeholder="Hypertension, Asthma" className={inputClass} {...register('chronicConditions')} />
+        </FormField>
 
-        {fileError && (
-          <p role="alert" className="flex items-center gap-1 text-xs text-error font-manrope">
-            <svg aria-hidden="true" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            {fileError}
-          </p>
-        )}
+        <FormField id="ob4-currentMedications" label="Current medications" error={errors.currentMedications?.message} hint='Comma-separated, e.g. "Amlodipine 5mg, Metformin"'>
+          <input type="text" placeholder="Amlodipine 5mg, Metformin" className={inputClass} {...register('currentMedications')} />
+        </FormField>
 
-        {serverError && (
-          <p role="alert" className="text-xs text-error font-manrope">{serverError}</p>
-        )}
-      </div>
+        <FormField id="ob4-pastSurgeries" label="Past surgeries" error={errors.pastSurgeries?.message}>
+          <textarea placeholder="e.g. Appendectomy (2018)" className={textareaClass} {...register('pastSurgeries')} />
+        </FormField>
 
-      <div className="flex justify-between pt-2">
-        <Button id="ob4-back" type="button" variant="outline" size="lg" onClick={() => router.push('/onboarding/3')}>← Back</Button>
-        <div className="flex gap-3">
-          <Button
-            id="ob4-upload"
-            type="button"
-            size="lg"
-            className="min-w-[160px]"
-            disabled={(!selectedFile && !data.profilePictureUrl) || uploading}
-            onClick={handleUploadAndContinue}
-          >
-            {uploading ? (
-              <span className="flex items-center gap-2"><Spinner /> Uploading…</span>
-            ) : selectedFile ? (
-              'Upload & Continue →'
-            ) : (
-              'Continue →'
-            )}
-          </Button>
+        <FormField id="ob4-familyHistory" label="Family history" error={errors.familyHistory?.message}>
+          <textarea placeholder="e.g. Diabetes (mother), Heart disease (father)" className={textareaClass} {...register('familyHistory')} />
+        </FormField>
+
+        <div className="flex justify-between pt-2">
+          <Button id="ob4-back" type="button" variant="outline" size="lg" onClick={() => router.push('/onboarding/3')}>← Back</Button>
+          <Button id="ob4-next" type="submit" size="lg" className="min-w-[140px]">Continue →</Button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

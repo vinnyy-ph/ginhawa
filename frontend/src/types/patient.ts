@@ -1,18 +1,29 @@
 // frontend/src/types/patient.ts
 
 export interface OnboardingData {
-  // Step 1
+  // Step 1 — Personal
   fullName: string;
   birthdate: string;       // ISO date string "YYYY-MM-DD"
   contactDetails: string;
-  // Step 2
+  // Step 2 — Location & Insurance (all optional)
+  address: string;
+  city: string;
+  region: string;
+  philhealthId: string;
+  hmoProvider: string;
+  hmoCardNo: string;
+  // Step 3 — Metrics
   weightKg: number | null;
   heightCm: number | null;
-  // Step 3
-  conditions: string;
+  // Step 4 — Medical History (lists held as comma strings, split on submit)
+  bloodType: string;
   allergies: string;
-  medications: string;
-  // Step 4
+  chronicConditions: string;
+  currentMedications: string;
+  pastSurgeries: string;
+  familyHistory: string;
+  smokingStatus: string;
+  // Step 5 — Photo
   profilePictureUrl: string | null;
 }
 
@@ -20,11 +31,21 @@ export const ONBOARDING_DEFAULTS: OnboardingData = {
   fullName: '',
   birthdate: '',
   contactDetails: '',
+  address: '',
+  city: '',
+  region: '',
+  philhealthId: '',
+  hmoProvider: '',
+  hmoCardNo: '',
   weightKg: null,
   heightCm: null,
-  conditions: '',
+  bloodType: '',
   allergies: '',
-  medications: '',
+  chronicConditions: '',
+  currentMedications: '',
+  pastSurgeries: '',
+  familyHistory: '',
+  smokingStatus: '',
   profilePictureUrl: null,
 };
 
@@ -43,7 +64,7 @@ export interface PatientProfile {
   updatedAt: string;
 }
 
-/** Body sent to POST /patients/profile */
+/** Body sent to POST/PATCH /patients/profile */
 export interface CreatePatientProfileBody {
   fullName: string;
   birthdate: string;
@@ -53,9 +74,21 @@ export interface CreatePatientProfileBody {
   height?: number;
   profilePictureUrl?: string;
   contactDetails?: string;
-  /**
-   * Free-text medical history merged from three onboarding fields:
-   * "Conditions: ...\nAllergies: ...\nMedications: ..."
-   */
-  medicalHistory?: string;
+  address?: string;
+  city?: string;
+  region?: string;
+  philhealthId?: string;
+  hmoProvider?: string;
+  hmoCardNo?: string;
+}
+
+/** Body sent to PATCH /patients/medical-history */
+export interface UpdateMedicalHistoryBody {
+  bloodType?: string;
+  allergies?: string[];
+  chronicConditions?: string[];
+  currentMedications?: string[];
+  pastSurgeries?: string;
+  familyHistory?: string;
+  smokingStatus?: string;
 }

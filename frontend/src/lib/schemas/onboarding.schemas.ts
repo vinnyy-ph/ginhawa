@@ -22,12 +22,26 @@ export const step2Schema = z.object({
     .positive('Height must be a positive number'),
 });
 
-export const step3Schema = z.object({
-  conditions: z.string().min(1, 'Please list your medical conditions (or "None")'),
-  allergies: z.string().min(1, 'Please list your allergies (or "None")'),
-  medications: z.string().optional(),
+export const locationInsuranceSchema = z.object({
+  address: z.string().optional(),
+  city: z.string().optional(),
+  region: z.string().optional(),
+  philhealthId: z.string().optional(),
+  hmoProvider: z.string().optional(),
+  hmoCardNo: z.string().optional(),
+});
+
+export const medicalHistorySchema = z.object({
+  bloodType: z.string().optional(),
+  allergies: z.string().optional(),
+  chronicConditions: z.string().optional(),
+  currentMedications: z.string().optional(),
+  pastSurgeries: z.string().optional(),
+  familyHistory: z.string().optional(),
+  smokingStatus: z.string().optional(),
 });
 
 export type Step1Schema = z.infer<typeof step1Schema>;
 export type Step2Schema = z.infer<typeof step2Schema>;
-export type Step3Schema = z.infer<typeof step3Schema>;
+export type LocationInsuranceSchema = z.infer<typeof locationInsuranceSchema>;
+export type MedicalHistorySchema = z.infer<typeof medicalHistorySchema>;
