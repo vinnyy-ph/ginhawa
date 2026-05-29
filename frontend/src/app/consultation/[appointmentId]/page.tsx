@@ -59,7 +59,7 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
 
     const handleAppMessage = (event: DailyEventObjectAppMessage) => {
       if (event.data?.type === 'call-ended') {
-        router.push('/dashboard/records');
+        router.push('/records');
       }
     };
     if (!isDoctor) {
