@@ -140,7 +140,7 @@ export default function PatientAppointmentsPage() {
         ) : (
           <div className="space-y-4">
             {filteredAppointments.map(appt => (
-              <AppointmentCard 
+              <AppointmentCard
                 key={appt.id}
                 appointment={appt}
                 role="patient"
@@ -148,6 +148,8 @@ export default function PatientAppointmentsPage() {
                 onToggleExpand={() => setExpandedId(expandedId === appt.id ? null : appt.id)}
                 isUpdating={updatingId === appt.id}
                 onUpdateStatus={updateStatus}
+                token={token}
+                onRescheduled={fetchAppointments}
               />
             ))}
           </div>

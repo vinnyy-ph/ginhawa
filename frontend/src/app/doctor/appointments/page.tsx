@@ -168,12 +168,14 @@ export default function DoctorAppointmentsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
             {filteredAppointments.map(appt => (
-              <AppointmentCard 
+              <AppointmentCard
                 key={appt.id}
                 appointment={appt}
                 role="doctor"
                 isUpdating={updatingId === appt.id}
                 onUpdateStatus={updateStatus}
+                token={token}
+                onRescheduled={fetchAppointments}
               />
             ))}
           </div>

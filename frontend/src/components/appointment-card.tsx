@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon, ChevronDownIcon, ClockIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import type { Appointment, AppointmentStatus } from "@/types/api";
+import { RescheduleDialog } from "@/components/booking/reschedule-dialog";
 
 export type Role = "patient" | "doctor";
 
@@ -15,6 +16,8 @@ export interface AppointmentCardProps {
   // Common props
   isUpdating?: boolean;
   onUpdateStatus?: (id: string, status: AppointmentStatus) => void;
+  token?: string;
+  onRescheduled?: () => void;
 
   // Patient specific props
   isExpanded?: boolean;
@@ -44,7 +47,9 @@ export function AppointmentCard({
   isExpanded = false,
   onToggleExpand,
   isUpdating = false,
-  onUpdateStatus
+  onUpdateStatus,
+  token,
+  onRescheduled
 }: AppointmentCardProps) {
   const slot = appt.slot;
   const config = statusConfig[appt.status] || { variant: "outline", border: "border-l-outline" };
@@ -119,9 +124,16 @@ export function AppointmentCard({
                   <div>
                     <p className="text-xs font-bold text-outline uppercase tracking-wider mb-2">Actions</p>
                     <div className="flex gap-2 flex-wrap">
-                      <Button disabled variant="outline" size="sm" className="opacity-50 cursor-not-allowed">
-                        Reschedule
-                      </Button>
+                      <RescheduleDialog
+                        appointment={appt}
+                        token={token}
+                        onRescheduled={() => onRescheduled?.()}
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            Reschedule
+                          </Button>
+                        }
+                      />
                       {!confirmCancel ? (
                         <Button
                           variant="destructive"
@@ -285,6 +297,16 @@ export function AppointmentCard({
                   </button>
                 </div>
               )}
+              <RescheduleDialog
+                appointment={appt}
+                token={token}
+                onRescheduled={() => onRescheduled?.()}
+                trigger={
+                  <Button variant="outline" size="sm">
+                    Reschedule
+                  </Button>
+                }
+              />
               {appt.id && isWithinJoinWindow(appt) && (
                 <Button size="sm" asChild className="bg-[#31a795] text-white hover:bg-[#006b5e]">
                   <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
