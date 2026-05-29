@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
-import { Button } from '@/components/ui/button';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { OnboardingShell } from '@/components/ui/onboarding-shell';
+import { OnboardingNav } from '@/components/ui/onboarding-nav';
+import { onboardingInputClass, onboardingTextareaClass } from '@/lib/onboarding-styles';
+import { cn } from '@/lib/utils';
 import { Chip } from '@/components/ui/chip';
 
 const COMMON_FOCUS = ['Preventive Care', 'Chronic Disease Management', 'Lifestyle & Nutrition', 'Mental Health'];
@@ -48,14 +50,7 @@ export default function DoctorOnboardingStep4() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={4} totalSteps={5} />
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Practice Details</h1>
-        <p className="mt-1 text-sm text-on-surface-variant font-manrope">
-          Share more about your practice and availability.
-        </p>
-      </div>
+    <OnboardingShell step={4} totalSteps={5} title="Practice Details" subtitle="Share more about your practice and availability.">
 
       <div className="flex flex-col gap-4">
         <FormField id="bio" label="Professional Bio" error={errors.bio} required>
@@ -70,7 +65,7 @@ export default function DoctorOnboardingStep4() {
                 return n;
               });
             }} 
-            className="w-full min-h-[120px] rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
+            className={cn(onboardingTextareaClass, 'min-h-[120px]')}
             placeholder="Tell patients about your background, approach to care, and achievements..." 
           />
         </FormField>
@@ -86,7 +81,7 @@ export default function DoctorOnboardingStep4() {
               id="consultationFocusAreas"
               value={consultationFocusAreas}
               onChange={(e) => setConsultationFocusAreas(e.target.value)}
-              className="w-full min-h-[80px] rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
+              className={onboardingTextareaClass}
               placeholder="e.g. Hypertension management, Preventive cardiology, Heart failure..."
             />
           </div>
@@ -103,7 +98,7 @@ export default function DoctorOnboardingStep4() {
                 step="0.01"
                 value={consultationFee} 
                 onChange={e => setConsultationFee(e.target.value)} 
-                className="w-full rounded-xl border border-outline-variant bg-surface-white pl-8 pr-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                className={cn(onboardingInputClass, 'pl-8')}
                 placeholder="500.00" 
               />
             </div>
@@ -114,25 +109,14 @@ export default function DoctorOnboardingStep4() {
               id="availabilitySummary" 
               value={availabilitySummary} 
               onChange={e => setAvailabilitySummary(e.target.value)} 
-              className="w-full rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+              className={onboardingInputClass}
               placeholder="e.g. Weekdays 9 AM - 5 PM" 
             />
           </FormField>
         </div>
       </div>
 
-      <div className="flex justify-between items-center pt-4">
-        <Button 
-          variant="ghost" 
-          onClick={() => router.push('/onboarding/doctor/3')}
-          className="text-on-surface-variant hover:text-primary"
-        >
-          ← Back
-        </Button>
-        <Button onClick={handleNext} className="rounded-full px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all">
-          Continue →
-        </Button>
-      </div>
-    </div>
+      <OnboardingNav onBack={() => router.push('/onboarding/doctor/3')} submitType="button" onSubmit={handleNext} submitLabel="Continue →" />
+    </OnboardingShell>
   );
 }

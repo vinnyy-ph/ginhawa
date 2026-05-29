@@ -4,15 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
-import { Button } from '@/components/ui/button';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { OnboardingShell } from '@/components/ui/onboarding-shell';
+import { OnboardingNav } from '@/components/ui/onboarding-nav';
+import { onboardingInputClass } from '@/lib/onboarding-styles';
 import { Chip } from '@/components/ui/chip';
 import { useSpecializations } from '@/hooks/use-specializations';
 
 const COMMON_LANGUAGES = ['English', 'Tagalog', 'Cebuano', 'Ilocano'];
-
-const fieldClass =
-  'w-full rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all';
 
 export default function DoctorOnboardingStep3() {
   const router = useRouter();
@@ -65,14 +63,7 @@ export default function DoctorOnboardingStep3() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={3} totalSteps={5} />
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Specialization & Experience</h1>
-        <p className="mt-1 text-sm text-on-surface-variant font-manrope">
-          Help patients understand your expertise.
-        </p>
-      </div>
+    <OnboardingShell step={3} totalSteps={5} title="Specialization & Experience" subtitle="Help patients understand your expertise.">
 
       <div className="flex flex-col gap-4">
         <FormField id="specialization" label="Primary Specialization" error={errors.specialization} required>
@@ -81,7 +72,7 @@ export default function DoctorOnboardingStep3() {
               id="specialization"
               value={specialization}
               onChange={(e) => handleSpecChange(e.target.value)}
-              className={fieldClass}
+              className={onboardingInputClass}
               placeholder="e.g. Cardiology"
             />
           ) : (
@@ -89,7 +80,7 @@ export default function DoctorOnboardingStep3() {
               id="specialization"
               value={specialization}
               onChange={(e) => handleSpecChange(e.target.value)}
-              className={fieldClass}
+              className={onboardingInputClass}
             >
               <option value="" disabled>{loading ? 'Loading…' : 'Select your specialization'}</option>
               {options.map((s) => (
@@ -106,7 +97,7 @@ export default function DoctorOnboardingStep3() {
             min="0"
             value={yearsOfExperience}
             onChange={(e) => setYearsOfExperience(e.target.value)}
-            className={fieldClass}
+            className={onboardingInputClass}
             placeholder="10"
           />
         </FormField>
@@ -122,21 +113,14 @@ export default function DoctorOnboardingStep3() {
               id="languagesSpoken"
               value={languagesSpoken}
               onChange={(e) => setLanguagesSpoken(e.target.value)}
-              className={fieldClass}
+              className={onboardingInputClass}
               placeholder="English, Tagalog"
             />
           </div>
         </FormField>
       </div>
 
-      <div className="flex justify-between items-center pt-4">
-        <Button variant="ghost" onClick={() => router.push('/onboarding/doctor/2')} className="text-on-surface-variant hover:text-primary">
-          ← Back
-        </Button>
-        <Button onClick={handleNext} className="rounded-full px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all">
-          Continue →
-        </Button>
-      </div>
-    </div>
+      <OnboardingNav onBack={() => router.push('/onboarding/doctor/2')} submitType="button" onSubmit={handleNext} submitLabel="Continue →" />
+    </OnboardingShell>
   );
 }

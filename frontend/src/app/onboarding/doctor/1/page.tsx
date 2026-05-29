@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
-import { Button } from '@/components/ui/button';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
-import { Spinner } from '@/components/ui/spinner';
+import { OnboardingShell } from '@/components/ui/onboarding-shell';
+import { OnboardingNav } from '@/components/ui/onboarding-nav';
+import { onboardingInputClass } from '@/lib/onboarding-styles';
 import { apiUpload, ApiError } from '@/lib/api-client';
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -85,14 +85,7 @@ export default function DoctorOnboardingStep1() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={1} totalSteps={5} />
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Personal Information</h1>
-        <p className="mt-1 text-sm text-on-surface-variant font-manrope">
-          Let patients know who they are consulting with.
-        </p>
-      </div>
+    <OnboardingShell step={1} totalSteps={5} title="Personal Information" subtitle="Let patients know who they are consulting with.">
 
       <div className="flex flex-col items-center gap-5 my-4">
         <div
@@ -139,8 +132,8 @@ export default function DoctorOnboardingStep1() {
                 return n;
               });
             }} 
-            className="w-full rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
-            placeholder="Dr. Jane Doe" 
+            className={onboardingInputClass}
+            placeholder="Dr. Jane Doe"
           />
         </FormField>
         <FormField id="professionalTitle" label="Professional Title" error={errors.professionalTitle} required>
@@ -155,17 +148,13 @@ export default function DoctorOnboardingStep1() {
                 return n;
               });
             }} 
-            className="w-full rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
-            placeholder="MD, FPCP" 
+            className={onboardingInputClass}
+            placeholder="MD, FPCP"
           />
         </FormField>
       </div>
 
-      <div className="flex justify-end pt-4">
-        <Button onClick={handleNext} disabled={uploading} className="rounded-full px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all">
-           {uploading ? <><Spinner className="mr-2" /> Uploading...</> : 'Continue →'}
-        </Button>
-      </div>
-    </div>
+      <OnboardingNav submitType="button" onSubmit={handleNext} loading={uploading} loadingLabel="Uploading…" submitLabel="Continue →" />
+    </OnboardingShell>
   );
 }
