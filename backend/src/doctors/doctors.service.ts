@@ -90,10 +90,16 @@ export class DoctorsService {
   }
 
   async update(userId: string, data: UpdateDoctorDto) {
-    await this.findByUserId(userId);
-    return this.prisma.doctorProfile.update({
-      where: { userId },
-      data,
+    const profile = await this.findByUserId(userId);
+    return this.prisma.$transaction(async (tx) => {
+      const saved = await tx.doctorProfile.update({
+        where: { id: profile.id },
+        data,
+      });
+      if (data.specialization) {
+        await this.syncPrimarySpecialization(tx, saved.id, data.specialization);
+      }
+      return saved;
     });
   }
 

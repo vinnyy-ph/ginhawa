@@ -174,20 +174,56 @@ describe('DoctorsService', () => {
   });
 
   describe('update', () => {
-    it('should update a doctor profile', async () => {
+    it('updates the profile and syncs the primary specialization', async () => {
       const existing = { id: '1', userId: 'user-1' };
       mockPrismaService.doctorProfile.findUnique.mockResolvedValue(existing);
 
+      const mockTx = {
+        doctorProfile: { update: jest.fn() },
+        specialization: {
+          upsert: jest.fn().mockResolvedValue({ id: 'spec-1', name: 'Neurology' }),
+        },
+        doctorSpecialization: {
+          deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+          upsert: jest.fn().mockResolvedValue({}),
+        },
+      };
       const updateDto = { specialization: 'Neurology' };
       const expected = { ...existing, ...updateDto };
-      mockPrismaService.doctorProfile.update.mockResolvedValue(expected);
+      mockTx.doctorProfile.update.mockResolvedValue(expected);
+      (mockPrismaService.$transaction as jest.Mock).mockImplementation(
+        async (cb) => cb(mockTx),
+      );
 
       const result = await service.update('user-1', updateDto);
+
       expect(result).toEqual(expected);
-      expect(mockPrismaService.doctorProfile.update).toHaveBeenCalledWith({
-        where: { userId: 'user-1' },
+      expect(mockTx.doctorProfile.update).toHaveBeenCalledWith({
+        where: { id: existing.id },
         data: updateDto,
       });
+      expect(mockTx.specialization.upsert).toHaveBeenCalled();
+      expect(mockTx.doctorSpecialization.upsert).toHaveBeenCalled();
+    });
+
+    it('skips specialization sync when no specialization is provided', async () => {
+      const existing = { id: '1', userId: 'user-1' };
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue(existing);
+
+      const mockTx = {
+        doctorProfile: {
+          update: jest.fn().mockResolvedValue({ ...existing, bio: 'x' }),
+        },
+        specialization: { upsert: jest.fn() },
+        doctorSpecialization: { deleteMany: jest.fn(), upsert: jest.fn() },
+      };
+      (mockPrismaService.$transaction as jest.Mock).mockImplementation(
+        async (cb) => cb(mockTx),
+      );
+
+      await service.update('user-1', { bio: 'x' });
+
+      expect(mockTx.specialization.upsert).not.toHaveBeenCalled();
     });
   });
 
