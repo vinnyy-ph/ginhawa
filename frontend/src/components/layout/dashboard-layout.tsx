@@ -42,6 +42,12 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-surface flex">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:rounded-md focus:bg-surface-white focus:px-4 focus:py-2 focus:text-primary focus:shadow-lifted"
+      >
+        Skip to content
+      </a>
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-surface-white border-r border-outline-variant shrink-0 fixed h-full z-20">
         {/* Brand */}
@@ -149,7 +155,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
       </nav>
 
       {/* Main content */}
-      <main className="flex-1 lg:ml-64 pb-20 lg:pb-0 min-h-screen">
+      <main id="main-content" className="flex-1 lg:ml-64 pb-20 lg:pb-0 min-h-screen">
         {/* Mobile top header */}
         <header className="lg:hidden sticky top-0 z-20 flex items-center justify-between bg-surface-white border-b border-outline-variant px-4 py-3">
           <Link href="/doctor/dashboard" className="flex items-center gap-2">

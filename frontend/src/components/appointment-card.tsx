@@ -74,9 +74,11 @@ export function AppointmentCard({
     return (
       <div className={cn("bg-surface-white rounded-xl shadow-soft overflow-hidden border-l-4 transition-all duration-200", config.border)}>
         {/* Card Header (Always visible) */}
-        <div
-          className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-surface-container/30"
+        <button
+          type="button"
+          className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-surface-container/30 w-full text-left"
           onClick={onToggleExpand}
+          aria-expanded={isExpanded}
         >
           <div className="flex gap-4 items-center">
             <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary font-serif font-bold text-xl shrink-0">
@@ -104,11 +106,11 @@ export function AppointmentCard({
             <Badge variant={config.variant} className="capitalize px-3 py-1 text-xs">
               {appt.status.toLowerCase()}
             </Badge>
-            <button className="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/5">
+            <span className="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/5">
               <ChevronDownIcon className={cn("w-5 h-5 transition-transform duration-200", isExpanded && "rotate-180")} />
-            </button>
+            </span>
           </div>
-        </div>
+        </button>
 
         {/* Expanded Content */}
         <div
