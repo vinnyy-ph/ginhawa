@@ -46,6 +46,9 @@ describe('AppointmentsService', () => {
     patientProfile: {
       findUnique: jest.fn(),
     },
+    appointment: {
+      findUnique: jest.fn(),
+    },
     $transaction: jest.fn(),
   };
 
@@ -113,6 +116,63 @@ describe('AppointmentsService', () => {
       await expect(
         service.create('user-patient-1', { slotId: 'slot-1' }),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('reschedule', () => {
+    const oldAppt = {
+      id: 'appt-1',
+      patientId: 'patient-1',
+      doctorId: 'doctor-1',
+      slotId: 'slot-old',
+      status: AppointmentStatus.CONFIRMED,
+      reasonForVisit: 'checkup',
+      patient: { userId: 'user-patient-1' },
+      doctor: { userId: 'user-doctor-1', consultationFee: 500 },
+    };
+    const newSlot = {
+      id: 'slot-new',
+      doctorId: 'doctor-1',
+      status: SlotStatus.AVAILABLE,
+      startTime: new Date(Date.now() + 86400000),
+    };
+    const rtx = {
+      availabilitySlot: { findUnique: jest.fn(), update: jest.fn() },
+      appointment: { update: jest.fn(), create: jest.fn() },
+      payment: { create: jest.fn() },
+    };
+
+    beforeEach(() => {
+      mockPrismaService.appointment.findUnique = jest.fn().mockResolvedValue(oldAppt);
+      rtx.availabilitySlot.findUnique.mockResolvedValue(newSlot);
+      rtx.appointment.create.mockResolvedValue({ id: 'appt-2', rescheduledFromId: 'appt-1' });
+      mockPrismaService.$transaction.mockImplementation(async (cb) => cb(rtx));
+    });
+
+    it('links the new appointment to the old and marks the old RESCHEDULED', async () => {
+      const result = await service.reschedule('user-patient-1', 'PATIENT', 'appt-1', 'slot-new');
+
+      expect(rtx.appointment.update).toHaveBeenCalledWith({
+        where: { id: 'appt-1' },
+        data: { status: AppointmentStatus.RESCHEDULED },
+      });
+      expect(rtx.appointment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            slotId: 'slot-new',
+            rescheduledFromId: 'appt-1',
+            status: AppointmentStatus.PENDING,
+          }),
+        }),
+      );
+      expect(result.rescheduledFromId).toBe('appt-1');
+    });
+
+    it('rejects a slot belonging to a different doctor', async () => {
+      rtx.availabilitySlot.findUnique.mockResolvedValue({ ...newSlot, doctorId: 'doctor-2' });
+      await expect(
+        service.reschedule('user-patient-1', 'PATIENT', 'appt-1', 'slot-new'),
+      ).rejects.toThrow('Slot belongs to a different doctor');
     });
   });
 });

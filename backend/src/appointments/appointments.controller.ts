@@ -11,6 +11,7 @@ import {
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
+import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -61,6 +62,21 @@ export class AppointmentsController {
       id,
       updateAppointmentStatusDto.status,
       updateAppointmentStatusDto.cancelReason,
+    );
+  }
+
+  @Post(':id/reschedule')
+  @Roles('DOCTOR', 'PATIENT')
+  reschedule(
+    @Request() req: { user: { id: string; role: Role } },
+    @Param('id') id: string,
+    @Body() rescheduleAppointmentDto: RescheduleAppointmentDto,
+  ) {
+    return this.appointmentsService.reschedule(
+      req.user.id,
+      req.user.role,
+      id,
+      rescheduleAppointmentDto.newSlotId,
     );
   }
 }

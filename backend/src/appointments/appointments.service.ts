@@ -301,4 +301,109 @@ export class AppointmentsService {
 
     return updated;
   }
+
+  async reschedule(
+    userId: string,
+    role: string,
+    appointmentId: string,
+    newSlotId: string,
+  ) {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: {
+        patient: { include: { user: { select: { id: true } } } },
+        doctor: { include: { user: { select: { id: true } } } },
+      },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    const isOwner =
+      role === 'DOCTOR'
+        ? appointment.doctor.userId === userId
+        : appointment.patient.userId === userId;
+    if (!isOwner) {
+      throw new ForbiddenException('You can only reschedule your own appointments');
+    }
+
+    if (
+      appointment.status !== AppointmentStatus.PENDING &&
+      appointment.status !== AppointmentStatus.CONFIRMED
+    ) {
+      throw new BadRequestException(
+        'Only pending or confirmed appointments can be rescheduled',
+      );
+    }
+
+    const newAppointment = await this.prisma.$transaction(async (tx) => {
+      const slot = await tx.availabilitySlot.findUnique({
+        where: { id: newSlotId },
+      });
+
+      if (!slot) {
+        throw new NotFoundException('Availability slot not found');
+      }
+      if (slot.doctorId !== appointment.doctorId) {
+        throw new BadRequestException('Slot belongs to a different doctor');
+      }
+      if (slot.status !== SlotStatus.AVAILABLE) {
+        throw new BadRequestException('Slot is not available');
+      }
+      if (new Date(slot.startTime) < new Date()) {
+        throw new BadRequestException('Cannot book a slot in the past');
+      }
+
+      await tx.availabilitySlot.update({
+        where: { id: newSlotId },
+        data: { status: SlotStatus.BOOKED },
+      });
+      await tx.availabilitySlot.update({
+        where: { id: appointment.slotId },
+        data: { status: SlotStatus.AVAILABLE },
+      });
+      await tx.appointment.update({
+        where: { id: appointmentId },
+        data: { status: AppointmentStatus.RESCHEDULED },
+      });
+
+      const created = await tx.appointment.create({
+        data: {
+          patientId: appointment.patientId,
+          doctorId: appointment.doctorId,
+          slotId: newSlotId,
+          reasonForVisit: appointment.reasonForVisit,
+          status: AppointmentStatus.PENDING,
+          rescheduledFromId: appointmentId,
+        },
+      });
+
+      const fee = appointment.doctor.consultationFee ?? 0;
+      await tx.payment.create({
+        data: {
+          appointmentId: created.id,
+          amount: fee,
+          status: fee > 0 ? 'PAID' : 'WAIVED',
+        },
+      });
+
+      return created;
+    });
+
+    const targetUserId =
+      role === 'DOCTOR'
+        ? appointment.patient.userId
+        : appointment.doctor.userId;
+    this.notifications
+      .createNotification(
+        targetUserId,
+        NotificationType.APPOINTMENT_RESCHEDULED,
+        'Appointment Rescheduled',
+        'An appointment has been rescheduled to a new time slot.',
+      )
+      .catch(() => null);
+
+    return newAppointment;
+  }
 }
