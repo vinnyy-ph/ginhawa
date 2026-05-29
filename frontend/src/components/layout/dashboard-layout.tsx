@@ -150,6 +150,32 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
 
       {/* Main content */}
       <main className="flex-1 lg:ml-64 pb-20 lg:pb-0 min-h-screen">
+        {/* Mobile top header */}
+        <header className="lg:hidden sticky top-0 z-20 flex items-center justify-between bg-surface-white border-b border-outline-variant px-4 py-3">
+          <Link href="/doctor/dashboard" className="flex items-center gap-2">
+            <Logo size={24} className="h-6 w-auto" />
+            <span className="text-base font-bold tracking-tight text-text-primary font-serif">Ginhawa</span>
+          </Link>
+          <div className="flex items-center gap-1">
+            <Link
+              href="/doctor/notifications"
+              aria-label="Notifications"
+              className={cn(
+                "p-2 rounded-full hover:bg-surface-container transition-colors",
+                pathname.startsWith('/doctor/notifications') ? 'text-primary' : 'text-on-surface-variant',
+              )}
+            >
+              <BellIcon className="w-5 h-5" />
+            </Link>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              aria-label="Log out"
+              className="p-2 rounded-full text-on-surface-variant hover:bg-error/5 hover:text-error transition-colors"
+            >
+              <ExitIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </header>
         <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </div>
