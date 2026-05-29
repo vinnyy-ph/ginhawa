@@ -12,6 +12,12 @@ import { Button } from '@/components/ui/button';
 import { BirthdateInput } from '@/components/ui/birthdate-input';
 import { PhoneInput } from '@/components/ui/phone-input';
 
+/** Format up to 10 raw digits as "000 000 0000" (3-3-4 grouping). */
+const formatPhone = (value: string) => {
+  const d = value.replace(/\D/g, '').slice(0, 10);
+  return [d.slice(0, 3), d.slice(3, 6), d.slice(6, 10)].filter(Boolean).join(' ');
+};
+
 export default function OnboardingStep1() {
   const router = useRouter();
   const { data, update } = useOnboarding();
@@ -70,16 +76,21 @@ export default function OnboardingStep1() {
         </FormField>
 
         <FormField id="ob1-contactDetails" label="Contact number" error={errors.contactDetails?.message} required>
-          <PhoneInput
-            autoComplete="tel"
-            placeholder="917 123 4567"
-            {...register('contactDetails', {
-              onChange: (e) => {
-                let val = e.target.value.replace(/\D/g, '');
-                if (val.startsWith('0')) val = val.slice(1);
-                e.target.value = val.slice(0, 10);
-              },
-            })}
+          <Controller
+            control={control}
+            name="contactDetails"
+            render={({ field }) => (
+              <PhoneInput
+                autoComplete="tel"
+                placeholder="917 123 4567"
+                value={formatPhone(field.value)}
+                onChange={(e) => {
+                  // Store digits only (drop a leading 0, cap at 10); display is auto-spaced.
+                  const digits = e.target.value.replace(/\D/g, '').replace(/^0/, '').slice(0, 10);
+                  field.onChange(digits);
+                }}
+              />
+            )}
           />
         </FormField>
 
