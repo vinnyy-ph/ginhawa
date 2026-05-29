@@ -311,8 +311,8 @@ export class AppointmentsService {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
-        patient: { include: { user: { select: { id: true } } } },
-        doctor: { include: { user: { select: { id: true } } } },
+        patient: true,
+        doctor: true,
       },
     });
 
@@ -395,12 +395,16 @@ export class AppointmentsService {
       role === 'DOCTOR'
         ? appointment.patient.userId
         : appointment.doctor.userId;
+    const message =
+      role === 'DOCTOR'
+        ? `Your appointment with ${appointment.doctor.fullName} has been rescheduled to a new time slot.`
+        : `Patient ${appointment.patient.fullName} has rescheduled their appointment.`;
     this.notifications
       .createNotification(
         targetUserId,
         NotificationType.APPOINTMENT_RESCHEDULED,
         'Appointment Rescheduled',
-        'An appointment has been rescheduled to a new time slot.',
+        message,
       )
       .catch(() => null);
 
