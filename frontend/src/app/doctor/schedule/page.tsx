@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import type { AvailabilitySlot, DoctorProfile, SlotStatus } from "@/types/api";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+const MAX_BULK_SLOTS = 1000;
 
 export default function DoctorSchedulePage() {
   const { data: session } = useSession();
@@ -207,6 +208,7 @@ export default function DoctorSchedulePage() {
 
   const previewSlots = useMemo(
     () => (tplStartDate ? generateSlots(template) : []),
+    // tplStartDate is captured inside template
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [template],
   );
@@ -226,6 +228,10 @@ export default function DoctorSchedulePage() {
     }
     if (previewSlots.length === 0) {
       setTplError("This template generates no slots. Check your inputs.");
+      return;
+    }
+    if (previewSlots.length > MAX_BULK_SLOTS) {
+      setTplError(`Too many slots (${previewSlots.length}). Max ${MAX_BULK_SLOTS} per batch — reduce the weeks, days, or use a longer slot length.`);
       return;
     }
 
@@ -428,9 +434,9 @@ export default function DoctorSchedulePage() {
 
               <div className="flex items-center justify-between gap-4 pt-2 border-t border-outline-variant/30">
                 <p className="text-sm text-on-surface-variant">
-                  {tplStartDate ? <>This will create <span className="font-semibold text-text-primary">{previewSlots.length}</span> slots.</> : "Pick a start date to preview."}
+                  {tplStartDate ? <>Up to <span className="font-semibold text-text-primary">{previewSlots.length}</span> slots will be created.</> : "Pick a start date to preview."}
                 </p>
-                <Button type="submit" disabled={tplSubmitting || previewSlots.length === 0} className="min-w-[140px]">
+                <Button type="submit" disabled={tplSubmitting || previewSlots.length === 0 || previewSlots.length > MAX_BULK_SLOTS} className="min-w-[140px]">
                   {tplSubmitting ? "Generating..." : "Generate slots"}
                 </Button>
               </div>
