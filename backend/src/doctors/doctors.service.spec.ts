@@ -404,6 +404,7 @@ describe('DoctorsService', () => {
         where: { id: profileId },
         include: {
           availabilitySlots: true,
+          specializations: { include: { specialization: true } },
         },
       });
     });
