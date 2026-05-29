@@ -176,6 +176,8 @@ export default function DoctorPatientDetailPage({
       setLoading(false);
       return;
     }
+    setStatusFilter("ALL");
+    setSearch("");
     fetchHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, status, id]);
@@ -207,9 +209,9 @@ export default function DoctorPatientDetailPage({
     return acc;
   }, {});
 
+  const q = search.trim().toLowerCase();
   const visibleAppointments = appointments.filter(a => {
     const statusOk = statusFilter === "ALL" || a.status === statusFilter;
-    const q = search.trim().toLowerCase();
     const searchOk = !q || appointmentText(a).includes(q);
     return statusOk && searchOk;
   });
@@ -272,7 +274,7 @@ export default function DoctorPatientDetailPage({
             <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
               <h2 className="text-lg font-bold text-text-primary">
                 Appointment history{" "}
-                {visibleAppointments.length === appointments.length
+                {statusFilter === "ALL" && !search.trim()
                   ? `(${appointments.length})`
                   : `(showing ${visibleAppointments.length} of ${appointments.length})`}
               </h2>
