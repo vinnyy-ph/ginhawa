@@ -33,7 +33,10 @@ describe('SpeechService', () => {
 
   it('transcribes audio using Groq', async () => {
     mockCreateTranscription.mockResolvedValue({ text: 'Hello world' });
-    const mockFile = { buffer: Buffer.from('audio'), originalname: 'audio.webm' } as Express.Multer.File;
+    const mockFile = {
+      buffer: Buffer.from('audio'),
+      originalname: 'audio.webm',
+    } as Express.Multer.File;
 
     const result = await service.transcribeAudio(mockFile);
     expect(result).toEqual({ text: 'Hello world' });
@@ -45,8 +48,13 @@ describe('SpeechService', () => {
 
   it('throws InternalServerErrorException on Groq failure', async () => {
     mockCreateTranscription.mockRejectedValue(new Error('Groq Error'));
-    const mockFile = { buffer: Buffer.from('audio'), originalname: 'audio.webm' } as Express.Multer.File;
+    const mockFile = {
+      buffer: Buffer.from('audio'),
+      originalname: 'audio.webm',
+    } as Express.Multer.File;
 
-    await expect(service.transcribeAudio(mockFile)).rejects.toThrow(InternalServerErrorException);
+    await expect(service.transcribeAudio(mockFile)).rejects.toThrow(
+      InternalServerErrorException,
+    );
   });
 });

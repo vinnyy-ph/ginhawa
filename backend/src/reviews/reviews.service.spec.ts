@@ -32,9 +32,14 @@ describe('ReviewsService', () => {
   const dto = { appointmentId: 'appt-1', rating: 5, comment: 'great' };
 
   it('creates a review for a completed, owned appointment', async () => {
-    mockPrismaService.patientProfile.findUnique.mockResolvedValue({ id: 'patient-1' });
+    mockPrismaService.patientProfile.findUnique.mockResolvedValue({
+      id: 'patient-1',
+    });
     mockPrismaService.appointment.findUnique.mockResolvedValue({
-      id: 'appt-1', patientId: 'patient-1', doctorId: 'doctor-1', status: AppointmentStatus.COMPLETED,
+      id: 'appt-1',
+      patientId: 'patient-1',
+      doctorId: 'doctor-1',
+      status: AppointmentStatus.COMPLETED,
     });
     mockPrismaService.review.findUnique.mockResolvedValue(null);
     mockPrismaService.review.create.mockResolvedValue({ id: 'rev-1' });
@@ -42,33 +47,60 @@ describe('ReviewsService', () => {
     const result = await service.create('user-1', dto);
 
     expect(mockPrismaService.review.create).toHaveBeenCalledWith({
-      data: { appointmentId: 'appt-1', patientId: 'patient-1', doctorId: 'doctor-1', rating: 5, comment: 'great' },
+      data: {
+        appointmentId: 'appt-1',
+        patientId: 'patient-1',
+        doctorId: 'doctor-1',
+        rating: 5,
+        comment: 'great',
+      },
     });
     expect(result.id).toBe('rev-1');
   });
 
   it('rejects a review on a non-completed appointment', async () => {
-    mockPrismaService.patientProfile.findUnique.mockResolvedValue({ id: 'patient-1' });
-    mockPrismaService.appointment.findUnique.mockResolvedValue({
-      id: 'appt-1', patientId: 'patient-1', doctorId: 'doctor-1', status: AppointmentStatus.CONFIRMED,
+    mockPrismaService.patientProfile.findUnique.mockResolvedValue({
+      id: 'patient-1',
     });
-    await expect(service.create('user-1', dto)).rejects.toThrow(BadRequestException);
+    mockPrismaService.appointment.findUnique.mockResolvedValue({
+      id: 'appt-1',
+      patientId: 'patient-1',
+      doctorId: 'doctor-1',
+      status: AppointmentStatus.CONFIRMED,
+    });
+    await expect(service.create('user-1', dto)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('rejects a review on an appointment the patient does not own', async () => {
-    mockPrismaService.patientProfile.findUnique.mockResolvedValue({ id: 'patient-1' });
-    mockPrismaService.appointment.findUnique.mockResolvedValue({
-      id: 'appt-1', patientId: 'patient-2', doctorId: 'doctor-1', status: AppointmentStatus.COMPLETED,
+    mockPrismaService.patientProfile.findUnique.mockResolvedValue({
+      id: 'patient-1',
     });
-    await expect(service.create('user-1', dto)).rejects.toThrow(ForbiddenException);
+    mockPrismaService.appointment.findUnique.mockResolvedValue({
+      id: 'appt-1',
+      patientId: 'patient-2',
+      doctorId: 'doctor-1',
+      status: AppointmentStatus.COMPLETED,
+    });
+    await expect(service.create('user-1', dto)).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 
   it('rejects a duplicate review', async () => {
-    mockPrismaService.patientProfile.findUnique.mockResolvedValue({ id: 'patient-1' });
+    mockPrismaService.patientProfile.findUnique.mockResolvedValue({
+      id: 'patient-1',
+    });
     mockPrismaService.appointment.findUnique.mockResolvedValue({
-      id: 'appt-1', patientId: 'patient-1', doctorId: 'doctor-1', status: AppointmentStatus.COMPLETED,
+      id: 'appt-1',
+      patientId: 'patient-1',
+      doctorId: 'doctor-1',
+      status: AppointmentStatus.COMPLETED,
     });
     mockPrismaService.review.findUnique.mockResolvedValue({ id: 'existing' });
-    await expect(service.create('user-1', dto)).rejects.toThrow(ConflictException);
+    await expect(service.create('user-1', dto)).rejects.toThrow(
+      ConflictException,
+    );
   });
 });

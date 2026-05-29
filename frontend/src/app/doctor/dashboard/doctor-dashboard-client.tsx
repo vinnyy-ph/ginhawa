@@ -163,6 +163,18 @@ export function DoctorDashboardClient() {
                 </div>
               </div>
             </Link>
+
+            <Link href="/doctor/patients" className="block group">
+              <div className="bg-surface-white p-4 rounded-xl shadow-sm hover:shadow-lifted transition-all flex items-center gap-4 border border-transparent hover:border-primary/20">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#48cab6] to-[#31a795] flex items-center justify-center shrink-0">
+                  <PersonIcon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-text-primary group-hover:text-primary transition-colors">Patients</h4>
+                  <p className="text-xs text-on-surface-variant">View and manage your patients</p>
+                </div>
+              </div>
+            </Link>
           </div>
 
           {/* Today's Schedule */}
@@ -227,6 +239,15 @@ function CheckCircledIcon({ className }: { className?: string }) {
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
       <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+  );
+}
+
+function PersonIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
     </svg>
   );
 }

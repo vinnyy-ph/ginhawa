@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MedicalRecordsService } from './medical-records.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { NotFoundException, ForbiddenException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 
 describe('MedicalRecordsService', () => {
   let service: MedicalRecordsService;
@@ -49,7 +54,10 @@ describe('MedicalRecordsService', () => {
     });
 
     it('throws NotFoundException when appointment not found', async () => {
-      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1', fullName: 'Dr. S' });
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({
+        id: 'doctor-1',
+        fullName: 'Dr. S',
+      });
       mockPrismaService.appointment.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -58,8 +66,15 @@ describe('MedicalRecordsService', () => {
     });
 
     it('throws ForbiddenException when appointment belongs to different doctor', async () => {
-      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1', fullName: 'Dr. S' });
-      mockPrismaService.appointment.findUnique.mockResolvedValue({ id: 'appt-1', doctorId: 'doctor-2', patientId: 'patient-1' });
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({
+        id: 'doctor-1',
+        fullName: 'Dr. S',
+      });
+      mockPrismaService.appointment.findUnique.mockResolvedValue({
+        id: 'appt-1',
+        doctorId: 'doctor-2',
+        patientId: 'patient-1',
+      });
 
       await expect(
         service.create('user-doctor-1', { appointmentId: 'appt-1' } as any),
@@ -67,9 +82,18 @@ describe('MedicalRecordsService', () => {
     });
 
     it('throws ConflictException when record already exists', async () => {
-      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1', fullName: 'Dr. S' });
-      mockPrismaService.appointment.findUnique.mockResolvedValue({ id: 'appt-1', doctorId: 'doctor-1', patientId: 'patient-1' });
-      mockPrismaService.medicalRecord.findUnique.mockResolvedValue({ id: 'existing-rec' });
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({
+        id: 'doctor-1',
+        fullName: 'Dr. S',
+      });
+      mockPrismaService.appointment.findUnique.mockResolvedValue({
+        id: 'appt-1',
+        doctorId: 'doctor-1',
+        patientId: 'patient-1',
+      });
+      mockPrismaService.medicalRecord.findUnique.mockResolvedValue({
+        id: 'existing-rec',
+      });
 
       await expect(
         service.create('user-doctor-1', { appointmentId: 'appt-1' } as any),
@@ -77,29 +101,52 @@ describe('MedicalRecordsService', () => {
     });
 
     it('creates structured prescription rows when provided', async () => {
-      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1', fullName: 'Dr. S' });
-      mockPrismaService.appointment.findUnique.mockResolvedValue({ id: 'appt-1', doctorId: 'doctor-1', patientId: 'patient-1' });
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({
+        id: 'doctor-1',
+        fullName: 'Dr. S',
+      });
+      mockPrismaService.appointment.findUnique.mockResolvedValue({
+        id: 'appt-1',
+        doctorId: 'doctor-1',
+        patientId: 'patient-1',
+      });
       mockPrismaService.medicalRecord.findUnique.mockResolvedValue(null);
-      mockPrismaService.medicalRecord.create.mockResolvedValue({ id: 'rec-1', patient: { userId: 'u1' } });
+      mockPrismaService.medicalRecord.create.mockResolvedValue({
+        id: 'rec-1',
+        patient: { userId: 'u1' },
+      });
 
       await service.create('user-doctor-1', {
         appointmentId: 'appt-1',
-        prescriptions: [{ drugName: 'Amoxicillin', dosage: '500mg', frequency: 'TID' }],
-      } as any);
+        prescriptions: [
+          { drugName: 'Amoxicillin', dosage: '500mg', frequency: 'TID' },
+        ],
+      });
 
       expect(mockPrismaService.medicalRecord.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            prescriptions: { create: [{ drugName: 'Amoxicillin', dosage: '500mg', frequency: 'TID' }] },
+            prescriptions: {
+              create: [
+                { drugName: 'Amoxicillin', dosage: '500mg', frequency: 'TID' },
+              ],
+            },
           }),
         }),
       );
     });
 
     it('rejects a follow-up appointment belonging to another patient', async () => {
-      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1', fullName: 'Dr. S' });
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({
+        id: 'doctor-1',
+        fullName: 'Dr. S',
+      });
       mockPrismaService.appointment.findUnique
-        .mockResolvedValueOnce({ id: 'appt-1', doctorId: 'doctor-1', patientId: 'patient-1' })
+        .mockResolvedValueOnce({
+          id: 'appt-1',
+          doctorId: 'doctor-1',
+          patientId: 'patient-1',
+        })
         .mockResolvedValueOnce({ id: 'followup-1', patientId: 'patient-2' });
       mockPrismaService.medicalRecord.findUnique.mockResolvedValue(null);
 
@@ -112,9 +159,16 @@ describe('MedicalRecordsService', () => {
     });
 
     it('rejects a follow-up appointment that does not exist', async () => {
-      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1', fullName: 'Dr. S' });
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({
+        id: 'doctor-1',
+        fullName: 'Dr. S',
+      });
       mockPrismaService.appointment.findUnique
-        .mockResolvedValueOnce({ id: 'appt-1', doctorId: 'doctor-1', patientId: 'patient-1' })
+        .mockResolvedValueOnce({
+          id: 'appt-1',
+          doctorId: 'doctor-1',
+          patientId: 'patient-1',
+        })
         .mockResolvedValueOnce(null);
       mockPrismaService.medicalRecord.findUnique.mockResolvedValue(null);
 
@@ -127,21 +181,33 @@ describe('MedicalRecordsService', () => {
     });
 
     it('links a valid follow-up appointment', async () => {
-      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1', fullName: 'Dr. S' });
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({
+        id: 'doctor-1',
+        fullName: 'Dr. S',
+      });
       mockPrismaService.appointment.findUnique
-        .mockResolvedValueOnce({ id: 'appt-1', doctorId: 'doctor-1', patientId: 'patient-1' })
+        .mockResolvedValueOnce({
+          id: 'appt-1',
+          doctorId: 'doctor-1',
+          patientId: 'patient-1',
+        })
         .mockResolvedValueOnce({ id: 'followup-1', patientId: 'patient-1' });
       mockPrismaService.medicalRecord.findUnique.mockResolvedValue(null);
-      mockPrismaService.medicalRecord.create.mockResolvedValue({ id: 'rec-1', patient: { userId: 'u1' } });
+      mockPrismaService.medicalRecord.create.mockResolvedValue({
+        id: 'rec-1',
+        patient: { userId: 'u1' },
+      });
 
       await service.create('user-doctor-1', {
         appointmentId: 'appt-1',
         followUpAppointmentId: 'followup-1',
-      } as any);
+      });
 
       expect(mockPrismaService.medicalRecord.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ followUpAppointmentId: 'followup-1' }),
+          data: expect.objectContaining({
+            followUpAppointmentId: 'followup-1',
+          }),
         }),
       );
     });

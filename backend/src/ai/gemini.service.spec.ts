@@ -22,7 +22,7 @@ async function drain<T>(gen: AsyncGenerator<string, T>) {
     out += r.value;
     r = await gen.next();
   }
-  return { out, value: r.value as T };
+  return { out, value: r.value };
 }
 
 describe('GeminiService', () => {
@@ -84,14 +84,18 @@ describe('GeminiService', () => {
   describe('generateJsonStream', () => {
     it('yields chunks and returns parsed result', async () => {
       mockGenerateContentStream.mockResolvedValue([{ text: '{"a":1}' }]);
-      const { out, value } = await drain(service.generateJsonStream<{ a: number }>('p'));
+      const { out, value } = await drain(
+        service.generateJsonStream<{ a: number }>('p'),
+      );
       expect(out).toBe('{"a":1}');
       expect(value).toEqual({ a: 1 });
     });
 
     it('rethrows a non-rate-limit error immediately', async () => {
       mockGenerateContentStream.mockRejectedValue(new Error('boom'));
-      await expect(drain(service.generateJsonStream('p'))).rejects.toThrow('boom');
+      await expect(drain(service.generateJsonStream('p'))).rejects.toThrow(
+        'boom',
+      );
     });
   });
 });

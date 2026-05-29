@@ -49,7 +49,9 @@ describe('DoctorsController', () => {
         };
 
       const req = { user: { id: 'user-id' } };
-      mockDoctorsService.upsertProfile.mockResolvedValue({ profileComplete: true });
+      mockDoctorsService.upsertProfile.mockResolvedValue({
+        profileComplete: true,
+      });
 
       const result = await controller.create(req, createDto);
 
@@ -99,7 +101,11 @@ describe('DoctorsController', () => {
       ];
       mockDoctorsService.searchAll.mockResolvedValue(mockProfiles);
 
-      const result = await controller.findAll('search', 'specialization', 'rating');
+      const result = await controller.findAll(
+        'search',
+        'specialization',
+        'rating',
+      );
 
       expect(mockDoctorsService.searchAll).toHaveBeenCalledWith(
         'search',

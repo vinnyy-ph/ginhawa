@@ -6,12 +6,9 @@ import { signOut, useSession } from 'next-auth/react';
 import {
   HomeIcon,
   CalendarIcon,
-  FileTextIcon,
   BellIcon,
-  MagnifyingGlassIcon,
   PersonIcon,
   ExitIcon,
-  ActivityLogIcon,
   ClockIcon,
 } from '@radix-ui/react-icons';
 import { Logo } from '@/components/ui/logo';
@@ -24,20 +21,11 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
-const patientNav: NavItem[] = [
-  { href: '/dashboard', label: 'Overview', icon: <HomeIcon className="w-4 h-4" /> },
-  { href: '/dashboard/profile', label: 'My Profile', icon: <PersonIcon className="w-4 h-4" /> },
-  { href: '/dashboard/appointments', label: 'Appointments', icon: <CalendarIcon className="w-4 h-4" /> },
-  { href: '/dashboard/records', label: 'Medical Records', icon: <FileTextIcon className="w-4 h-4" /> },
-  { href: '/dashboard/ai-recommendations', label: 'AI Recommendations', icon: <ActivityLogIcon className="w-4 h-4" /> },
-  { href: '/dashboard/find-doctors', label: 'Find Doctors', icon: <MagnifyingGlassIcon className="w-4 h-4" /> },
-  { href: '/dashboard/notifications', label: 'Notifications', icon: <BellIcon className="w-4 h-4" /> },
-];
-
 const doctorNav: NavItem[] = [
   { href: '/doctor/dashboard', label: 'Overview', icon: <HomeIcon className="w-4 h-4" /> },
   { href: '/doctor/profile', label: 'My Profile', icon: <PersonIcon className="w-4 h-4" /> },
   { href: '/doctor/appointments', label: 'Appointments', icon: <CalendarIcon className="w-4 h-4" /> },
+  { href: '/doctor/patients', label: 'Patients', icon: <PersonIcon className="w-4 h-4" /> },
   { href: '/doctor/schedule', label: 'My Schedule', icon: <ClockIcon className="w-4 h-4" /> },
   { href: '/doctor/notifications', label: 'Notifications', icon: <BellIcon className="w-4 h-4" /> },
 ];
@@ -50,7 +38,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const navItems = role === 'patient' ? patientNav : doctorNav;
+  const navItems = doctorNav;
 
   return (
     <div className="min-h-screen bg-surface flex">

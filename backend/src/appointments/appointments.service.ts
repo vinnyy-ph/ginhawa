@@ -7,7 +7,11 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { AppointmentStatus, SlotStatus, NotificationType } from '@prisma/client';
+import {
+  AppointmentStatus,
+  SlotStatus,
+  NotificationType,
+} from '@prisma/client';
 
 @Injectable()
 export class AppointmentsService {
@@ -192,7 +196,7 @@ export class AppointmentsService {
       row.totalVisits += 1;
       if (isUpcoming) row.upcomingCount += 1;
       if (start && start <= now) {
-        const startIso = appt.slot!.startTime.toISOString();
+        const startIso = appt.slot.startTime.toISOString();
         if (!row.lastVisit || start > new Date(row.lastVisit).getTime()) {
           row.lastVisit = startIso;
         }
@@ -451,7 +455,9 @@ export class AppointmentsService {
         ? appointment.doctor.userId === userId
         : appointment.patient.userId === userId;
     if (!isOwner) {
-      throw new ForbiddenException('You can only reschedule your own appointments');
+      throw new ForbiddenException(
+        'You can only reschedule your own appointments',
+      );
     }
 
     if (

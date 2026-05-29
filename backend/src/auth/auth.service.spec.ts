@@ -171,7 +171,12 @@ describe('AuthService', () => {
       expect(mockUsersService.create).toHaveBeenCalledWith(createUserDto);
       expect(result).toEqual({
         access_token: token,
-        user: { id: '2', email: 'new@example.com', role: Role.PATIENT, name: null },
+        user: {
+          id: '2',
+          email: 'new@example.com',
+          role: Role.PATIENT,
+          name: null,
+        },
       });
     });
   });

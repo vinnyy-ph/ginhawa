@@ -58,7 +58,9 @@ export class MedicalRecordsService {
         throw new BadRequestException('Invalid follow-up appointment');
       }
       const alreadyLinked = await this.prisma.medicalRecord.findUnique({
-        where: { followUpAppointmentId: createMedicalRecordDto.followUpAppointmentId },
+        where: {
+          followUpAppointmentId: createMedicalRecordDto.followUpAppointmentId,
+        },
       });
       if (alreadyLinked) {
         throw new ConflictException(

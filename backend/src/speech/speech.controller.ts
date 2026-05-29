@@ -1,4 +1,10 @@
-import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SpeechService } from './speech.service';
 import { OptionalJwt } from '../auth/decorators/optional-jwt.decorator';

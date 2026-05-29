@@ -43,6 +43,24 @@ export class AppointmentsController {
     return this.appointmentsService.findAllForDoctor(req.user.id);
   }
 
+  @Get('doctor/patients')
+  @Roles('DOCTOR')
+  findPatientsForDoctor(@Request() req: { user: { id: string } }) {
+    return this.appointmentsService.findPatientsForDoctor(req.user.id);
+  }
+
+  @Get('doctor/patients/:patientId')
+  @Roles('DOCTOR')
+  findPatientHistory(
+    @Request() req: { user: { id: string } },
+    @Param('patientId') patientId: string,
+  ) {
+    return this.appointmentsService.findPatientHistoryForDoctor(
+      req.user.id,
+      patientId,
+    );
+  }
+
   @Get(':id')
   @Roles('DOCTOR')
   findOne(@Request() req: { user: { id: string } }, @Param('id') id: string) {

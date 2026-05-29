@@ -31,14 +31,18 @@ export class ReviewsService {
       throw new ForbiddenException('You can only review your own appointments');
     }
     if (appointment.status !== AppointmentStatus.COMPLETED) {
-      throw new BadRequestException('You can only review completed appointments');
+      throw new BadRequestException(
+        'You can only review completed appointments',
+      );
     }
 
     const existing = await this.prisma.review.findUnique({
       where: { appointmentId: dto.appointmentId },
     });
     if (existing) {
-      throw new ConflictException('A review already exists for this appointment');
+      throw new ConflictException(
+        'A review already exists for this appointment',
+      );
     }
 
     return this.prisma.review.create({

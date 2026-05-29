@@ -21,7 +21,9 @@ describe('SpecializationsService', () => {
   });
 
   it('returns specializations ordered by name', async () => {
-    const rows = [{ id: '1', name: 'Cardiology', description: null, createdAt: new Date() }];
+    const rows = [
+      { id: '1', name: 'Cardiology', description: null, createdAt: new Date() },
+    ];
     mockPrismaService.specialization.findMany.mockResolvedValue(rows);
 
     const result = await service.findAll();

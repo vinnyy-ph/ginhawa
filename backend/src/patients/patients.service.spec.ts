@@ -89,7 +89,7 @@ describe('PatientsService', () => {
       mockPrismaService.patientProfile.findUnique.mockResolvedValue(null);
       mockPrismaService.patientProfile.create.mockResolvedValue(expectedResult);
 
-      const result = await service.create(userId, dto as any);
+      const result = await service.create(userId, dto);
 
       expect(mockPrismaService.patientProfile.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -155,12 +155,21 @@ describe('PatientsService', () => {
 
   describe('updateMedicalHistory', () => {
     it('upserts the history row for the caller patient profile', async () => {
-      mockPrismaService.patientProfile.findUnique.mockResolvedValue({ id: 'patient-1' });
-      mockPrismaService.patientMedicalHistory.upsert.mockResolvedValue({ id: 'h1', allergies: ['nuts'] });
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue({
+        id: 'patient-1',
+      });
+      mockPrismaService.patientMedicalHistory.upsert.mockResolvedValue({
+        id: 'h1',
+        allergies: ['nuts'],
+      });
 
-      const result = await service.updateMedicalHistory('user-1', { allergies: ['nuts'] });
+      const result = await service.updateMedicalHistory('user-1', {
+        allergies: ['nuts'],
+      });
 
-      expect(mockPrismaService.patientMedicalHistory.upsert).toHaveBeenCalledWith({
+      expect(
+        mockPrismaService.patientMedicalHistory.upsert,
+      ).toHaveBeenCalledWith({
         where: { patientId: 'patient-1' },
         update: { allergies: ['nuts'] },
         create: { patientId: 'patient-1', allergies: ['nuts'] },

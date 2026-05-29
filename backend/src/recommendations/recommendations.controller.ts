@@ -30,11 +30,14 @@ export class RecommendationsController {
     @Res() res: Response,
   ) {
     const userId = req.user?.id ?? null;
-    const stream = await this.recommendationsService.createStream(userId, createRecommendationDto);
-    
+    const stream = await this.recommendationsService.createStream(
+      userId,
+      createRecommendationDto,
+    );
+
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Transfer-Encoding', 'chunked');
-    
+
     try {
       for await (const chunk of stream) {
         res.write(chunk);

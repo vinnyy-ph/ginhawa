@@ -4,7 +4,9 @@ import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('specializations')
 export class SpecializationsController {
-  constructor(private readonly specializationsService: SpecializationsService) {}
+  constructor(
+    private readonly specializationsService: SpecializationsService,
+  ) {}
 
   @Public()
   @Get()

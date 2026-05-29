@@ -82,10 +82,19 @@ describe('DoctorsService', () => {
 
   describe('upsertProfile', () => {
     beforeEach(() => {
-      const profile = { id: 'profile-1', userId: 'user-1', fullName: 'Dr. John' };
+      const profile = {
+        id: 'profile-1',
+        userId: 'user-1',
+        fullName: 'Dr. John',
+      };
       mockUpsertTx.doctorProfile.upsert.mockResolvedValue(profile);
-      mockUpsertTx.specialization.upsert.mockResolvedValue({ id: 'spec-1', name: 'General' });
-      (mockPrismaService.$transaction as jest.Mock).mockImplementation(async (cb) => cb(mockUpsertTx));
+      mockUpsertTx.specialization.upsert.mockResolvedValue({
+        id: 'spec-1',
+        name: 'General',
+      });
+      mockPrismaService.$transaction.mockImplementation(async (cb) =>
+        cb(mockUpsertTx),
+      );
     });
 
     it('should create or return existing profile and set profileComplete', async () => {
@@ -123,8 +132,14 @@ describe('DoctorsService', () => {
 
   describe('upsertProfile junction', () => {
     const mockTx = {
-      doctorProfile: { upsert: jest.fn().mockResolvedValue({ id: 'doctor-1' }) },
-      specialization: { upsert: jest.fn().mockResolvedValue({ id: 'spec-1', name: 'Cardiology' }) },
+      doctorProfile: {
+        upsert: jest.fn().mockResolvedValue({ id: 'doctor-1' }),
+      },
+      specialization: {
+        upsert: jest
+          .fn()
+          .mockResolvedValue({ id: 'spec-1', name: 'Cardiology' }),
+      },
       doctorSpecialization: {
         deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
         upsert: jest.fn().mockResolvedValue({}),
@@ -132,7 +147,9 @@ describe('DoctorsService', () => {
     };
 
     beforeEach(() => {
-      (mockPrismaService.$transaction as jest.Mock).mockImplementation(async (cb) => cb(mockTx));
+      mockPrismaService.$transaction.mockImplementation(async (cb) =>
+        cb(mockTx),
+      );
     });
 
     it('creates a primary DoctorSpecialization row from the specialization string', async () => {
@@ -140,7 +157,7 @@ describe('DoctorsService', () => {
         fullName: 'Dr. A',
         professionalTitle: 'MD',
         specialization: 'Cardiology',
-      } as any);
+      });
 
       expect(mockTx.specialization.upsert).toHaveBeenCalledWith(
         expect.objectContaining({ where: { name: 'Cardiology' } }),
@@ -150,7 +167,11 @@ describe('DoctorsService', () => {
       });
       expect(mockTx.doctorSpecialization.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
-          create: { doctorId: 'doctor-1', specializationId: 'spec-1', isPrimary: true },
+          create: {
+            doctorId: 'doctor-1',
+            specializationId: 'spec-1',
+            isPrimary: true,
+          },
         }),
       );
     });
@@ -181,7 +202,9 @@ describe('DoctorsService', () => {
       const mockTx = {
         doctorProfile: { update: jest.fn() },
         specialization: {
-          upsert: jest.fn().mockResolvedValue({ id: 'spec-1', name: 'Neurology' }),
+          upsert: jest
+            .fn()
+            .mockResolvedValue({ id: 'spec-1', name: 'Neurology' }),
         },
         doctorSpecialization: {
           deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
@@ -191,8 +214,8 @@ describe('DoctorsService', () => {
       const updateDto = { specialization: 'Neurology' };
       const expected = { ...existing, ...updateDto };
       mockTx.doctorProfile.update.mockResolvedValue(expected);
-      (mockPrismaService.$transaction as jest.Mock).mockImplementation(
-        async (cb) => cb(mockTx),
+      mockPrismaService.$transaction.mockImplementation(async (cb) =>
+        cb(mockTx),
       );
 
       const result = await service.update('user-1', updateDto);
@@ -218,8 +241,8 @@ describe('DoctorsService', () => {
         specialization: { upsert: jest.fn() },
         doctorSpecialization: { deleteMany: jest.fn(), upsert: jest.fn() },
       };
-      (mockPrismaService.$transaction as jest.Mock).mockImplementation(
-        async (cb) => cb(mockTx),
+      mockPrismaService.$transaction.mockImplementation(async (cb) =>
+        cb(mockTx),
       );
 
       await service.update('user-1', { bio: 'x' });
@@ -312,7 +335,9 @@ describe('DoctorsService', () => {
       const result = await service.searchAll(undefined, undefined, 'rating');
 
       expect(mockPrismaService.review.groupBy).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ isVisible: true }) }),
+        expect.objectContaining({
+          where: expect.objectContaining({ isVisible: true }),
+        }),
       );
       expect(result[0].id).toBe('doctor-2');
       expect(result[0].avgRating).toBe(5);
@@ -321,7 +346,9 @@ describe('DoctorsService', () => {
     });
 
     it('defaults missing ratings to zero', async () => {
-      mockPrismaService.doctorProfile.findMany.mockResolvedValue([{ id: 'doctor-3', fullName: 'C' }]);
+      mockPrismaService.doctorProfile.findMany.mockResolvedValue([
+        { id: 'doctor-3', fullName: 'C' },
+      ]);
       mockPrismaService.review.groupBy.mockResolvedValue([]);
 
       const result = await service.searchAll();

@@ -47,9 +47,9 @@ export class RecommendationsService {
         mh.chronicConditions.length > 0 ||
         mh.currentMedications.length > 0);
     const historyBlock = hasHistory
-      ? `- Allergies: ${mh!.allergies.join(', ') || 'none'}
-- Chronic conditions: ${mh!.chronicConditions.join(', ') || 'none'}
-- Current medications: ${mh!.currentMedications.join(', ') || 'none'}
+      ? `- Allergies: ${mh.allergies.join(', ') || 'none'}
+- Chronic conditions: ${mh.chronicConditions.join(', ') || 'none'}
+- Current medications: ${mh.currentMedications.join(', ') || 'none'}
 `
       : '';
 
@@ -98,11 +98,15 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
     let patientContext: PatientContext | undefined;
 
     if (userId) {
-      const patientProfile = await this.prisma.patientProfile.findUnique({ where: { userId } });
+      const patientProfile = await this.prisma.patientProfile.findUnique({
+        where: { userId },
+      });
       patientId = patientProfile?.id ?? null;
       if (patientId) {
         const recentLogs = await this.prisma.recommendationLog.findMany({
-          where: { patientId }, orderBy: { createdAt: 'desc' }, take: 5,
+          where: { patientId },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
           select: { matchedSpecialization: true, symptomInput: true },
         });
         const medHistory = await this.prisma.patientMedicalHistory.findUnique({
@@ -122,32 +126,55 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
       }
     }
 
-    const cachedLog = patientId 
+    const cachedLog = patientId
       ? await this.prisma.recommendationLog.findFirst({
-          where: { patientId, symptomInput: { equals: createRecommendationDto.symptomInput, mode: 'insensitive' }, aiExplanation: { not: null } },
+          where: {
+            patientId,
+            symptomInput: {
+              equals: createRecommendationDto.symptomInput,
+              mode: 'insensitive',
+            },
+            aiExplanation: { not: null },
+          },
           orderBy: { createdAt: 'desc' },
         })
       : null;
-    
+
     const self = this;
     async function* generateStream() {
       if (cachedLog && cachedLog.aiExplanation) {
-        yield JSON.stringify({ specialization: cachedLog.matchedSpecialization, explanation: cachedLog.aiExplanation });
+        yield JSON.stringify({
+          specialization: cachedLog.matchedSpecialization,
+          explanation: cachedLog.aiExplanation,
+        });
         await self.prisma.recommendationLog.create({
-          data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: cachedLog.matchedSpecialization, aiExplanation: cachedLog.aiExplanation },
+          data: {
+            patientId,
+            symptomInput: createRecommendationDto.symptomInput,
+            matchedSpecialization: cachedLog.matchedSpecialization,
+            aiExplanation: cachedLog.aiExplanation,
+          },
         });
         return;
       }
 
-      const streamGenerator = self.getAIRecommendationStream(createRecommendationDto.symptomInput, patientContext);
-      
+      const streamGenerator = self.getAIRecommendationStream(
+        createRecommendationDto.symptomInput,
+        patientContext,
+      );
+
       const parsedResult = yield* streamGenerator;
       try {
         await self.prisma.recommendationLog.create({
-          data: { patientId, symptomInput: createRecommendationDto.symptomInput, matchedSpecialization: parsedResult.specialization, aiExplanation: parsedResult.explanation },
+          data: {
+            patientId,
+            symptomInput: createRecommendationDto.symptomInput,
+            matchedSpecialization: parsedResult.specialization,
+            aiExplanation: parsedResult.explanation,
+          },
         });
       } catch (error) {
-        console.error("Failed to save recommendation log to database", error);
+        console.error('Failed to save recommendation log to database', error);
       }
     }
 
