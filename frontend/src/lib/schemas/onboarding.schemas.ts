@@ -1,6 +1,6 @@
 // frontend/src/lib/schemas/onboarding.schemas.ts
 import { z } from 'zod';
-import { isValidPhilHealth, isValidHmoCard } from '@/lib/format';
+import { isValidPhilHealth, isValidHmoCard, isValidPrc, isValidPtr } from '@/lib/format';
 
 export const step1Schema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
@@ -65,7 +65,10 @@ export function localTodayISO(): string {
 }
 
 export const doctorCredentialsSchema = z.object({
-  prcLicenseNo: z.string().min(1, 'PRC license number is required'),
+  prcLicenseNo: z
+    .string()
+    .min(1, 'PRC license number is required')
+    .refine(isValidPrc, 'PRC license number must be 7 digits'),
   prcLicenseExpiry: z
     .string()
     .min(1, 'PRC license expiry is required')
@@ -75,7 +78,10 @@ export const doctorCredentialsSchema = z.object({
       (val) => val >= localTodayISO(),
       'License expiry must be today or a future date',
     ),
-  ptrNo: z.string().optional(),
+  ptrNo: z
+    .string()
+    .optional()
+    .refine((v) => isValidPtr(v ?? ''), 'PTR number must be 7–8 digits'),
   region: z.string().optional(),
   city: z.string().optional(),
 });

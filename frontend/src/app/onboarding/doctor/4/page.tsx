@@ -6,6 +6,9 @@ import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
 import { Button } from '@/components/ui/button';
 import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { Chip } from '@/components/ui/chip';
+
+const COMMON_FOCUS = ['Preventive Care', 'Chronic Disease Management', 'Lifestyle & Nutrition', 'Mental Health'];
 
 export default function DoctorOnboardingStep4() {
   const router = useRouter();
@@ -17,6 +20,14 @@ export default function DoctorOnboardingStep4() {
   const [availabilitySummary, setAvailabilitySummary] = useState(data.availabilitySummary);
   
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const toItems = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
+  const toggleFocus = (value: string) => {
+    const items = toItems(consultationFocusAreas);
+    const next = items.includes(value) ? items.filter((i) => i !== value) : [...items, value];
+    setConsultationFocusAreas(next.join(', '));
+  };
+  const isFocusSelected = (value: string) => toItems(consultationFocusAreas).includes(value);
 
   const handleNext = () => {
     if (!bio.trim()) {
@@ -64,14 +75,21 @@ export default function DoctorOnboardingStep4() {
           />
         </FormField>
         
-        <FormField id="consultationFocusAreas" label="Focus Areas (Optional)">
-          <textarea 
-            id="consultationFocusAreas" 
-            value={consultationFocusAreas} 
-            onChange={e => setConsultationFocusAreas(e.target.value)} 
-            className="w-full min-h-[80px] rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
-            placeholder="e.g. Hypertension management, Preventive cardiology, Heart failure..." 
-          />
+        <FormField id="consultationFocusAreas" label="Focus Areas (Optional)" hint="Tap a suggestion or type your own, separated by commas">
+          <div className="flex flex-col gap-2.5">
+            <div className="flex flex-wrap gap-2">
+              {COMMON_FOCUS.map((v) => (
+                <Chip key={v} selected={isFocusSelected(v)} onClick={() => toggleFocus(v)}>{v}</Chip>
+              ))}
+            </div>
+            <textarea
+              id="consultationFocusAreas"
+              value={consultationFocusAreas}
+              onChange={(e) => setConsultationFocusAreas(e.target.value)}
+              className="w-full min-h-[80px] rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
+              placeholder="e.g. Hypertension management, Preventive cardiology, Heart failure..."
+            />
+          </div>
         </FormField>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -9,6 +9,7 @@ import {
   type DoctorCredentialsSchema,
 } from '@/lib/schemas/onboarding.schemas';
 import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
+import { formatPrc, formatPtr } from '@/lib/format';
 import { FormField } from '@/components/ui/form-field';
 import { Button } from '@/components/ui/button';
 import { ProgressIndicator } from '@/components/ui/progress-indicator';
@@ -60,7 +61,17 @@ export default function DoctorOnboardingStep2() {
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
         <FormField id="prcLicenseNo" label="PRC License Number" error={errors.prcLicenseNo?.message} required>
-          <input id="prcLicenseNo" className={inputClass} placeholder="0123456" {...register('prcLicenseNo')} />
+          <input
+            id="prcLicenseNo"
+            inputMode="numeric"
+            className={inputClass}
+            placeholder="0123456"
+            {...register('prcLicenseNo', {
+              onChange: (e) => {
+                e.target.value = formatPrc(e.target.value);
+              },
+            })}
+          />
         </FormField>
 
         <FormField id="prcLicenseExpiry" label="PRC License Expiry" error={errors.prcLicenseExpiry?.message} required>
@@ -68,7 +79,17 @@ export default function DoctorOnboardingStep2() {
         </FormField>
 
         <FormField id="ptrNo" label="PTR Number (Optional)">
-          <input id="ptrNo" className={inputClass} placeholder="PTR-000000" {...register('ptrNo')} />
+          <input
+            id="ptrNo"
+            inputMode="numeric"
+            className={inputClass}
+            placeholder="PTR-000000"
+            {...register('ptrNo', {
+              onChange: (e) => {
+                e.target.value = formatPtr(e.target.value);
+              },
+            })}
+          />
         </FormField>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
