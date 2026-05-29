@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, ApiError } from "@/lib/api-client";
 import { Header } from "@/components/layout/header";
 import { HeroSection } from "@/components/layout/hero-section";
 import { HowItWorksSection } from "@/components/layout/how-it-works-section";
@@ -37,18 +37,19 @@ export default async function Home() {
 
   if (session.user?.role === "DOCTOR") redirect("/doctor/dashboard");
 
-  // PATIENT: onboarding guard (moved from old /dashboard/page.tsx)
+  // PATIENT: onboarding guard — only redirect when the profile is
+  // genuinely missing (404). Network errors mean the backend is down;
+  // don't punish the user with an onboarding loop in that case.
   const token = session.user?.accessToken;
-  let hasProfile = false;
   if (token) {
     try {
       await apiRequest("/patients/profile", { token });
-      hasProfile = true;
-    } catch {
-      hasProfile = false;
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        redirect("/onboarding/1");
+      }
     }
   }
-  if (!hasProfile) redirect("/onboarding/1");
 
   return <PatientHome />;
 }
