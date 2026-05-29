@@ -32,3 +32,18 @@ export const isValidHmoCard = (value: string) => {
   const c = value.replace(/[^a-zA-Z0-9]/g, '');
   return c.length === 0 || c.length === 12;
 };
+
+/** Format a PRC license no. as up to 7 raw digits (no separators). */
+export const formatPrc = (value: string) => value.replace(/\D/g, '').slice(0, 7);
+
+/** Valid when the PRC license no. is exactly 7 digits. */
+export const isValidPrc = (value: string) => value.replace(/\D/g, '').length === 7;
+
+/** Format a PTR no. as up to 8 raw digits (no separators). */
+export const formatPtr = (value: string) => value.replace(/\D/g, '').slice(0, 8);
+
+/** Valid when empty (optional) or 7–8 digits. */
+export const isValidPtr = (value: string) => {
+  const len = value.replace(/\D/g, '').length;
+  return len === 0 || len === 7 || len === 8;
+};

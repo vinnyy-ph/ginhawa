@@ -12,7 +12,7 @@ import { useOnboarding } from '@/context/onboarding-context';
 import { ProgressIndicator } from '@/components/ui/progress-indicator';
 import { FormField } from '@/components/ui/form-field';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Chip } from '@/components/ui/chip';
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
 const SMOKING_OPTIONS = [
@@ -26,31 +26,6 @@ const SMOKING_OPTIONS = [
 const COMMON_ALLERGIES = ['Penicillin', 'Seafood', 'Peanuts', 'Aspirin'];
 const COMMON_CONDITIONS = ['Hypertension', 'Diabetes', 'Asthma', 'High Cholesterol'];
 const COMMON_MEDICATIONS = ['Metformin', 'Amlodipine', 'Losartan', 'Salbutamol'];
-
-function Chip({
-  selected,
-  onClick,
-  children,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'px-3 py-1.5 rounded-full text-xs font-medium transition-all border',
-        selected
-          ? 'bg-primary text-white border-primary shadow-sm'
-          : 'bg-surface-white text-on-surface-variant border-outline-variant hover:border-primary/50 hover:bg-surface-variant/50',
-      )}
-    >
-      {children}
-    </button>
-  );
-}
 
 export default function OnboardingStep4() {
   const router = useRouter();
