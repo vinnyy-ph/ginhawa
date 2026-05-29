@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 
-import { DoctorCard } from "@/components/doctors/DoctorCard";
+import { DoctorCardCompact } from "@/components/doctors/DoctorCardCompact";
 import { DoctorFilters } from "@/components/doctors/DoctorFilters";
 import { DoctorSort } from "@/components/doctors/DoctorSort";
 import { useDoctorDiscovery } from "@/components/doctors/use-doctor-discovery";
@@ -18,20 +18,24 @@ import { useDoctorDiscovery } from "@/components/doctors/use-doctor-discovery";
 
 function SkeletonCard() {
   return (
-    <div className="animate-pulse bg-surface-white rounded-2xl shadow-soft overflow-hidden border border-outline-variant/50">
-      <div className="h-2 bg-gradient-to-r from-[#004d43]/30 to-[#48cab6]/30" />
-      <div className="p-6 space-y-4">
-        <div className="flex gap-4 items-center">
-          <div className="w-16 h-16 rounded-full bg-surface-container shrink-0" />
-          <div className="space-y-3 flex-1">
-            <div className="h-4 bg-surface-container rounded w-3/4" />
-            <div className="h-4 bg-surface-container rounded w-1/2" />
-          </div>
+    <div className="animate-pulse bg-surface-white rounded-3xl border border-outline-variant/30 shadow-sm p-6 flex flex-col h-full">
+      <div className="flex items-start gap-4">
+        <div className="w-14 h-14 rounded-full bg-surface-container shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 bg-surface-container rounded w-3/4" />
+          <div className="h-3 bg-surface-container rounded w-1/2" />
         </div>
-        <div className="h-5 bg-surface-container rounded-full w-1/3" />
+      </div>
+      <div className="mt-4 space-y-2">
         <div className="h-3 bg-surface-container rounded" />
         <div className="h-3 bg-surface-container rounded w-5/6" />
-        <div className="h-10 mt-4 bg-surface-container rounded-xl w-full" />
+      </div>
+      <div className="mt-auto pt-5">
+        <div className="pt-4 border-t border-outline-variant/20 flex gap-6 mb-4">
+          <div className="h-8 w-16 bg-surface-container rounded" />
+          <div className="h-8 w-16 bg-surface-container rounded" />
+        </div>
+        <div className="h-12 bg-surface-container rounded-2xl w-full" />
       </div>
     </div>
   );
@@ -124,45 +128,46 @@ export default function DashboardFindDoctorsPage() {
         </p>
       </div>
 
-      {/* ── Search Bar ────────────────────────────────────────────────────── */}
-      <div className="relative mb-8 max-w-2xl">
-        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-          <MagnifyingGlassIcon
-            className="w-5 h-5 text-on-surface-variant"
-            aria-hidden="true"
+      {/* ── Search + Filter Panel ─────────────────────────────────────────── */}
+      <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-4 mb-6 space-y-4">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+            <MagnifyingGlassIcon
+              className="w-5 h-5 text-on-surface-variant"
+              aria-hidden="true"
+            />
+          </div>
+          <input
+            id="dashboard-doctor-search"
+            type="search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by name, specialization, or keyword…"
+            className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-outline-variant bg-surface-white text-on-surface placeholder:text-on-surface-variant/60 text-sm shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition-all"
+            aria-label="Search doctors"
           />
         </div>
-        <input
-          id="dashboard-doctor-search"
-          type="search"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search by name, specialization, or keyword…"
-          className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-outline-variant bg-surface-white text-on-surface placeholder:text-on-surface-variant/60 text-sm shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition-all"
-          aria-label="Search doctors"
-        />
-      </div>
 
-      {/* ── Filter and Sort Header ────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div className="flex items-center gap-3">
-          <DoctorFilters
-            filters={filters}
-            onFiltersChange={setFilters}
-            availableSpecializations={availableSpecializations}
-            availableLanguages={availableLanguages}
-          />
-          
-          {/* Live Summary */}
-          {!loading && (
-            <span className="text-sm text-on-surface-variant">
-              Showing <strong className="text-text-primary">{filteredDoctors.length}</strong> result{filteredDoctors.length !== 1 ? "s" : ""}
-            </span>
-          )}
-        </div>
-        
-        <div className="flex items-center">
-          <DoctorSort value={sort} onChange={setSort} />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <DoctorFilters
+              filters={filters}
+              onFiltersChange={setFilters}
+              availableSpecializations={availableSpecializations}
+              availableLanguages={availableLanguages}
+            />
+
+            {/* Live Summary */}
+            {!loading && (
+              <span className="text-sm text-on-surface-variant">
+                Showing <strong className="text-text-primary">{filteredDoctors.length}</strong> result{filteredDoctors.length !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center">
+            <DoctorSort value={sort} onChange={setSort} />
+          </div>
         </div>
       </div>
 
@@ -186,8 +191,8 @@ export default function DashboardFindDoctorsPage() {
 
       {/* ── Grid / States ────────────────────────────────────────────────── */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {Array.from({ length: 4 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
@@ -196,13 +201,12 @@ export default function DashboardFindDoctorsPage() {
       ) : filteredDoctors.length === 0 ? (
         <EmptyState onClearFilters={clearFilters} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {filteredDoctors.map((doctor) => (
-            <DoctorCard key={doctor.id} doctor={doctor} isPatient={true} />
+            <DoctorCardCompact key={doctor.id} doctor={doctor} />
           ))}
         </div>
       )}
     </DashboardLayout>
   );
 }
-
