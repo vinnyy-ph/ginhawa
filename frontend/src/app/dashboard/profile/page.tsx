@@ -37,10 +37,6 @@ const COMMON_CONDITIONS = ["Hypertension", "Diabetes", "Asthma", "High Cholester
 const COMMON_MEDICATIONS = ["Metformin", "Amlodipine", "Losartan", "Salbutamol"];
 
 const toItems = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
-const optList = (s: string) => {
-  const l = toItems(s);
-  return l.length ? l : undefined;
-};
 
 export default function PatientProfilePage() {
   const { data: session } = useSession();
@@ -141,6 +137,7 @@ export default function PatientProfilePage() {
     setSaving(true);
     setError(null);
     setSuccess(false);
+    let savedDetails = false;
     try {
       await apiRequest("/patients/profile", {
         method: "PATCH",
@@ -160,25 +157,32 @@ export default function PatientProfilePage() {
           hmoCardNo: hmoCardNo.trim() || undefined,
         },
       });
+      savedDetails = true;
 
+      // Edit semantics: send empty values explicitly so a cleared field is
+      // actually cleared server-side (not left unchanged).
       await apiRequest("/patients/medical-history", {
         method: "PATCH",
         token,
         body: {
-          bloodType: bloodType || undefined,
-          allergies: optList(allergies),
-          chronicConditions: optList(chronicConditions),
-          currentMedications: optList(currentMedications),
-          pastSurgeries: pastSurgeries.trim() || undefined,
-          familyHistory: familyHistory.trim() || undefined,
-          smokingStatus: smokingStatus || undefined,
+          bloodType,
+          allergies: toItems(allergies),
+          chronicConditions: toItems(chronicConditions),
+          currentMedications: toItems(currentMedications),
+          pastSurgeries: pastSurgeries.trim(),
+          familyHistory: familyHistory.trim(),
+          smokingStatus,
         },
       });
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch {
-      setError("Failed to save profile. Please try again.");
+      setError(
+        savedDetails
+          ? "Saved your details, but medical history failed to save. Please try again."
+          : "Failed to save profile. Please try again.",
+      );
     } finally {
       setSaving(false);
     }
