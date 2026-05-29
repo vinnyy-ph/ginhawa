@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { apiRequest } from "@/lib/api-client";
 import { Header } from "@/components/layout/header";
 import { HeroSection } from "@/components/layout/hero-section";
+import { HowItWorksSection } from "@/components/layout/how-it-works-section";
 import { FeaturesSection } from "@/components/layout/features-section";
 import { ShowcaseSection } from "@/components/layout/showcase-section";
 import { TestimonialsSection } from "@/components/layout/testimonials-section";
@@ -18,6 +19,7 @@ function Marketing() {
       <Header />
       <main className="flex-grow">
         <HeroSection />
+        <HowItWorksSection />
         <FeaturesSection />
         <ShowcaseSection />
         <TestimonialsSection />

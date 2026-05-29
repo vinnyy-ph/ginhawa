@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { CalendarIcon, FileTextIcon, PersonIcon, ExitIcon, BellIcon } from "@radix-ui/react-icons";
+import { CalendarIcon, FileTextIcon, PersonIcon, ExitIcon, BellIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 
@@ -82,9 +82,29 @@ export function Header() {
             </>
           ) : (
             <>
-              <Link href="/signup/doctor" className="hidden lg:inline text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Sign up as a doctor</Link>
               <Button variant="ghost" size="sm" asChild><Link href="/login">Log in</Link></Button>
-              <Button size="sm" asChild><Link href="/signup">Sign up</Link></Button>
+              <Button variant="outline" size="sm" asChild><Link href="/signup">Sign up</Link></Button>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger
+                  aria-label="Open menu"
+                  className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30"
+                >
+                  <HamburgerMenuIcon className="h-5 w-5" />
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content align="end" sideOffset={8} className="z-50 min-w-[200px] rounded-xl border border-outline-variant bg-surface-white p-1.5 shadow-lifted md:hidden">
+                    <DropdownMenu.Item asChild>
+                      <Link href="/features" className="flex items-center px-3 py-2 rounded-lg text-sm text-on-surface hover:bg-surface-container outline-none cursor-pointer">Features</Link>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item asChild>
+                      <Link href="/doctors" className="flex items-center px-3 py-2 rounded-lg text-sm text-on-surface hover:bg-surface-container outline-none cursor-pointer">Find a Doctor</Link>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item asChild>
+                      <Link href="/for-doctors" className="flex items-center px-3 py-2 rounded-lg text-sm text-on-surface hover:bg-surface-container outline-none cursor-pointer">For Doctors</Link>
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
             </>
           )}
         </div>

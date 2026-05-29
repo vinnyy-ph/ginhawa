@@ -24,6 +24,20 @@ const PH_LOCATIONS: { region: string; cities: string[] }[] = [
   { region: 'Region IV-A (CALABARZON)', cities: ['Calamba', 'Antipolo', 'Bacoor'] },
 ];
 
+// Free-to-use Unsplash photos of doctors / nurses (Unsplash license).
+const DOCTOR_PHOTOS = [
+  'photo-1612349317150-e413f6a5b16d',
+  'photo-1559839734-2b71ea197ec2',
+  'photo-1582750433449-648ed127bb54',
+  'photo-1537368910025-700350fe46c7',
+  'photo-1622253692010-333f2da6031d',
+  'photo-1594824476967-48c8b964273f',
+  'photo-1607990281513-2c110a25bd8c',
+  'photo-1576091160550-2173dba999ef',
+  'photo-1591604021695-0c69b7c05981',
+  'photo-1651008376811-b90baee60c1f',
+].map((id) => `https://images.unsplash.com/${id}?w=400&h=400&fit=crop&q=80`);
+
 const HMO_PROVIDERS = ['Maxicare', 'Intellicare', 'PhilCare', 'Medicard', 'Insular Health Care', 'Cocolife'];
 const LANGUAGES = ['English', 'Filipino', 'Cebuano', 'Ilocano', 'Hiligaynon'];
 const TITLES = ['MD', 'MD, FPCP', 'MD, DPPS', 'MD, FPOGS', 'Consultant'];
@@ -67,6 +81,74 @@ const DRUGS: { drugName: string; dosage: string; frequency: string }[] = [
 const REVIEW_COMMENTS = ['Very thorough and patient, explained everything clearly.', 'Highly recommend, made me feel at ease.', 'Professional and on time. Great consultation.', 'Listened well to my concerns.', 'Knowledgeable doctor, helpful advice.', 'Good experience overall.'];
 const FOCUS_AREAS = ['Preventive care and lifestyle management', 'Chronic disease management', 'Pediatric wellness and immunization', 'Womens health and family planning', 'Cardiac risk assessment', 'Skin condition diagnosis'];
 const CANCEL_REASONS = ['Patient unavailable', 'Doctor emergency', 'Rescheduled by patient request', 'Feeling better, no longer needed'];
+
+// Specialization-matched bios. {y} is replaced with years of experience.
+const BIOS: Record<string, string[]> = {
+  'General Practice': [
+    'General practitioner with {y} years caring for families across the Philippines. I focus on preventive health, routine check-ups, and managing common illnesses, and I refer to specialists when deeper care is needed.',
+    'A primary care physician for {y} years, I treat everyday conditions from coughs and fevers to minor injuries, with an emphasis on building long-term relationships with my patients.',
+  ],
+  'Internal Medicine': [
+    'Internist with {y} years managing complex adult conditions such as hypertension, diabetes, and thyroid disorders. I take a comprehensive, evidence-based approach to whole-person care.',
+    'I have spent {y} years in internal medicine diagnosing and treating chronic diseases in adults, coordinating care to keep patients healthy and out of the hospital.',
+  ],
+  'Pediatrics': [
+    'Pediatrician with {y} years caring for newborns, children, and teens. I cover well-baby check-ups, immunizations, growth monitoring, and childhood illnesses with a gentle, family-centered approach.',
+    'For {y} years I have looked after the health of Filipino children, from routine vaccinations to managing fevers, allergies, and developmental concerns.',
+  ],
+  'OB-GYN': [
+    'Obstetrician-gynecologist with {y} years in womens health. I provide prenatal care, family planning, and treatment of gynecologic conditions through every stage of life.',
+    'I have practiced obstetrics and gynecology for {y} years, guiding women through pregnancy, childbirth, and reproductive health with compassionate, individualized care.',
+  ],
+  'Dermatology': [
+    'Dermatologist with {y} years treating skin, hair, and nail conditions, including acne, eczema, and pigmentation common in Filipino skin. I balance medical and cosmetic dermatology.',
+    'For {y} years I have diagnosed and managed skin conditions from rashes and allergies to chronic disorders, with a focus on safe, lasting results.',
+  ],
+  'Cardiology': [
+    'Cardiologist with {y} years specializing in heart disease, hypertension, and cardiac risk assessment. I help patients protect their heart health through screening and lifestyle guidance.',
+    'I have spent {y} years in cardiology managing conditions of the heart and blood vessels, from arrhythmias to coronary disease, with a preventive mindset.',
+  ],
+  'Orthopedics': [
+    'Orthopedic surgeon with {y} years treating bone, joint, and muscle injuries. I handle fractures, sports injuries, and degenerative conditions, favoring conservative care when possible.',
+    'For {y} years I have managed musculoskeletal problems, from sprains and fractures to joint pain, helping patients restore movement and strength.',
+  ],
+  'ENT': [
+    'ENT specialist with {y} years treating ear, nose, and throat disorders including sinusitis, hearing problems, and tonsillitis for patients of all ages.',
+    'I have practiced otolaryngology for {y} years, managing everything from allergies and sinus issues to voice and hearing concerns.',
+  ],
+  'Psychiatry': [
+    'Psychiatrist with {y} years supporting mental health, including anxiety, depression, and stress-related conditions. I offer a safe, non-judgmental space and evidence-based treatment.',
+    'For {y} years I have helped patients navigate mental health challenges through careful assessment, therapy guidance, and medication management when appropriate.',
+  ],
+  'Neurology': [
+    'Neurologist with {y} years diagnosing and treating disorders of the brain and nervous system such as migraines, epilepsy, and stroke.',
+    'I have spent {y} years in neurology caring for patients with headaches, seizures, and nerve conditions, combining careful diagnosis with practical management.',
+  ],
+  'Ophthalmology': [
+    'Ophthalmologist with {y} years caring for eye health, from vision correction and dry eyes to cataracts and glaucoma screening.',
+    'For {y} years I have treated eye and vision disorders, helping patients preserve and improve their sight at every age.',
+  ],
+  'Radiology': [
+    'Radiologist with {y} years interpreting X-rays, ultrasound, CT, and MRI to support accurate, timely diagnoses across specialties.',
+    'I have practiced diagnostic radiology for {y} years, working closely with referring physicians to read medical imaging and guide treatment.',
+  ],
+  'Surgery': [
+    'General surgeon with {y} years performing operative and minimally invasive procedures. I prioritize patient safety, clear communication, and smooth recovery.',
+    'For {y} years I have provided surgical care for a range of conditions, from appendicitis to hernias, with a focus on careful evaluation before any operation.',
+  ],
+  'Family Medicine': [
+    'Family physician with {y} years providing comprehensive care for patients of all ages. I see whole families and emphasize prevention and continuity of care.',
+    'I have practiced family medicine for {y} years, caring for children, adults, and seniors alike, and coordinating care across their health needs.',
+  ],
+  'Rehabilitation Medicine': [
+    'Rehabilitation medicine specialist with {y} years helping patients regain function after injury, surgery, or illness through tailored therapy plans.',
+    'For {y} years I have focused on physical rehabilitation, restoring mobility and quality of life for patients recovering from stroke, injury, and chronic pain.',
+  ],
+};
+function genBio(spec: string, years: number): string {
+  const options = BIOS[spec] ?? BIOS['General Practice'];
+  return faker.helpers.arrayElement(options).replace('{y}', String(years));
+}
 
 // ---- helpers ----
 function pickLocation(): { city: string; region: string } {
@@ -135,6 +217,7 @@ async function main() {
     );
     const loc = pickLocation();
     const fee = faker.number.int({ min: 500, max: 3000 });
+    const years = faker.number.int({ min: 1, max: 40 });
     const junctions = [
       { specializationId: specMap.get(primary)!, isPrimary: true },
       ...(secondary && specMap.get(secondary)
@@ -151,11 +234,11 @@ async function main() {
           create: {
             fullName: genFullName(),
             professionalTitle: faker.helpers.arrayElement(TITLES),
-            bio: faker.lorem.paragraph(),
+            bio: genBio(primary, years),
             specialization: primary,
-            profilePictureUrl: faker.image.avatarGitHub(),
+            profilePictureUrl: faker.helpers.arrayElement(DOCTOR_PHOTOS),
             availabilitySummary: 'Mon-Fri, 9:00 AM - 5:00 PM',
-            yearsOfExperience: faker.number.int({ min: 1, max: 40 }),
+            yearsOfExperience: years,
             languagesSpoken: faker.helpers.arrayElements(LANGUAGES, { min: 1, max: 3 }),
             consultationFocusAreas: faker.helpers.arrayElement(FOCUS_AREAS),
             consultationFee: fee,
