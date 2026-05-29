@@ -29,6 +29,18 @@ export default function DoctorOnboardingStep3() {
   const options = specialization && !specializations.includes(specialization)
     ? [specialization, ...specializations]
     : specializations;
+  // If the fetch failed (or returned nothing), fall back to free text so the
+  // doctor is never hard-stuck on a required field.
+  const specFetchFailed = !loading && specializations.length === 0;
+
+  const handleSpecChange = (value: string) => {
+    setSpecialization(value);
+    if (errors.specialization) setErrors((prev) => {
+      const n = { ...prev };
+      delete n.specialization;
+      return n;
+    });
+  };
 
   const toItems = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
   const toggleLanguage = (value: string) => {
@@ -64,24 +76,27 @@ export default function DoctorOnboardingStep3() {
 
       <div className="flex flex-col gap-4">
         <FormField id="specialization" label="Primary Specialization" error={errors.specialization} required>
-          <select
-            id="specialization"
-            value={specialization}
-            onChange={(e) => {
-              setSpecialization(e.target.value);
-              if (errors.specialization) setErrors((prev) => {
-                const n = { ...prev };
-                delete n.specialization;
-                return n;
-              });
-            }}
-            className={fieldClass}
-          >
-            <option value="" disabled>{loading ? 'Loading…' : 'Select your specialization'}</option>
-            {options.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
+          {specFetchFailed ? (
+            <input
+              id="specialization"
+              value={specialization}
+              onChange={(e) => handleSpecChange(e.target.value)}
+              className={fieldClass}
+              placeholder="e.g. Cardiology"
+            />
+          ) : (
+            <select
+              id="specialization"
+              value={specialization}
+              onChange={(e) => handleSpecChange(e.target.value)}
+              className={fieldClass}
+            >
+              <option value="" disabled>{loading ? 'Loading…' : 'Select your specialization'}</option>
+              {options.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          )}
         </FormField>
 
         <FormField id="yearsOfExperience" label="Years of Experience (Optional)">

@@ -21,6 +21,7 @@ export default function OnboardingStep2() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LocationInsuranceSchema>({
     resolver: zodResolver(locationInsuranceSchema),
@@ -84,7 +85,7 @@ export default function OnboardingStep2() {
             className={inputClass}
             {...register('philhealthId', {
               onChange: (e) => {
-                e.target.value = formatPhilHealth(e.target.value);
+                setValue('philhealthId', formatPhilHealth(e.target.value), { shouldValidate: true });
               },
             })}
           />
@@ -101,7 +102,7 @@ export default function OnboardingStep2() {
               className={inputClass}
               {...register('hmoCardNo', {
                 onChange: (e) => {
-                  e.target.value = formatHmoCard(e.target.value);
+                  setValue('hmoCardNo', formatHmoCard(e.target.value), { shouldValidate: true });
                 },
               })}
             />

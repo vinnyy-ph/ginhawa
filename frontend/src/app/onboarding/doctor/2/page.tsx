@@ -22,6 +22,7 @@ export default function DoctorOnboardingStep2() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<DoctorCredentialsSchema>({
     resolver: zodResolver(doctorCredentialsSchema),
@@ -68,7 +69,7 @@ export default function DoctorOnboardingStep2() {
             placeholder="0123456"
             {...register('prcLicenseNo', {
               onChange: (e) => {
-                e.target.value = formatPrc(e.target.value);
+                setValue('prcLicenseNo', formatPrc(e.target.value), { shouldValidate: true });
               },
             })}
           />
@@ -78,15 +79,15 @@ export default function DoctorOnboardingStep2() {
           <input id="prcLicenseExpiry" type="date" min={today} className={inputClass} {...register('prcLicenseExpiry')} />
         </FormField>
 
-        <FormField id="ptrNo" label="PTR Number (Optional)">
+        <FormField id="ptrNo" label="PTR Number (Optional)" error={errors.ptrNo?.message}>
           <input
             id="ptrNo"
             inputMode="numeric"
             className={inputClass}
-            placeholder="PTR-000000"
+            placeholder="12345678"
             {...register('ptrNo', {
               onChange: (e) => {
-                e.target.value = formatPtr(e.target.value);
+                setValue('ptrNo', formatPtr(e.target.value), { shouldValidate: true });
               },
             })}
           />
