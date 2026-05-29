@@ -47,6 +47,14 @@ export default function PatientAppointmentsPage() {
     });
   }, [fetchAppointments]);
 
+  useEffect(() => {
+    if (!token) return;
+    const id = setInterval(() => {
+      fetchAppointments();
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [token, fetchAppointments]);
+
   const updateStatus = async (id: string, status: AppointmentStatus) => {
     if (!token) return;
     try {

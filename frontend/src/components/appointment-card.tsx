@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,6 +60,11 @@ export function AppointmentCard({
   const slot = appt.slot;
   const config = statusConfig[appt.status] || { variant: "outline", border: "border-l-outline" };
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   if (role === "patient") {
     const doc = appt.doctor;
@@ -166,6 +171,11 @@ export function AppointmentCard({
                             No
                           </button>
                         </div>
+                      )}
+                      {appt.status === "CONFIRMED" && !isWithinJoinWindow(appt) && slot && Date.now() < new Date(slot.startTime).getTime() && (
+                        <span className="text-xs font-semibold text-on-surface-variant self-center">
+                          Join opens at {formatPHTime(slot.startTime)} (PHT)
+                        </span>
                       )}
                       {appt.status === "CONFIRMED" && isWithinJoinWindow(appt) && (
                         <Button asChild size="sm" className="bg-[#31a795] text-white hover:bg-[#006b5e]">

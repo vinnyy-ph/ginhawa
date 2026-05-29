@@ -36,6 +36,15 @@ export default function DoctorAppointmentsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, status]);
 
+  useEffect(() => {
+    if (!token) return;
+    const id = setInterval(() => {
+      fetchAppointments();
+    }, 30_000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
   async function fetchAppointments() {
     if (!token) return;
     try {
