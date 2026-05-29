@@ -25,8 +25,8 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 ## Doctor UX
 - [ ] **D1** Dashboard launchpad: clickable stat cards, today-only filter, Join in schedule rows
 - [x] **D2** Dashboard load-fail → error + Retry (not false empty) — `615c5ec`
-- [ ] **D3** Gate the two competing primary actions (Join vs Complete & Document)
-- [ ] **D4** Confirm-booking success toast
+- [x] **D3** Gate Complete & Document until slot ends (no overlap with Join) — `1b3acf5`
+- [x] **D4** Confirm/cancel success banner on doctor appointments — `1b3acf5`
 - [ ] **D5** Decline-with-reason (distinct from Cancel)
 - [ ] **D6** Mobile Notifications reachable + doctor mobile top header
 - [x] **D7** Identity papercuts: clean greeting (no "Dr. Dr."), dropped raw-UUID patient id — `44f3de6`
