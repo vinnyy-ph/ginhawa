@@ -13,6 +13,7 @@ import { TimeField } from "@/components/ui/time-field";
 import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
 import { ClockIcon, PlusIcon, TrashIcon, CheckCircledIcon } from "@radix-ui/react-icons";
 import { Chip } from "@/components/ui/chip";
+import { formatPHTime, formatPHDate } from '@/lib/datetime';
 import { generateSlots, type WeeklyTemplate } from "@/lib/generate-slots";
 import { cn } from "@/lib/utils";
 import type { AvailabilitySlot, DoctorProfile, SlotStatus } from "@/types/api";
@@ -265,7 +266,7 @@ export default function DoctorSchedulePage() {
   const slotsByDate = useMemo(() => {
     const groups: Record<string, AvailabilitySlot[]> = {};
     slots.forEach(slot => {
-      const dateStr = new Date(slot.startTime).toLocaleDateString('en-PH', {
+      const dateStr = formatPHDate(slot.startTime, {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
@@ -477,7 +478,7 @@ export default function DoctorSchedulePage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {daySlots.map(slot => {
-                    const timeStr = `${new Date(slot.startTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })} – ${new Date(slot.endTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}`;
+                    const timeStr = `${formatPHTime(slot.startTime)} – ${formatPHTime(slot.endTime)}`;
                     const isBooked = slot.status === "BOOKED";
                     const isAvailable = slot.status === "AVAILABLE";
                     const isBlocked = slot.status === "BLOCKED";

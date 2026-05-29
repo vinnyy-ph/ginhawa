@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import { PatientShell } from "@/components/layout/patient-shell";
 import { apiRequest } from "@/lib/api-client";
+import { formatPHDate } from '@/lib/datetime';
 import { Spinner } from "@/components/ui/spinner";
 import { 
   FileTextIcon, 
@@ -86,8 +87,8 @@ function RecordsContent() {
         ) : (
           <div className="relative border-l-2 border-primary/20 ml-4 md:ml-6 pl-6 md:pl-10 pb-8 space-y-12">
             {records.map(record => {
-              const dateStr = new Date(record.createdAt).toLocaleDateString('en-PH', { 
-                weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' 
+              const dateStr = formatPHDate(record.createdAt, {
+                weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
               });
               const doc = record.doctor;
               

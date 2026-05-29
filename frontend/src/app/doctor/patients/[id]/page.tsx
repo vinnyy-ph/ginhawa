@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
+import { formatPHTime, formatPHDate } from '@/lib/datetime';
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeftIcon, FileTextIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
@@ -331,7 +332,7 @@ export default function DoctorPatientDetailPage({
                           <div>
                             <p className="font-semibold text-text-primary">
                               {start
-                                ? start.toLocaleDateString("en-PH", {
+                                ? formatPHDate(start, {
                                     weekday: "short",
                                     month: "short",
                                     day: "numeric",
@@ -341,10 +342,7 @@ export default function DoctorPatientDetailPage({
                             </p>
                             {start && (
                               <p className="text-xs text-on-surface-variant">
-                                {start.toLocaleTimeString("en-PH", {
-                                  hour: "numeric",
-                                  minute: "2-digit",
-                                })}
+                                {formatPHTime(start)}
                               </p>
                             )}
                           </div>

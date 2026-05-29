@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
+import { formatPHTime } from '@/lib/datetime';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
@@ -198,7 +199,7 @@ export function DoctorDashboardClient() {
               <div className="space-y-4">
                 {todaySchedule.map(appt => {
                   const pat = appt.patient;
-                  const timeStr = appt.slot ? `${new Date(appt.slot.startTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}` : '';
+                  const timeStr = appt.slot ? formatPHTime(appt.slot.startTime) : '';
 
                   return (
                     <div key={appt.id} className="bg-surface-white p-4 rounded-xl shadow-soft flex items-center justify-between border-l-4 border-l-primary/30">

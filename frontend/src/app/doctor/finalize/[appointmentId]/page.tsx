@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
+import { formatPHDate } from '@/lib/datetime';
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -172,7 +173,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
   const pat = appointment.patient;
   const slot = appointment.slot;
   const dateStr = slot
-    ? new Date(slot.startTime).toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    ? formatPHDate(slot.startTime, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
     : 'Unknown Date';
 
   return (

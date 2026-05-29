@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
+import { formatPHTime, formatPHDate } from '@/lib/datetime';
 import type { AvailabilitySlot } from '@/types/api';
 
 interface SlotPickerProps {
@@ -13,7 +14,7 @@ export function SlotPicker({ slots, selectedSlot, onSelectSlot }: SlotPickerProp
   const slotsByDate = useMemo(() => {
     const groups: Record<string, AvailabilitySlot[]> = {};
     slots.forEach(slot => {
-      const dateStr = new Date(slot.startTime).toLocaleDateString('en-PH', {
+      const dateStr = formatPHDate(slot.startTime, {
         weekday: 'short',
         month: 'short',
         day: 'numeric'
@@ -39,7 +40,7 @@ export function SlotPicker({ slots, selectedSlot, onSelectSlot }: SlotPickerProp
           <p className="text-xs font-bold text-outline uppercase mb-2 sticky top-0 bg-surface-white py-1">{date}</p>
           <div className="grid grid-cols-2 gap-2">
             {daySlots.map(slot => {
-              const timeStr = new Date(slot.startTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
+              const timeStr = formatPHTime(slot.startTime);
               const isSelected = selectedSlot?.id === slot.id;
               return (
                 <button

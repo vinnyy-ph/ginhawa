@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, ChevronDownIcon, ClockIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
+import { formatPHTime, formatPHDate } from '@/lib/datetime';
 import type { Appointment, AppointmentStatus } from "@/types/api";
 import { RescheduleDialog } from "@/components/booking/reschedule-dialog";
 
@@ -62,8 +63,8 @@ export function AppointmentCard({
 
   if (role === "patient") {
     const doc = appt.doctor;
-    const dateStr = slot ? new Date(slot.startTime).toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown Date';
-    const timeStr = slot ? `${new Date(slot.startTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })} - ${new Date(slot.endTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}` : '';
+    const dateStr = slot ? formatPHDate(slot.startTime, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown Date';
+    const timeStr = slot ? `${formatPHTime(slot.startTime)} - ${formatPHTime(slot.endTime)} (PHT)` : '';
 
     return (
       <div className={cn("bg-surface-white rounded-xl shadow-soft overflow-hidden border-l-4 transition-all duration-200", config.border)}>
@@ -192,8 +193,8 @@ export function AppointmentCard({
 
   if (role === "doctor") {
     const pat = appt.patient;
-    const dateStr = slot ? new Date(slot.startTime).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown Date';
-    const timeStr = slot ? `${new Date(slot.startTime).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}` : '';
+    const dateStr = slot ? formatPHDate(slot.startTime, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown Date';
+    const timeStr = slot ? `${formatPHTime(slot.startTime)} (PHT)` : '';
 
     return (
       <div className={cn(

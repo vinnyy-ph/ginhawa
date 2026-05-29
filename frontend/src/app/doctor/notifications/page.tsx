@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { BellIcon, CheckIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
+import { formatPHDate } from '@/lib/datetime';
 import type { Notification } from "@/types/api";
 
 export default function DoctorNotificationsPage() {
@@ -138,7 +139,7 @@ export default function DoctorNotificationsPage() {
                 else if (diffMins < 60) timeStr = `${diffMins}m ago`;
                 else if (diffHours < 24) timeStr = `${diffHours}h ago`;
                 else if (diffDays === 1) timeStr = "Yesterday";
-                else timeStr = date.toLocaleDateString();
+                else timeStr = formatPHDate(date);
 
                 return (
                   <div 
