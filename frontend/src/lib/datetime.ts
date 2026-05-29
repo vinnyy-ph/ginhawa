@@ -22,3 +22,16 @@ export function formatPHDate(
 ): string {
   return new Date(value).toLocaleDateString(LOCALE, { ...opts, timeZone: PH_TZ });
 }
+
+/** Relative time: "Just now", "5m ago", "3h ago", "Yesterday", else an Asia/Manila date. */
+export function formatRelativeTime(value: DateInput): string {
+  const date = new Date(value);
+  const diffMins = Math.floor((Date.now() - date.getTime()) / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  return formatPHDate(date);
+}
