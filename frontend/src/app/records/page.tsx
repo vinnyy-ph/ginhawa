@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { PatientShell } from "@/components/layout/patient-shell";
 import { apiRequest } from "@/lib/api-client";
 import { Spinner } from "@/components/ui/spinner";
 import { 
@@ -42,7 +42,7 @@ export default function PatientRecordsPage() {
   }, [token]);
 
   return (
-    <DashboardLayout role="patient">
+    <PatientShell>
       <div className="animate-in fade-in duration-500">
         
         {/* Header */}
@@ -182,6 +182,6 @@ export default function PatientRecordsPage() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </PatientShell>
   );
 }

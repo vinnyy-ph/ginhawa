@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { PatientShell } from "@/components/layout/patient-shell";
 import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -191,7 +191,7 @@ export default function PatientProfilePage() {
   }
 
   return (
-    <DashboardLayout role="patient">
+    <PatientShell>
       <div className="max-w-2xl animate-in fade-in duration-500">
         <div className="mb-8">
           <h1 className="text-3xl font-bold font-serif text-text-primary mb-2">My Profile</h1>
@@ -331,6 +331,6 @@ export default function PatientProfilePage() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </PatientShell>
   );
 }
