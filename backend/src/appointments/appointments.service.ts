@@ -137,6 +137,130 @@ export class AppointmentsService {
     });
   }
 
+  // Distinct patients who have booked with this doctor, with light aggregates.
+  async findPatientsForDoctor(userId: string) {
+    const doctorProfile = await this.prisma.doctorProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!doctorProfile) {
+      throw new NotFoundException('Doctor profile not found');
+    }
+
+    const appointments = await this.prisma.appointment.findMany({
+      where: { doctorId: doctorProfile.id },
+      include: {
+        patient: {
+          select: { id: true, fullName: true, profilePictureUrl: true },
+        },
+        slot: { select: { startTime: true } },
+        medicalRecord: { include: { prescriptions: true } },
+      },
+    });
+
+    const now = Date.now();
+    const map = new Map<
+      string,
+      {
+        patient: (typeof appointments)[number]['patient'];
+        totalVisits: number;
+        upcomingCount: number;
+        lastVisit: string | null;
+        searchText: string;
+      }
+    >();
+
+    for (const appt of appointments) {
+      const start = appt.slot ? appt.slot.startTime.getTime() : 0;
+      const isUpcoming =
+        (appt.status === AppointmentStatus.PENDING ||
+          appt.status === AppointmentStatus.CONFIRMED) &&
+        start >= now;
+
+      let row = map.get(appt.patientId);
+      if (!row) {
+        row = {
+          patient: appt.patient,
+          totalVisits: 0,
+          upcomingCount: 0,
+          lastVisit: null,
+          searchText: '',
+        };
+        map.set(appt.patientId, row);
+      }
+
+      row.totalVisits += 1;
+      if (isUpcoming) row.upcomingCount += 1;
+      if (start && start <= now) {
+        const startIso = appt.slot!.startTime.toISOString();
+        if (!row.lastVisit || start > new Date(row.lastVisit).getTime()) {
+          row.lastVisit = startIso;
+        }
+      }
+
+      const rec = appt.medicalRecord;
+      const parts = [
+        appt.reasonForVisit,
+        rec?.notes,
+        rec?.recommendations,
+        rec?.followUpAdvice,
+        rec?.prescription,
+        ...(rec?.prescriptions ?? []).flatMap((rx) => [
+          rx.drugName,
+          rx.dosage,
+          rx.frequency,
+          rx.instructions,
+        ]),
+      ].filter((p): p is string => !!p && p.trim().length > 0);
+
+      if (parts.length > 0) {
+        row.searchText = row.searchText
+          ? `${row.searchText} · ${parts.join(' · ')}`
+          : parts.join(' · ');
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) =>
+      a.patient.fullName.localeCompare(b.patient.fullName),
+    );
+  }
+
+  // One patient's full profile + every appointment with this doctor, including
+  // the consultation record (medical record + prescriptions). Doctor-scoped.
+  async findPatientHistoryForDoctor(userId: string, patientId: string) {
+    const doctorProfile = await this.prisma.doctorProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!doctorProfile) {
+      throw new NotFoundException('Doctor profile not found');
+    }
+
+    const patient = await this.prisma.patientProfile.findUnique({
+      where: { id: patientId },
+    });
+
+    if (!patient) {
+      throw new NotFoundException('Patient not found');
+    }
+
+    const appointments = await this.prisma.appointment.findMany({
+      where: { doctorId: doctorProfile.id, patientId },
+      include: {
+        slot: true,
+        medicalRecord: { include: { prescriptions: true } },
+      },
+      orderBy: { slot: { startTime: 'desc' } },
+    });
+
+    // Enforce ownership: a doctor may only view patients they have treated.
+    if (appointments.length === 0) {
+      throw new ForbiddenException('This patient is not in your care');
+    }
+
+    return { patient, appointments };
+  }
+
   async findOne(userId: string, appointmentId: string) {
     const doctorProfile = await this.prisma.doctorProfile.findUnique({
       where: { userId },

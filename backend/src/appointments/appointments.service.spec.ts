@@ -188,4 +188,59 @@ describe('AppointmentsService', () => {
       ).rejects.toThrow('Slot belongs to a different doctor');
     });
   });
+
+  describe('findPatientsForDoctor', () => {
+    beforeEach(() => {
+      mockPrismaService.doctorProfile = { findUnique: jest.fn() } as any;
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1' });
+    });
+
+    it('builds searchText from reason, record notes and prescriptions', async () => {
+      mockPrismaService.appointment.findMany = jest.fn().mockResolvedValue([
+        {
+          patientId: 'patient-1',
+          patient: { id: 'patient-1', fullName: 'Maria Santos', profilePictureUrl: null },
+          status: AppointmentStatus.COMPLETED,
+          reasonForVisit: 'follow up',
+          slot: { startTime: new Date(Date.now() - 86400000) },
+          medicalRecord: {
+            notes: 'patient appeared distressed',
+            recommendations: 'rest',
+            followUpAdvice: null,
+            prescription: null,
+            prescriptions: [
+              { drugName: 'Paracetamol', dosage: '500mg', frequency: 'BID', instructions: 'after meals' },
+            ],
+          },
+        },
+      ]);
+
+      const rows = await service.findPatientsForDoctor('user-doctor-1');
+
+      expect(rows).toHaveLength(1);
+      const text = rows[0].searchText.toLowerCase();
+      expect(text).toContain('follow up');
+      expect(text).toContain('distressed');
+      expect(text).toContain('rest');
+      expect(text).toContain('paracetamol');
+      expect(text).toContain('after meals');
+    });
+
+    it('handles appointments with no medical record', async () => {
+      mockPrismaService.appointment.findMany = jest.fn().mockResolvedValue([
+        {
+          patientId: 'patient-2',
+          patient: { id: 'patient-2', fullName: 'Jose Cruz', profilePictureUrl: null },
+          status: AppointmentStatus.PENDING,
+          reasonForVisit: 'cough',
+          slot: { startTime: new Date(Date.now() + 86400000) },
+          medicalRecord: null,
+        },
+      ]);
+
+      const rows = await service.findPatientsForDoctor('user-doctor-1');
+
+      expect(rows[0].searchText.toLowerCase()).toContain('cough');
+    });
+  });
 });
