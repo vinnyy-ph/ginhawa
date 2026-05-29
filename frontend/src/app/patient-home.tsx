@@ -149,7 +149,7 @@ export function PatientHome() {
                   <ActivityLogIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-text-primary group-hover:text-primary transition-colors">AI Recommendation</h3>
+                  <h3 className="font-semibold text-text-primary group-hover:text-primary transition-colors">AI Symptom Checker</h3>
                   <p className="text-xs text-on-surface-variant">Find doctors by symptom</p>
                 </div>
               </div>

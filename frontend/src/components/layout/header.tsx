@@ -82,6 +82,7 @@ export function Header() {
             </>
           ) : (
             <>
+              <Link href="/signup/doctor" className="hidden lg:inline text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Sign up as a doctor</Link>
               <Button variant="ghost" size="sm" asChild><Link href="/login">Log in</Link></Button>
               <Button size="sm" asChild><Link href="/signup">Sign up</Link></Button>
             </>
