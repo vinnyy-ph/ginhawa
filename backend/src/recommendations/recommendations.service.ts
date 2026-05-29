@@ -42,13 +42,34 @@ export class RecommendationsService {
 
   private buildPrompt(
     symptomInput: string,
-    patientContext?: { specializations: string[]; symptoms: string[] },
+    patientContext?: {
+      specializations: string[];
+      symptoms: string[];
+      medicalHistory?: {
+        allergies: string[];
+        chronicConditions: string[];
+        currentMedications: string[];
+      };
+    },
   ): string {
+    const mh = patientContext?.medicalHistory;
+    const hasHistory =
+      !!mh &&
+      (mh.allergies.length > 0 ||
+        mh.chronicConditions.length > 0 ||
+        mh.currentMedications.length > 0);
+    const historyBlock = hasHistory
+      ? `- Allergies: ${mh!.allergies.join(', ') || 'none'}
+- Chronic conditions: ${mh!.chronicConditions.join(', ') || 'none'}
+- Current medications: ${mh!.currentMedications.join(', ') || 'none'}
+`
+      : '';
+
     const contextBlock = patientContext
       ? `Patient context (use this to personalize your recommendation):
 - Recent specializations consulted: ${patientContext.specializations.join(', ') || 'none'}
 - Prior symptom history (brief): ${patientContext.symptoms.map((s) => s.slice(0, 100)).join(' | ') || 'none'}
-
+${historyBlock}
 `
       : '';
 
@@ -80,7 +101,15 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
 
   private async *getAIRecommendationStream(
     symptomInput: string,
-    patientContext?: { specializations: string[]; symptoms: string[] },
+    patientContext?: {
+      specializations: string[];
+      symptoms: string[];
+      medicalHistory?: {
+        allergies: string[];
+        chronicConditions: string[];
+        currentMedications: string[];
+      };
+    },
   ): AsyncGenerator<string, { specialization: string; explanation: string }> {
     const generationConfig = {
       responseMimeType: 'application/json',
@@ -140,7 +169,15 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
     createRecommendationDto: CreateRecommendationDto,
   ) {
     let patientId: string | null = null;
-    let patientContext: { specializations: string[]; symptoms: string[] } | undefined;
+    let patientContext: {
+      specializations: string[];
+      symptoms: string[];
+      medicalHistory?: {
+        allergies: string[];
+        chronicConditions: string[];
+        currentMedications: string[];
+      };
+    } | undefined;
 
     if (userId) {
       const patientProfile = await this.prisma.patientProfile.findUnique({ where: { userId } });
@@ -150,7 +187,20 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
           where: { patientId }, orderBy: { createdAt: 'desc' }, take: 5,
           select: { matchedSpecialization: true, symptomInput: true },
         });
-        patientContext = { specializations: recentLogs.map((l) => l.matchedSpecialization), symptoms: recentLogs.map((l) => l.symptomInput) };
+        const medHistory = await this.prisma.patientMedicalHistory.findUnique({
+          where: { patientId },
+        });
+        patientContext = {
+          specializations: recentLogs.map((l) => l.matchedSpecialization),
+          symptoms: recentLogs.map((l) => l.symptomInput),
+          medicalHistory: medHistory
+            ? {
+                allergies: medHistory.allergies,
+                chronicConditions: medHistory.chronicConditions,
+                currentMedications: medHistory.currentMedications,
+              }
+            : undefined,
+        };
       }
     }
 

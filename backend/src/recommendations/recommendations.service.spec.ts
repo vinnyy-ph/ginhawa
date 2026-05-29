@@ -20,6 +20,7 @@ describe('RecommendationsService', () => {
   const mockPrismaService = {
     patientProfile: { findUnique: jest.fn() },
     recommendationLog: { create: jest.fn(), findMany: jest.fn(), findFirst: jest.fn() },
+    patientMedicalHistory: { findUnique: jest.fn() },
   };
 
   beforeEach(async () => {
@@ -180,6 +181,32 @@ describe('RecommendationsService', () => {
       const stream = await service.createStream(null, { symptomInput: 'chest pain difficulty breathing' });
       const output = await consumeStream(stream);
       expect(output).toBe('{"specialization":"EMERGENCY","explanation":"Seek immediate care."}');
+    });
+  });
+
+  describe('buildPrompt medical history', () => {
+    it('includes allergies, chronic conditions, and current medications when present', () => {
+      const prompt = (service as any).buildPrompt('headache', {
+        specializations: ['Neurology'],
+        symptoms: ['dizzy'],
+        medicalHistory: {
+          allergies: ['penicillin'],
+          chronicConditions: ['hypertension'],
+          currentMedications: ['losartan'],
+        },
+      });
+      expect(prompt).toContain('penicillin');
+      expect(prompt).toContain('hypertension');
+      expect(prompt).toContain('losartan');
+    });
+
+    it('omits the medical-history block when arrays are empty', () => {
+      const prompt = (service as any).buildPrompt('headache', {
+        specializations: [],
+        symptoms: [],
+        medicalHistory: { allergies: [], chronicConditions: [], currentMedications: [] },
+      });
+      expect(prompt).not.toContain('Allergies:');
     });
   });
 
