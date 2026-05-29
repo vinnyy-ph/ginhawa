@@ -222,7 +222,6 @@ export function AppointmentCard({
                 <h3 className="font-bold text-text-primary leading-tight">
                   {pat?.fullName || 'Patient'}
                 </h3>
-                <p className="text-xs text-on-surface-variant">Patient ID: {pat?.id.slice(0, 8)}</p>
               </div>
             </div>
             <Badge variant={config.variant} className="capitalize px-2.5 py-0.5 text-[10px]">

@@ -29,7 +29,10 @@ const statusColors: Record<string, "secondary" | "success" | "destructive" | "in
 export function DoctorDashboardClient() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
-  const doctorName = session?.user?.name || session?.user?.email?.split('@')[0] || "Doctor";
+  const rawName = session?.user?.name?.trim();
+  const greetingName = rawName
+    ? (/^dr\.?\s/i.test(rawName) ? rawName : `Dr. ${rawName}`)
+    : (session?.user?.email?.split('@')[0] ?? 'Doctor');
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,7 +107,7 @@ export function DoctorDashboardClient() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold font-serif text-text-primary mb-2">
-            Welcome back, Dr. {doctorName}
+            Welcome back, {greetingName}
           </h1>
           <p className="text-on-surface-variant font-sans">
             Manage your schedule, appointments, and patient care.
