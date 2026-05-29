@@ -20,7 +20,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 - [x] **P5** Join surfaces (30s poll + "Join opens at" hint) — `3a0c73b`
 - [x] **P6** Symptom check authenticated + persisted — `91fab73`
 - [ ] **P7** DOB picker: year/decade jump + 44px touch targets
-- [ ] **P8** Patient mobile bottom-nav
+- [x] **P8** Patient mobile bottom-nav — `a66a633`
 
 ## Doctor UX
 - [x] **D1** Dashboard launchpad: clickable stats (deep-linked), actionable today schedule, Join in rows — `5dfca75`
