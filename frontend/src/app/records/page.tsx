@@ -8,14 +8,14 @@ import { PatientShell } from "@/components/layout/patient-shell";
 import { apiRequest } from "@/lib/api-client";
 import { formatPHDate } from '@/lib/datetime';
 import { Spinner } from "@/components/ui/spinner";
-import { 
-  FileTextIcon, 
-  HeartIcon, 
-  ChatBubbleIcon, 
+import {
+  FileTextIcon,
+  ChatBubbleIcon,
   CheckCircledIcon,
   CalendarIcon
 } from "@radix-ui/react-icons";
 import type { MedicalRecord } from "@/types/api";
+import { PrescriptionDisplay } from "@/components/prescription-display";
 
 function RecordsContent() {
   const { data: session } = useSession();
@@ -141,18 +141,10 @@ function RecordsContent() {
                         </div>
                       )}
                       
-                      {record.prescription && (
+                      {(record.prescriptions?.length || record.prescription) && (
                         <>
                           <hr className="border-outline-variant/30" />
-                          <div>
-                            <h4 className="flex items-center gap-2 font-bold font-serif text-text-primary mb-2">
-                              <HeartIcon className="w-4 h-4 text-[#ba1a1a]" />
-                              Prescription
-                            </h4>
-                            <div className="bg-red-50/50 p-4 rounded-lg text-sm text-on-surface whitespace-pre-line leading-relaxed border border-red-100">
-                              {record.prescription}
-                            </div>
-                          </div>
+                          <PrescriptionDisplay prescriptions={record.prescriptions} fallbackText={record.prescription} />
                         </>
                       )}
                       

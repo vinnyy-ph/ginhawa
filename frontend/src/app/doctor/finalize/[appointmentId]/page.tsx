@@ -15,12 +15,12 @@ import {
   PersonIcon,
   CheckCircledIcon,
   ChatBubbleIcon,
-  HeartIcon,
   FileTextIcon,
   ExclamationTriangleIcon,
   MagicWandIcon,
 } from "@radix-ui/react-icons";
 import type { Appointment, MedicalRecord } from "@/types/api";
+import { PrescriptionDisplay } from "@/components/prescription-display";
 
 interface AiSummary {
   doctorSummary: string;
@@ -287,15 +287,8 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
                   </div>
                 </div>
               )}
-              {existingRecord!.prescription && (
-                <div>
-                  <h4 className="flex items-center gap-2 font-bold font-serif text-text-primary mb-2">
-                    <HeartIcon className="w-4 h-4 text-[#ba1a1a]" /> Prescription
-                  </h4>
-                  <div className="bg-red-50 p-4 rounded-lg text-sm text-on-surface whitespace-pre-line leading-relaxed border border-red-100">
-                    {existingRecord!.prescription}
-                  </div>
-                </div>
+              {(existingRecord!.prescriptions?.length || existingRecord!.prescription) && (
+                <PrescriptionDisplay prescriptions={existingRecord!.prescriptions} fallbackText={existingRecord!.prescription} />
               )}
               {existingRecord!.recommendations && (
                 <div>
