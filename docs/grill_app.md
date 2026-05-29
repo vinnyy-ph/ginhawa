@@ -13,7 +13,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 - [x] **S8** All times pinned to Asia/Manila — `0f1eebf`
 
 ## Patient UX
-- [ ] **P1** Onboarding "skip for now" → reach booking with name/DOB/contact, defer clinical intake
+- [x] **P1** Onboarding "Skip for now" on steps 2-5 → jump to review/submit — `ed66c77`
 - [x] **P2** Disabled-button reasons + profile photo made optional — `b5846db`
 - [x] **P3** Confirm-booking copy + redirect (pre-session) — accurate "request" copy shipped
 - [x] **P4** Prescription rendered as clean medication list (structured `prescriptions[]`, no error-red) — `34062a8`
