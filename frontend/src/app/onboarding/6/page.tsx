@@ -139,7 +139,7 @@ export default function OnboardingStep6() {
       // ID-card fields during the 1.8s toast window.
       setTimeout(() => {
         reset();
-        router.push('/dashboard');
+        router.push('/');
       }, 1800);
     } catch {
       setServerError('Something went wrong. Please try again.');

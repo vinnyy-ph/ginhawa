@@ -160,7 +160,7 @@ export function AppointmentCard({
                 {appt.status === "COMPLETED" && (
                   <div>
                     <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
-                      <Link href="/dashboard/records">View Medical Record</Link>
+                      <Link href="/records">View Medical Record</Link>
                     </Button>
                   </div>
                 )}
