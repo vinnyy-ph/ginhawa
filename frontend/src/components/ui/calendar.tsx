@@ -7,7 +7,7 @@ import {
   CalendarGridHeader,
   CalendarHeaderCell,
   CalendarCell,
-  Heading,
+  CalendarHeading,
   Button,
 } from 'react-aria-components'
 import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons'
@@ -24,7 +24,7 @@ export function PickerCalendar() {
         >
           <ChevronLeftIcon className="h-4 w-4" />
         </Button>
-        <Heading className="text-sm font-semibold text-text-primary" />
+        <CalendarHeading className="text-sm font-semibold text-text-primary" />
         <Button
           slot="next"
           className="flex h-7 w-7 items-center justify-center rounded-md text-on-surface-variant outline-none hover:bg-surface-container data-[disabled]:opacity-30"

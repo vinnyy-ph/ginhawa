@@ -49,8 +49,8 @@ export function DatePicker({
       aria-label={aria['aria-label'] ?? 'Date'}
       value={toCalendarDate(value)}
       onChange={(d) => onChange(d ? d.toString() : '')}
-      minValue={toCalendarDate(minDate) ?? undefined}
-      maxValue={toCalendarDate(maxDate) ?? undefined}
+      minValue={toCalendarDate(minDate)}
+      maxValue={toCalendarDate(maxDate)}
       isDisabled={disabled}
       shouldForceLeadingZeros
     >
