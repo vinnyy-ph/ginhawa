@@ -19,7 +19,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 - [x] **P4** Prescription rendered as clean medication list (structured `prescriptions[]`, no error-red) — `34062a8`
 - [x] **P5** Join surfaces (30s poll + "Join opens at" hint) — `3a0c73b`
 - [x] **P6** Symptom check authenticated + persisted — `91fab73`
-- [ ] **P7** DOB picker: year/decade jump + 44px touch targets
+- [x] **P7** DOB picker: year-jump buttons + 44px touch targets — `aef8dfc`
 - [x] **P8** Patient mobile bottom-nav — `a66a633`
 
 ## Doctor UX
@@ -34,10 +34,10 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 ## Appearance, design & a11y
 - [ ] **V1** Design tokens: gradient + warning token; route the ~17 hardcoded `#48cab6/#31a795` files through them
 - [ ] **V2** One `<Alert variant="error|success">` (kill the two different reds)
-- [ ] **V3** Wordmark font consistency across the login boundary
-- [ ] **V4** Truncation tooltips (review-id-card name/credentials; doctor-card languages, touch-accessible)
-- [ ] **V5** De-dupe double specialization render (`doctors/[id]`)
-- [ ] **V6** Footer indentation + header-style consistency + fill the empty trust-badge placeholders
+- [x] **V3** Wordmark font unified to font-serif across login boundary — `2041293`
+- [x] **V4** Truncation tooltips on review-id-card name/subtitle — `2041293`
+- [x] **V5** De-duped double specialization render (`doctors/[id]`) — `2041293`
+- [x] **V6** Footer indentation + unified headers + removed empty trust-badge placeholders — `2041293`
 - [ ] **V7** `prefers-reduced-motion` / `motion-reduce` (esp. emergency Call-911 bounce+pulse)
 - [ ] **V8** a11y: real `<button>`s (cards/notification rows), focus rings, skip-to-content, 44px touch targets
 - [ ] **V9** De-dup: shared relative-time formatter, `/features` CTA → `<CTASection/>`, photo-capture/dead `ProfilePhotoField`, `DashboardLayout` role-prop dead code
