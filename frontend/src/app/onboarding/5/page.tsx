@@ -9,6 +9,7 @@ import { useOnboarding } from '@/context/onboarding-context';
 import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { Button } from '@/components/ui/button';
+import { CameraCapture } from '@/components/ui/camera-capture';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -24,12 +25,11 @@ export default function OnboardingStep5() {
   const [fileError, setFileError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const acceptFile = (file: File) => {
     setFileError(null);
     setServerError(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
 
     if (!ALLOWED_TYPES.includes(file.type)) {
       setFileError('Please upload a JPEG, PNG, or WebP image.');
@@ -44,6 +44,11 @@ export default function OnboardingStep5() {
     const reader = new FileReader();
     reader.onload = (ev) => setPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) acceptFile(file);
   };
 
   const handleUploadAndContinue = async () => {
@@ -117,11 +122,16 @@ export default function OnboardingStep5() {
           onChange={handleFileChange}
         />
 
-        {preview && (
-          <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
-            Change photo
+        <div className="flex items-center gap-2">
+          {preview && (
+            <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
+              Change photo
+            </Button>
+          )}
+          <Button type="button" variant="outline" size="sm" onClick={() => setCameraOpen(true)}>
+            Take photo
           </Button>
-        )}
+        </div>
 
         {fileError && (
           <p role="alert" className="flex items-center gap-1 text-xs text-error font-manrope">
@@ -136,6 +146,8 @@ export default function OnboardingStep5() {
           <p role="alert" className="text-xs text-error font-manrope">{serverError}</p>
         )}
       </div>
+
+      <CameraCapture open={cameraOpen} onClose={() => setCameraOpen(false)} onCapture={acceptFile} />
 
       <OnboardingNav
         onBack={() => router.push('/onboarding/4')}
