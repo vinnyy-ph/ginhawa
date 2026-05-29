@@ -11,18 +11,73 @@ import { ProgressIndicator } from '@/components/ui/progress-indicator';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Toast } from '@/components/ui/toast';
-import type { CreatePatientProfileBody, UpdateMedicalHistoryBody } from '@/types/patient';
+import { PhoneInput } from '@/components/ui/phone-input';
+import { cn } from '@/lib/utils';
+import { formatPhone, formatPhilHealth, formatHmoCard } from '@/lib/format';
+import type { OnboardingData, CreatePatientProfileBody, UpdateMedicalHistoryBody } from '@/types/patient';
 
-function InfoPoint({ label, value, editHref }: { label: string; value: string; editHref?: string }) {
+const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
+const SMOKING_OPTIONS = [
+  { value: '', label: 'Prefer not to say' },
+  { value: 'Never', label: 'Never' },
+  { value: 'Former', label: 'Former' },
+  { value: 'Current', label: 'Current' },
+];
+
+const editInputClass =
+  'w-full rounded-md border border-outline-variant bg-surface-white px-2.5 py-1.5 text-sm text-on-surface font-manrope placeholder:text-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20';
+
+/**
+ * One review row. Shows a value + EDIT; clicking EDIT swaps in an inline editor
+ * (snapshot of the row's fields) with SAVE/CANCEL — no navigation away. SAVE
+ * commits the draft to onboarding context.
+ */
+function EditableRow<T extends Partial<OnboardingData>>({
+  label,
+  display,
+  initial,
+  onSave,
+  render,
+  fullWidth,
+}: {
+  label: string;
+  display: string;
+  initial: T;
+  onSave: (draft: T) => void;
+  render: (draft: T, set: <K extends keyof T>(k: K, v: T[K]) => void) => React.ReactNode;
+  fullWidth?: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<T>(initial);
+
+  const start = () => {
+    setDraft(initial);
+    setEditing(true);
+  };
+  const set = <K extends keyof T>(k: K, v: T[K]) => setDraft((p) => ({ ...p, [k]: v }) as T);
+  const save = () => {
+    onSave(draft);
+    setEditing(false);
+  };
+
   return (
-    <div className="flex flex-col gap-1">
+    <div className={cn('flex flex-col gap-1', fullWidth && 'col-span-2')}>
       <div className="flex items-center justify-between">
         <span className="text-[10px] uppercase tracking-wider font-bold text-outline font-plus-jakarta">{label}</span>
-        {editHref && (
-          <Link href={editHref} className="text-[10px] font-bold text-primary hover:underline">EDIT</Link>
+        {editing ? (
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={save} className="text-[10px] font-bold text-primary hover:underline">SAVE</button>
+            <button type="button" onClick={() => setEditing(false)} className="text-[10px] font-bold text-outline hover:underline">CANCEL</button>
+          </div>
+        ) : (
+          <button type="button" onClick={start} className="text-[10px] font-bold text-primary hover:underline">EDIT</button>
         )}
       </div>
-      <span className="text-sm font-medium text-on-surface font-manrope">{value || '—'}</span>
+      {editing ? (
+        <div className="mt-1">{render(draft, set)}</div>
+      ) : (
+        <span className="text-sm font-medium text-on-surface font-manrope">{display || '—'}</span>
+      )}
     </div>
   );
 }
@@ -38,7 +93,7 @@ const optList = (s: string) => {
 export default function OnboardingStep6() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { data, reset } = useOnboarding();
+  const { data, update, reset } = useOnboarding();
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
@@ -120,7 +175,7 @@ export default function OnboardingStep6() {
 
       <div className="text-center">
         <h1 className="text-3xl font-bold text-text-primary font-plus-jakarta tracking-tight">One last check</h1>
-        <p className="mt-2 text-on-surface-variant font-manrope">This will be your official digital health record.</p>
+        <p className="mt-2 text-on-surface-variant font-manrope">Tap EDIT on any field to fix it right here.</p>
       </div>
 
       <div className="bg-surface-white rounded-3xl border border-outline-variant/30 shadow-lifted overflow-hidden transition-all duration-300 hover:shadow-hover">
@@ -138,7 +193,7 @@ export default function OnboardingStep6() {
                   </svg>
                 )}
               </div>
-              <Link href="/onboarding/5" className="absolute -bottom-2 -right-2 bg-white text-primary p-2 rounded-xl shadow-lg hover:scale-110 transition-transform">
+              <Link href="/onboarding/5" className="absolute -bottom-2 -right-2 bg-white text-primary p-2 rounded-xl shadow-lg hover:scale-110 transition-transform" aria-label="Change photo">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 </svg>
@@ -146,7 +201,7 @@ export default function OnboardingStep6() {
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase font-plus-jakarta mb-1">Digital Patient ID</span>
-              <h2 className="text-2xl font-bold font-plus-jakarta tracking-tight leading-tight">{data.fullName}</h2>
+              <h2 className="text-2xl font-bold font-plus-jakarta tracking-tight leading-tight">{data.fullName || '—'}</h2>
               <div className="flex items-center gap-2 mt-2">
                 <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
                 <span className="text-xs font-medium text-white/80">Profile Complete</span>
@@ -155,37 +210,176 @@ export default function OnboardingStep6() {
           </div>
         </div>
 
-        <div className="p-8 grid grid-cols-2 gap-x-8 gap-y-10">
-          <InfoPoint label="Full Name" value={data.fullName} editHref="/onboarding/1" />
-          <InfoPoint label="Date of Birth" value={data.birthdate} editHref="/onboarding/1" />
-          <InfoPoint label="Contact Info" value={data.contactDetails} editHref="/onboarding/1" />
-          <InfoPoint label="Metrics" value={`${data.weightKg ? data.weightKg + 'kg' : '—'} / ${data.heightCm ? data.heightCm + 'cm' : '—'}`} editHref="/onboarding/3" />
+        <div className="p-8 grid grid-cols-2 gap-x-8 gap-y-8">
+          <EditableRow
+            label="Full Name"
+            display={data.fullName}
+            initial={{ fullName: data.fullName }}
+            onSave={update}
+            render={(d, set) => (
+              <input className={editInputClass} value={d.fullName} onChange={(e) => set('fullName', e.target.value)} />
+            )}
+          />
+          <EditableRow
+            label="Date of Birth"
+            display={data.birthdate}
+            initial={{ birthdate: data.birthdate }}
+            onSave={update}
+            render={(d, set) => (
+              <input type="date" className={editInputClass} value={d.birthdate} onChange={(e) => set('birthdate', e.target.value)} />
+            )}
+          />
+          <EditableRow
+            label="Contact Info"
+            display={formatPhone(data.contactDetails)}
+            initial={{ contactDetails: data.contactDetails }}
+            onSave={update}
+            render={(d, set) => (
+              <PhoneInput
+                value={formatPhone(d.contactDetails)}
+                onChange={(e) => set('contactDetails', e.target.value.replace(/\D/g, '').replace(/^0/, '').slice(0, 10))}
+              />
+            )}
+          />
+          <EditableRow
+            label="Metrics"
+            display={`${data.weightKg ? data.weightKg + 'kg' : '—'} / ${data.heightCm ? data.heightCm + 'cm' : '—'}`}
+            initial={{ weightKg: data.weightKg, heightCm: data.heightCm }}
+            onSave={update}
+            render={(d, set) => (
+              <div className="flex gap-2">
+                <input type="number" min="0" step="0.1" placeholder="kg" className={editInputClass}
+                  value={d.weightKg ?? ''} onChange={(e) => set('weightKg', e.target.value === '' ? null : parseFloat(e.target.value))} />
+                <input type="number" min="0" step="0.1" placeholder="cm" className={editInputClass}
+                  value={d.heightCm ?? ''} onChange={(e) => set('heightCm', e.target.value === '' ? null : parseFloat(e.target.value))} />
+              </div>
+            )}
+          />
 
           {hasLocationInsurance && (
             <>
               <div className="col-span-2 h-px bg-outline-variant/30" />
-              <div className="col-span-2">
-                <InfoPoint
-                  label="Location"
-                  value={[data.address, data.city, data.region].filter(Boolean).join(', ')}
-                  editHref="/onboarding/2"
-                />
-              </div>
-              <InfoPoint label="PhilHealth ID" value={data.philhealthId} editHref="/onboarding/2" />
-              <InfoPoint label="HMO" value={[data.hmoProvider, data.hmoCardNo].filter(Boolean).join(' · ')} editHref="/onboarding/2" />
+              <EditableRow
+                fullWidth
+                label="Location"
+                display={[data.address, data.city, data.region].filter(Boolean).join(', ')}
+                initial={{ address: data.address, city: data.city, region: data.region }}
+                onSave={update}
+                render={(d, set) => (
+                  <div className="flex flex-col gap-2">
+                    <input className={editInputClass} placeholder="Address" value={d.address} onChange={(e) => set('address', e.target.value)} />
+                    <div className="flex gap-2">
+                      <input className={editInputClass} placeholder="City" value={d.city} onChange={(e) => set('city', e.target.value)} />
+                      <input className={editInputClass} placeholder="Region" value={d.region} onChange={(e) => set('region', e.target.value)} />
+                    </div>
+                  </div>
+                )}
+              />
+              <EditableRow
+                label="PhilHealth ID"
+                display={data.philhealthId}
+                initial={{ philhealthId: data.philhealthId }}
+                onSave={update}
+                render={(d, set) => (
+                  <input className={editInputClass} inputMode="numeric" value={d.philhealthId}
+                    onChange={(e) => set('philhealthId', formatPhilHealth(e.target.value))} />
+                )}
+              />
+              <EditableRow
+                label="HMO"
+                display={[data.hmoProvider, data.hmoCardNo].filter(Boolean).join(' · ')}
+                initial={{ hmoProvider: data.hmoProvider, hmoCardNo: data.hmoCardNo }}
+                onSave={update}
+                render={(d, set) => (
+                  <div className="flex gap-2">
+                    <input className={editInputClass} placeholder="Provider" value={d.hmoProvider} onChange={(e) => set('hmoProvider', e.target.value)} />
+                    <input className={editInputClass} placeholder="Card no." value={d.hmoCardNo} onChange={(e) => set('hmoCardNo', formatHmoCard(e.target.value))} />
+                  </div>
+                )}
+              />
             </>
           )}
 
           {hasMedical && (
             <>
               <div className="col-span-2 h-px bg-outline-variant/30" />
-              <InfoPoint label="Blood Type" value={data.bloodType} editHref="/onboarding/4" />
-              <InfoPoint label="Smoking" value={data.smokingStatus} editHref="/onboarding/4" />
-              <div className="col-span-2"><InfoPoint label="Allergies" value={data.allergies} editHref="/onboarding/4" /></div>
-              <div className="col-span-2"><InfoPoint label="Chronic Conditions" value={data.chronicConditions} editHref="/onboarding/4" /></div>
-              <div className="col-span-2"><InfoPoint label="Current Medications" value={data.currentMedications} editHref="/onboarding/4" /></div>
-              {data.pastSurgeries && <div className="col-span-2"><InfoPoint label="Past Surgeries" value={data.pastSurgeries} editHref="/onboarding/4" /></div>}
-              {data.familyHistory && <div className="col-span-2"><InfoPoint label="Family History" value={data.familyHistory} editHref="/onboarding/4" /></div>}
+              <EditableRow
+                label="Blood Type"
+                display={data.bloodType}
+                initial={{ bloodType: data.bloodType }}
+                onSave={update}
+                render={(d, set) => (
+                  <select className={editInputClass} value={d.bloodType} onChange={(e) => set('bloodType', e.target.value)}>
+                    <option value="">Select…</option>
+                    {BLOOD_TYPES.map((bt) => <option key={bt} value={bt}>{bt}</option>)}
+                  </select>
+                )}
+              />
+              <EditableRow
+                label="Smoking"
+                display={data.smokingStatus}
+                initial={{ smokingStatus: data.smokingStatus }}
+                onSave={update}
+                render={(d, set) => (
+                  <select className={editInputClass} value={d.smokingStatus} onChange={(e) => set('smokingStatus', e.target.value)}>
+                    {SMOKING_OPTIONS.map((o) => <option key={o.label} value={o.value}>{o.label}</option>)}
+                  </select>
+                )}
+              />
+              <EditableRow
+                fullWidth
+                label="Allergies"
+                display={data.allergies}
+                initial={{ allergies: data.allergies }}
+                onSave={update}
+                render={(d, set) => (
+                  <input className={editInputClass} placeholder="Comma-separated" value={d.allergies} onChange={(e) => set('allergies', e.target.value)} />
+                )}
+              />
+              <EditableRow
+                fullWidth
+                label="Chronic Conditions"
+                display={data.chronicConditions}
+                initial={{ chronicConditions: data.chronicConditions }}
+                onSave={update}
+                render={(d, set) => (
+                  <input className={editInputClass} placeholder="Comma-separated" value={d.chronicConditions} onChange={(e) => set('chronicConditions', e.target.value)} />
+                )}
+              />
+              <EditableRow
+                fullWidth
+                label="Current Medications"
+                display={data.currentMedications}
+                initial={{ currentMedications: data.currentMedications }}
+                onSave={update}
+                render={(d, set) => (
+                  <input className={editInputClass} placeholder="Comma-separated" value={d.currentMedications} onChange={(e) => set('currentMedications', e.target.value)} />
+                )}
+              />
+              {data.pastSurgeries && (
+                <EditableRow
+                  fullWidth
+                  label="Past Surgeries"
+                  display={data.pastSurgeries}
+                  initial={{ pastSurgeries: data.pastSurgeries }}
+                  onSave={update}
+                  render={(d, set) => (
+                    <textarea className={cn(editInputClass, 'resize-y min-h-[60px]')} value={d.pastSurgeries} onChange={(e) => set('pastSurgeries', e.target.value)} />
+                  )}
+                />
+              )}
+              {data.familyHistory && (
+                <EditableRow
+                  fullWidth
+                  label="Family History"
+                  display={data.familyHistory}
+                  initial={{ familyHistory: data.familyHistory }}
+                  onSave={update}
+                  render={(d, set) => (
+                    <textarea className={cn(editInputClass, 'resize-y min-h-[60px]')} value={d.familyHistory} onChange={(e) => set('familyHistory', e.target.value)} />
+                  )}
+                />
+              )}
             </>
           )}
         </div>

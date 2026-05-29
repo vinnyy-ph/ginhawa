@@ -12,6 +12,7 @@ import { useOnboarding } from '@/context/onboarding-context';
 import { ProgressIndicator } from '@/components/ui/progress-indicator';
 import { FormField } from '@/components/ui/form-field';
 import { Button } from '@/components/ui/button';
+import { formatPhilHealth, formatHmoCard } from '@/lib/format';
 
 export default function OnboardingStep2() {
   const router = useRouter();
@@ -76,7 +77,17 @@ export default function OnboardingStep2() {
         </div>
 
         <FormField id="ob2-philhealthId" label="PhilHealth ID" error={errors.philhealthId?.message}>
-          <input type="text" placeholder="12-345678901-2" className={inputClass} {...register('philhealthId')} />
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="12-345678901-2"
+            className={inputClass}
+            {...register('philhealthId', {
+              onChange: (e) => {
+                e.target.value = formatPhilHealth(e.target.value);
+              },
+            })}
+          />
         </FormField>
 
         <div className="grid grid-cols-2 gap-4">
@@ -84,7 +95,16 @@ export default function OnboardingStep2() {
             <input type="text" placeholder="Maxicare" className={inputClass} {...register('hmoProvider')} />
           </FormField>
           <FormField id="ob2-hmoCardNo" label="HMO Card No." error={errors.hmoCardNo?.message}>
-            <input type="text" placeholder="0000-0000-0000" className={inputClass} {...register('hmoCardNo')} />
+            <input
+              type="text"
+              placeholder="XXXX-XXXX-XXXX"
+              className={inputClass}
+              {...register('hmoCardNo', {
+                onChange: (e) => {
+                  e.target.value = formatHmoCard(e.target.value);
+                },
+              })}
+            />
           </FormField>
         </div>
 

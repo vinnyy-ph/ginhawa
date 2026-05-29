@@ -2,7 +2,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   medicalHistorySchema,
@@ -12,6 +12,7 @@ import { useOnboarding } from '@/context/onboarding-context';
 import { ProgressIndicator } from '@/components/ui/progress-indicator';
 import { FormField } from '@/components/ui/form-field';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
 const SMOKING_OPTIONS = [
@@ -21,6 +22,36 @@ const SMOKING_OPTIONS = [
   { value: 'Current', label: 'Current' },
 ];
 
+// Up to 4 common quick-pick suggestions per list field.
+const COMMON_ALLERGIES = ['Penicillin', 'Seafood', 'Peanuts', 'Aspirin'];
+const COMMON_CONDITIONS = ['Hypertension', 'Diabetes', 'Asthma', 'High Cholesterol'];
+const COMMON_MEDICATIONS = ['Metformin', 'Amlodipine', 'Losartan', 'Salbutamol'];
+
+function Chip({
+  selected,
+  onClick,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'px-3 py-1.5 rounded-full text-xs font-medium transition-all border',
+        selected
+          ? 'bg-primary text-white border-primary shadow-sm'
+          : 'bg-surface-white text-on-surface-variant border-outline-variant hover:border-primary/50 hover:bg-surface-variant/50',
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function OnboardingStep4() {
   const router = useRouter();
   const { data, update } = useOnboarding();
@@ -28,6 +59,9 @@ export default function OnboardingStep4() {
   const {
     register,
     handleSubmit,
+    setValue,
+    getValues,
+    control,
     formState: { errors },
   } = useForm<MedicalHistorySchema>({
     resolver: zodResolver(medicalHistorySchema),
@@ -42,6 +76,22 @@ export default function OnboardingStep4() {
     },
     mode: 'onBlur',
   });
+
+  type ListField = 'allergies' | 'chronicConditions' | 'currentMedications';
+  const toItems = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
+  // useWatch (not watch()) so the chips re-render on change without bailing out
+  // of the React Compiler.
+  const watched: Record<ListField, string> = {
+    allergies: useWatch({ control, name: 'allergies' }) || '',
+    chronicConditions: useWatch({ control, name: 'chronicConditions' }) || '',
+    currentMedications: useWatch({ control, name: 'currentMedications' }) || '',
+  };
+  const toggleChip = (field: ListField, value: string) => {
+    const items = toItems(getValues(field) || '');
+    const next = items.includes(value) ? items.filter((i) => i !== value) : [...items, value];
+    setValue(field, next.join(', '), { shouldValidate: true, shouldDirty: true });
+  };
+  const isChipSelected = (field: ListField, value: string) => toItems(watched[field]).includes(value);
 
   const onSubmit = (values: MedicalHistorySchema) => {
     update({
@@ -90,16 +140,37 @@ export default function OnboardingStep4() {
           </FormField>
         </div>
 
-        <FormField id="ob4-allergies" label="Allergies" error={errors.allergies?.message} hint='Comma-separated, e.g. "Penicillin, Peanuts"'>
-          <input type="text" placeholder="Penicillin, Peanuts" className={inputClass} {...register('allergies')} />
+        <FormField id="ob4-allergies" label="Allergies" error={errors.allergies?.message} hint='Tap a suggestion or type your own, separated by commas'>
+          <div className="flex flex-col gap-2.5">
+            <div className="flex flex-wrap gap-2">
+              {COMMON_ALLERGIES.map((v) => (
+                <Chip key={v} selected={isChipSelected('allergies', v)} onClick={() => toggleChip('allergies', v)}>{v}</Chip>
+              ))}
+            </div>
+            <input type="text" placeholder="Penicillin, Peanuts" className={inputClass} {...register('allergies')} />
+          </div>
         </FormField>
 
-        <FormField id="ob4-chronicConditions" label="Chronic conditions" error={errors.chronicConditions?.message} hint='Comma-separated, e.g. "Hypertension, Asthma"'>
-          <input type="text" placeholder="Hypertension, Asthma" className={inputClass} {...register('chronicConditions')} />
+        <FormField id="ob4-chronicConditions" label="Chronic conditions" error={errors.chronicConditions?.message} hint='Tap a suggestion or type your own, separated by commas'>
+          <div className="flex flex-col gap-2.5">
+            <div className="flex flex-wrap gap-2">
+              {COMMON_CONDITIONS.map((v) => (
+                <Chip key={v} selected={isChipSelected('chronicConditions', v)} onClick={() => toggleChip('chronicConditions', v)}>{v}</Chip>
+              ))}
+            </div>
+            <input type="text" placeholder="Hypertension, Asthma" className={inputClass} {...register('chronicConditions')} />
+          </div>
         </FormField>
 
-        <FormField id="ob4-currentMedications" label="Current medications" error={errors.currentMedications?.message} hint='Comma-separated, e.g. "Amlodipine 5mg, Metformin"'>
-          <input type="text" placeholder="Amlodipine 5mg, Metformin" className={inputClass} {...register('currentMedications')} />
+        <FormField id="ob4-currentMedications" label="Current medications" error={errors.currentMedications?.message} hint='Tap a suggestion or type your own, separated by commas'>
+          <div className="flex flex-col gap-2.5">
+            <div className="flex flex-wrap gap-2">
+              {COMMON_MEDICATIONS.map((v) => (
+                <Chip key={v} selected={isChipSelected('currentMedications', v)} onClick={() => toggleChip('currentMedications', v)}>{v}</Chip>
+              ))}
+            </div>
+            <input type="text" placeholder="Amlodipine 5mg, Metformin" className={inputClass} {...register('currentMedications')} />
+          </div>
         </FormField>
 
         <FormField id="ob4-pastSurgeries" label="Past surgeries" error={errors.pastSurgeries?.message}>

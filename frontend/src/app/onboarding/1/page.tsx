@@ -11,12 +11,7 @@ import { FormField } from '@/components/ui/form-field';
 import { Button } from '@/components/ui/button';
 import { BirthdateInput } from '@/components/ui/birthdate-input';
 import { PhoneInput } from '@/components/ui/phone-input';
-
-/** Format up to 10 raw digits as "000 000 0000" (3-3-4 grouping). */
-const formatPhone = (value: string) => {
-  const d = value.replace(/\D/g, '').slice(0, 10);
-  return [d.slice(0, 3), d.slice(3, 6), d.slice(6, 10)].filter(Boolean).join(' ');
-};
+import { formatPhone } from '@/lib/format';
 
 export default function OnboardingStep1() {
   const router = useRouter();
