@@ -122,6 +122,78 @@ export class AppointmentsService {
     });
   }
 
+  async findDoctorsForPatient(userId: string) {
+    const patientProfile = await this.prisma.patientProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!patientProfile) {
+      throw new NotFoundException('Patient profile not found');
+    }
+
+    const appointments = await this.prisma.appointment.findMany({
+      where: { patientId: patientProfile.id },
+      include: {
+        doctor: {
+          select: {
+            id: true,
+            fullName: true,
+            professionalTitle: true,
+            specialization: true,
+            profilePictureUrl: true,
+          },
+        },
+        slot: { select: { startTime: true } },
+      },
+    });
+
+    const now = Date.now();
+    const map = new Map<
+      string,
+      {
+        doctor: (typeof appointments)[number]['doctor'];
+        totalVisits: number;
+        upcomingCount: number;
+        lastVisit: string | null;
+      }
+    >();
+
+    for (const appt of appointments) {
+      const start = appt.slot ? appt.slot.startTime.getTime() : 0;
+      const isUpcoming =
+        (appt.status === AppointmentStatus.PENDING ||
+          appt.status === AppointmentStatus.CONFIRMED) &&
+        start >= now;
+
+      let row = map.get(appt.doctorId);
+      if (!row) {
+        row = {
+          doctor: appt.doctor,
+          totalVisits: 0,
+          upcomingCount: 0,
+          lastVisit: null,
+        };
+        map.set(appt.doctorId, row);
+      }
+
+      row.totalVisits += 1;
+      if (isUpcoming) row.upcomingCount += 1;
+      if (start && start <= now) {
+        const startIso = appt.slot.startTime.toISOString();
+        if (!row.lastVisit || start > new Date(row.lastVisit).getTime()) {
+          row.lastVisit = startIso;
+        }
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) => {
+      if (!a.lastVisit && !b.lastVisit) return 0;
+      if (!a.lastVisit) return 1;
+      if (!b.lastVisit) return -1;
+      return new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime();
+    });
+  }
+
   async findAllForDoctor(userId: string) {
     const doctorProfile = await this.prisma.doctorProfile.findUnique({
       where: { userId },

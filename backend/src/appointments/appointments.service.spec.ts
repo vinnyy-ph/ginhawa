@@ -282,4 +282,90 @@ describe('AppointmentsService', () => {
       expect(rows[0].searchText.toLowerCase()).toContain('cough');
     });
   });
+
+  describe('findDoctorsForPatient', () => {
+    const pastTime1 = new Date(Date.now() - 86400000);   // yesterday
+    const pastTime2 = new Date(Date.now() - 172800000);  // 2 days ago
+    const futureTime = new Date(Date.now() + 86400000);  // tomorrow
+
+    function makeAppt(
+      doctorId: string,
+      slotTime: Date,
+      status: AppointmentStatus,
+      doctorName: string,
+    ) {
+      return {
+        id: `appt-${doctorId}-${slotTime.getTime()}`,
+        patientId: 'patient-1',
+        doctorId,
+        status,
+        doctor: {
+          id: doctorId,
+          fullName: doctorName,
+          professionalTitle: 'MD',
+          specialization: 'General Practice',
+          profilePictureUrl: null,
+        },
+        slot: { startTime: slotTime },
+      };
+    }
+
+    it('aggregates totalVisits per doctor', async () => {
+      mockPrismaService.appointment.findMany.mockResolvedValue([
+        makeAppt('doc-1', pastTime1, AppointmentStatus.COMPLETED, 'Dr. A'),
+        makeAppt('doc-1', pastTime2, AppointmentStatus.COMPLETED, 'Dr. A'),
+        makeAppt('doc-2', pastTime1, AppointmentStatus.COMPLETED, 'Dr. B'),
+      ]);
+
+      const result = await service.findDoctorsForPatient('user-1');
+
+      expect(result).toHaveLength(2);
+      const docA = result.find((r) => r.doctor.id === 'doc-1')!;
+      expect(docA.totalVisits).toBe(2);
+      expect(docA.upcomingCount).toBe(0);
+    });
+
+    it('counts upcoming (PENDING or CONFIRMED future) appointments', async () => {
+      mockPrismaService.appointment.findMany.mockResolvedValue([
+        makeAppt('doc-1', futureTime, AppointmentStatus.CONFIRMED, 'Dr. A'),
+        makeAppt('doc-1', pastTime1, AppointmentStatus.COMPLETED, 'Dr. A'),
+      ]);
+
+      const result = await service.findDoctorsForPatient('user-1');
+
+      expect(result[0].upcomingCount).toBe(1);
+      expect(result[0].totalVisits).toBe(2);
+    });
+
+    it('sets lastVisit to most recent past slot', async () => {
+      mockPrismaService.appointment.findMany.mockResolvedValue([
+        makeAppt('doc-1', pastTime2, AppointmentStatus.COMPLETED, 'Dr. A'),
+        makeAppt('doc-1', pastTime1, AppointmentStatus.COMPLETED, 'Dr. A'),
+      ]);
+
+      const result = await service.findDoctorsForPatient('user-1');
+
+      expect(result[0].lastVisit).toBe(pastTime1.toISOString());
+    });
+
+    it('sorts results by lastVisit descending', async () => {
+      mockPrismaService.appointment.findMany.mockResolvedValue([
+        makeAppt('doc-2', pastTime2, AppointmentStatus.COMPLETED, 'Dr. B'),
+        makeAppt('doc-1', pastTime1, AppointmentStatus.COMPLETED, 'Dr. A'),
+      ]);
+
+      const result = await service.findDoctorsForPatient('user-1');
+
+      expect(result[0].doctor.id).toBe('doc-1');
+      expect(result[1].doctor.id).toBe('doc-2');
+    });
+
+    it('throws NotFoundException when patient profile not found', async () => {
+      mockPrismaService.patientProfile.findUnique.mockResolvedValueOnce(null);
+
+      await expect(service.findDoctorsForPatient('no-such-user')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
 });
