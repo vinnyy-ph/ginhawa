@@ -34,7 +34,7 @@ function parseHM(hm: string): { h: number; m: number } {
  */
 export function generateSlots(t: WeeklyTemplate): GeneratedSlot[] {
   const result: GeneratedSlot[] = [];
-  if (t.weekdays.length === 0 || t.weeks < 1) return result;
+  if (t.weekdays.length === 0 || t.weeks < 1 || t.slotMinutes <= 0) return result;
 
   const { h: startH, m: startM } = parseHM(t.dayStart);
   const { h: endH, m: endM } = parseHM(t.dayEnd);
@@ -45,6 +45,7 @@ export function generateSlots(t: WeeklyTemplate): GeneratedSlot[] {
   const now = Date.now();
   const totalDays = t.weeks * 7;
   const base = new Date(`${t.startDate}T00:00:00`);
+  if (isNaN(base.getTime())) return result;
 
   for (let offset = 0; offset < totalDays; offset++) {
     const day = new Date(base);

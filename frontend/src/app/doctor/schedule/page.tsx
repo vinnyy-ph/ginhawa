@@ -17,6 +17,8 @@ import { generateSlots, type WeeklyTemplate } from "@/lib/generate-slots";
 import { cn } from "@/lib/utils";
 import type { AvailabilitySlot, DoctorProfile, SlotStatus } from "@/types/api";
 
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+
 export default function DoctorSchedulePage() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
@@ -205,7 +207,8 @@ export default function DoctorSchedulePage() {
 
   const previewSlots = useMemo(
     () => (tplStartDate ? generateSlots(template) : []),
-    [template, tplStartDate],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [template],
   );
 
   async function handleGenerate(e: React.FormEvent) {
@@ -246,7 +249,6 @@ export default function DoctorSchedulePage() {
     }
   }
 
-  const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   function toggleWeekday(d: number) {
     setTplWeekdays((prev) =>
       prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
