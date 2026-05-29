@@ -54,6 +54,8 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
+  const [attested, setAttested] = useState(false);
+  const [confirmingPublish, setConfirmingPublish] = useState(false);
 
   async function runSummarize() {
     if (!token) return;
@@ -305,6 +307,15 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
               </div>
             )}
 
+            <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg text-sm">
+              <ExclamationTriangleIcon className="w-5 h-5 shrink-0 mt-0.5" />
+              <p>
+                <strong>AI-generated draft.</strong> Review and verify every field — especially the
+                prescription — before publishing. Publishing signs this into the patient&apos;s
+                permanent medical record.
+              </p>
+            </div>
+
             <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
               <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30">
                 <h3 className="font-serif text-lg font-bold text-text-primary">Clinical Documentation</h3>
@@ -313,7 +324,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
 
               <div className="p-6 space-y-6">
                 <div>
-                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Doctor Summary (Clinical)</label>
+                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Consultation Notes</label>
                   <textarea
                     value={doctorSummary}
                     onChange={e => setDoctorSummary(e.target.value)}
@@ -323,7 +334,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Patient Summary (Plain Language)</label>
+                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Recommendations (plain language for the patient)</label>
                   <textarea
                     value={patientSummary}
                     onChange={e => setPatientSummary(e.target.value)}
@@ -333,7 +344,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Prescriptions</label>
+                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Prescription</label>
                   <textarea
                     value={prescriptions}
                     onChange={e => setPrescriptions(e.target.value)}
@@ -343,7 +354,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Follow-up Recommendations</label>
+                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Follow-up Advice</label>
                   <textarea
                     value={followUp}
                     onChange={e => setFollowUp(e.target.value)}
@@ -354,17 +365,45 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pb-8">
-              <Button variant="outline" asChild>
-                <Link href="/doctor/appointments">Cancel</Link>
-              </Button>
-              <Button
-                onClick={handlePublish}
-                disabled={isPublishing || publishSuccess}
-                className="min-w-[160px] bg-[#31a795] text-white hover:bg-[#006b5e]"
-              >
-                {isPublishing ? 'Publishing...' : 'Publish to Patient Record'}
-              </Button>
+            <div className="space-y-4 pb-8">
+              <label className="flex items-start gap-3 text-sm text-on-surface cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={attested}
+                  onChange={e => { setAttested(e.target.checked); setConfirmingPublish(false); }}
+                  className="mt-0.5 h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary"
+                />
+                <span>I have reviewed the above and verified its clinical accuracy, including any prescription.</span>
+              </label>
+
+              <div className="flex justify-end gap-3 items-center flex-wrap">
+                <Button variant="outline" asChild>
+                  <Link href="/doctor/appointments">Cancel</Link>
+                </Button>
+                {!confirmingPublish ? (
+                  <Button
+                    onClick={() => setConfirmingPublish(true)}
+                    disabled={!attested || isPublishing || publishSuccess}
+                    className="min-w-[160px] bg-[#31a795] text-white hover:bg-[#006b5e]"
+                  >
+                    Publish to Patient Record
+                  </Button>
+                ) : (
+                  <>
+                    <span className="text-sm text-on-surface-variant">Publish to the patient&apos;s permanent record?</span>
+                    <Button variant="outline" onClick={() => setConfirmingPublish(false)} disabled={isPublishing}>
+                      Back
+                    </Button>
+                    <Button
+                      onClick={handlePublish}
+                      disabled={isPublishing || publishSuccess}
+                      className="bg-[#31a795] text-white hover:bg-[#006b5e]"
+                    >
+                      {isPublishing ? 'Publishing...' : 'Confirm publish'}
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}
