@@ -108,6 +108,21 @@ export interface DoctorPatientHistory {
   appointments: Appointment[]; // each may include medicalRecord + prescriptions
 }
 
+// ─── Patient's doctors (GET /appointments/patient/doctors) ──────────────────
+
+export interface PatientDoctorSummary {
+  doctor: {
+    id: string; // DoctorProfile.id — use for /doctors/[id] links
+    fullName: string;
+    professionalTitle: string;
+    specialization: string;
+    profilePictureUrl?: string | null;
+  };
+  totalVisits: number;
+  upcomingCount: number;
+  lastVisit: string | null; // ISO datetime of latest past visit
+}
+
 // ─── Medical Record ──────────────────────────────────────────────────────────
 
 export interface Prescription {
