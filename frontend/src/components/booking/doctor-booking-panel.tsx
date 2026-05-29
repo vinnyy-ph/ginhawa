@@ -94,6 +94,9 @@ export function DoctorBookingPanel({ slots }: { slots: AvailabilitySlot[] }) {
             >
               {isBooking ? "Confirming…" : "Confirm Booking"}
             </Button>
+            {reason.trim().length < 5 && (
+              <p className="mt-2 text-xs text-on-surface-variant">Add a brief reason for your visit (at least 5 characters) to continue.</p>
+            )}
           </form>
         </div>
       )}

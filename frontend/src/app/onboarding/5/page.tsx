@@ -55,12 +55,7 @@ export default function OnboardingStep5() {
     setServerError(null);
 
     if (!selectedFile) {
-      if (data.profilePictureUrl) {
-        router.push('/onboarding/6');
-        return;
-      }
-
-      setServerError('Please upload a profile picture to continue.');
+      router.push('/onboarding/6');
       return;
     }
 
@@ -89,7 +84,7 @@ export default function OnboardingStep5() {
   };
 
   return (
-    <OnboardingShell step={5} totalSteps={6} title="Profile Picture" subtitle="Add a photo so doctors can recognise you.">
+    <OnboardingShell step={5} totalSteps={6} title="Profile Picture" subtitle="Add a photo so doctors can recognise you — optional.">
       <div className="flex flex-col items-center gap-5">
         <div
           className="h-32 w-32 rounded-full bg-surface-container border-2 border-dashed border-outline-variant overflow-hidden flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
@@ -149,6 +144,7 @@ export default function OnboardingStep5() {
 
       <CameraCapture open={cameraOpen} onClose={() => setCameraOpen(false)} onCapture={acceptFile} />
 
+      <p className="text-xs text-on-surface-variant text-center">A profile photo is optional — you can add it later.</p>
       <OnboardingNav
         onBack={() => router.push('/onboarding/4')}
         submitType="button"
@@ -156,7 +152,6 @@ export default function OnboardingStep5() {
         loading={uploading}
         loadingLabel="Uploading…"
         submitLabel={selectedFile ? 'Upload & Continue →' : 'Continue →'}
-        disabled={!selectedFile && !data.profilePictureUrl}
       />
     </OnboardingShell>
   );

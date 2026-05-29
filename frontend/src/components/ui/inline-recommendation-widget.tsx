@@ -135,6 +135,9 @@ export function InlineRecommendationWidget() {
             >
               Analyze Symptoms →
             </Button>
+            {symptoms.trim().length < 10 && (
+              <p className="mt-2 text-xs text-on-surface-variant">Describe your symptoms in a bit more detail (at least 10 characters).</p>
+            )}
             <p className="flex items-center gap-1.5 text-xs text-on-surface-variant">
               <ExclamationTriangleIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               Not a diagnosis. For emergencies, call 911 immediately.
