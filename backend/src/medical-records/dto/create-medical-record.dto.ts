@@ -58,4 +58,8 @@ export class CreateMedicalRecordDto {
   @ValidateNested({ each: true })
   @Type(() => PrescriptionItemDto)
   prescriptions?: PrescriptionItemDto[];
+
+  @IsString()
+  @IsOptional()
+  followUpAppointmentId?: string;
 }

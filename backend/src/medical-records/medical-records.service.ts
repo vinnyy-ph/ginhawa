@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -49,6 +50,15 @@ export class MedicalRecordsService {
       );
     }
 
+    if (createMedicalRecordDto.followUpAppointmentId) {
+      const followUp = await this.prisma.appointment.findUnique({
+        where: { id: createMedicalRecordDto.followUpAppointmentId },
+      });
+      if (!followUp || followUp.patientId !== appointment.patientId) {
+        throw new BadRequestException('Invalid follow-up appointment');
+      }
+    }
+
     const record = await this.prisma.medicalRecord.create({
       data: {
         appointmentId: appointment.id,
@@ -58,6 +68,7 @@ export class MedicalRecordsService {
         prescription: createMedicalRecordDto.prescription,
         recommendations: createMedicalRecordDto.recommendations,
         followUpAdvice: createMedicalRecordDto.followUpAdvice,
+        followUpAppointmentId: createMedicalRecordDto.followUpAppointmentId,
         ...(createMedicalRecordDto.prescriptions?.length
           ? { prescriptions: { create: createMedicalRecordDto.prescriptions } }
           : {}),
