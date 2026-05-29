@@ -82,7 +82,13 @@ export class DoctorsService {
     }
 
     if (specialization) {
-      where.specialization = { contains: specialization, mode: 'insensitive' };
+      where.specializations = {
+        some: {
+          specialization: {
+            name: { contains: specialization, mode: 'insensitive' },
+          },
+        },
+      };
     }
 
     return this.prisma.doctorProfile.findMany({

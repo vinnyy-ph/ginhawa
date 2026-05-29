@@ -63,6 +63,7 @@ model DoctorProfile {
   fullName            String   @map("full_name")
   professionalTitle   String   @map("professional_title")
   bio                 String?
+  // @deprecated — use DoctorSpecialization relation instead.
   specialization      String
   profilePictureUrl   String?  @map("profile_picture_url")
   availabilitySummary String?  @map("availability_summary")

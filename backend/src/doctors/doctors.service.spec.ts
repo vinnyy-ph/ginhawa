@@ -158,12 +158,38 @@ describe('DoctorsService', () => {
           isActive: true,
           isVerified: true,
           fullName: { contains: 'Smith', mode: 'insensitive' },
-          specialization: { contains: 'Cardio', mode: 'insensitive' },
+          specializations: {
+            some: {
+              specialization: {
+                name: { contains: 'Cardio', mode: 'insensitive' },
+              },
+            },
+          },
         },
         include: {
           availabilitySlots: true,
         },
       });
+    });
+
+    it('should filter by specialization via junction table when specialization query given', async () => {
+      mockPrismaService.doctorProfile.findMany.mockResolvedValue([]);
+
+      await service.searchAll(undefined, 'cardiology');
+
+      expect(mockPrismaService.doctorProfile.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            specializations: {
+              some: {
+                specialization: {
+                  name: { contains: 'cardiology', mode: 'insensitive' },
+                },
+              },
+            },
+          }),
+        }),
+      );
     });
 
     it('should always filter by isActive: true and isVerified: true', async () => {
