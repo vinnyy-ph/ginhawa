@@ -6,13 +6,13 @@ import { GeminiService } from '../ai/gemini.service';
 
 const mockGenerateContentStream = jest.fn();
 
-jest.mock('@google/generative-ai', () => ({
-  GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
-    getGenerativeModel: jest.fn().mockReturnValue({
+jest.mock('@google/genai', () => ({
+  GoogleGenAI: jest.fn().mockImplementation(() => ({
+    models: {
       generateContentStream: mockGenerateContentStream,
-    }),
+    },
   })),
-  SchemaType: { STRING: 'STRING', OBJECT: 'OBJECT' },
+  Type: { STRING: 'STRING', OBJECT: 'OBJECT' },
 }));
 
 describe('RecommendationsService', () => {
@@ -47,9 +47,7 @@ describe('RecommendationsService', () => {
 
   describe('createStream (anonymous)', () => {
     it('calls Gemini and saves log with aiExplanation', async () => {
-      mockGenerateContentStream.mockResolvedValue({
-        stream: [{ text: () => '{"specialization":"Neurology","explanation":"Test explanation."}' }],
-      });
+      mockGenerateContentStream.mockResolvedValue([{ text: '{"specialization":"Neurology","explanation":"Test explanation."}' }]);
       mockPrismaService.recommendationLog.create.mockResolvedValue({
         id: '1',
         patientId: null,
@@ -82,9 +80,7 @@ describe('RecommendationsService', () => {
     });
 
     it('should throw error when JSON parsing fails', async () => {
-      mockGenerateContentStream.mockResolvedValue({
-        stream: [{ text: () => 'not json at all' }],
-      });
+      mockGenerateContentStream.mockResolvedValue([{ text: 'not json at all' }]);
       
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       const stream = await service.createStream(null, { symptomInput: 'headache' });
@@ -106,9 +102,7 @@ describe('RecommendationsService', () => {
       mockPrismaService.recommendationLog.findMany.mockResolvedValue([
         { matchedSpecialization: 'Cardiology', symptomInput: 'chest pain last month' },
       ]);
-      mockGenerateContentStream.mockResolvedValue({
-        stream: [{ text: () => '{"specialization":"Cardiology","explanation":"Given your history of cardiology."}' }],
-      });
+      mockGenerateContentStream.mockResolvedValue([{ text: '{"specialization":"Cardiology","explanation":"Given your history of cardiology."}' }]);
       mockPrismaService.recommendationLog.create.mockResolvedValue({
         id: '3',
         patientId: 'patient-1',
@@ -121,7 +115,7 @@ describe('RecommendationsService', () => {
       const stream = await service.createStream('user-1', { symptomInput: 'chest tightness' });
       const output = await consumeStream(stream);
 
-      const promptArg = mockGenerateContentStream.mock.calls[0][0] as string;
+      const promptArg = (mockGenerateContentStream.mock.calls[0][0] as { contents: string }).contents;
       expect(promptArg).toContain('Patient context');
       expect(promptArg).toContain('Cardiology');
       expect(mockPrismaService.recommendationLog.create).toHaveBeenCalledWith({
@@ -168,9 +162,7 @@ describe('RecommendationsService', () => {
 
   describe('createStream (EMERGENCY)', () => {
     it('saves EMERGENCY specialization correctly', async () => {
-      mockGenerateContentStream.mockResolvedValue({
-        stream: [{ text: () => '{"specialization":"EMERGENCY","explanation":"Seek immediate care."}' }],
-      });
+      mockGenerateContentStream.mockResolvedValue([{ text: '{"specialization":"EMERGENCY","explanation":"Seek immediate care."}' }]);
       mockPrismaService.recommendationLog.create.mockResolvedValue({
         id: '4',
         patientId: null,

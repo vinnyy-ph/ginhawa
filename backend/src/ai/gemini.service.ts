@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 // gemini-3.1-flash-lite first: fast and currently healthy. The heavier
 // gemini-3.5-flash has been returning 503 (overloaded), so it sits behind
@@ -15,11 +15,11 @@ type GenerateOpts = { schema?: object };
 
 @Injectable()
 export class GeminiService {
-  private readonly genAI: GoogleGenerativeAI;
+  private readonly ai: GoogleGenAI;
   private readonly logger = new Logger(GeminiService.name);
 
   constructor() {
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
+    this.ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? '' });
   }
 
   // 429 (rate limited) and 503 (model overloaded) are transient: fail over to
@@ -37,6 +37,11 @@ export class GeminiService {
   private buildConfig(opts?: GenerateOpts) {
     return {
       responseMimeType: 'application/json',
+      // thinkingBudget 0 disables the model's internal reasoning pass, which is
+      // the dominant latency for these flash models on short structured tasks.
+      thinkingConfig: { thinkingBudget: 0 },
+      temperature: 0.2,
+      maxOutputTokens: 1024,
       ...(opts?.schema ? { responseSchema: opts.schema as any } : {}),
     };
   }
@@ -62,22 +67,22 @@ export class GeminiService {
   }
 
   async generateJson<T>(prompt: string, opts?: GenerateOpts): Promise<T> {
-    const generationConfig = this.buildConfig(opts);
+    const config = this.buildConfig(opts);
     for (let mi = 0; mi < FALLBACK_MODELS.length; mi++) {
-      const modelName = FALLBACK_MODELS[mi];
+      const model = FALLBACK_MODELS[mi];
       try {
-        const model = this.genAI.getGenerativeModel({
-          model: modelName,
-          generationConfig,
+        const response = await this.ai.models.generateContent({
+          model,
+          contents: prompt,
+          config,
         });
-        const result = await model.generateContent(prompt);
-        if (mi > 0) this.logger.log(`Using fallback model: ${modelName}`);
-        return this.parseJson<T>(result.response.text().trim());
+        if (mi > 0) this.logger.log(`Using fallback model: ${model}`);
+        return this.parseJson<T>((response.text ?? '').trim());
       } catch (error) {
         if (!this.isRetryable(error)) throw error;
         if (mi < FALLBACK_MODELS.length - 1) {
           this.logger.warn(
-            `${modelName} unavailable, switching to ${FALLBACK_MODELS[mi + 1]}`,
+            `${model} unavailable, switching to ${FALLBACK_MODELS[mi + 1]}`,
           );
         }
       }
@@ -89,28 +94,30 @@ export class GeminiService {
     prompt: string,
     opts?: GenerateOpts,
   ): AsyncGenerator<string, T> {
-    const generationConfig = this.buildConfig(opts);
+    const config = this.buildConfig(opts);
     for (let mi = 0; mi < FALLBACK_MODELS.length; mi++) {
-      const modelName = FALLBACK_MODELS[mi];
+      const model = FALLBACK_MODELS[mi];
       try {
-        const model = this.genAI.getGenerativeModel({
-          model: modelName,
-          generationConfig,
+        const response = await this.ai.models.generateContentStream({
+          model,
+          contents: prompt,
+          config,
         });
-        const result = await model.generateContentStream(prompt);
         let fullText = '';
-        for await (const chunk of result.stream) {
-          const chunkText = chunk.text();
-          fullText += chunkText;
-          yield chunkText;
+        for await (const chunk of response) {
+          const chunkText = chunk.text ?? '';
+          if (chunkText) {
+            fullText += chunkText;
+            yield chunkText;
+          }
         }
-        if (mi > 0) this.logger.log(`Using fallback model: ${modelName}`);
+        if (mi > 0) this.logger.log(`Using fallback model: ${model}`);
         return JSON.parse(fullText) as T;
       } catch (error) {
         if (!this.isRetryable(error)) throw error;
         if (mi < FALLBACK_MODELS.length - 1) {
           this.logger.warn(
-            `${modelName} unavailable, switching to ${FALLBACK_MODELS[mi + 1]}`,
+            `${model} unavailable, switching to ${FALLBACK_MODELS[mi + 1]}`,
           );
         }
       }

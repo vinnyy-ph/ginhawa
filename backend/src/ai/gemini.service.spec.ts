@@ -5,14 +5,14 @@ import { GeminiService } from './gemini.service';
 const mockGenerateContent = jest.fn();
 const mockGenerateContentStream = jest.fn();
 
-jest.mock('@google/generative-ai', () => ({
-  GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
-    getGenerativeModel: jest.fn().mockReturnValue({
+jest.mock('@google/genai', () => ({
+  GoogleGenAI: jest.fn().mockImplementation(() => ({
+    models: {
       generateContent: mockGenerateContent,
       generateContentStream: mockGenerateContentStream,
-    }),
+    },
   })),
-  SchemaType: { STRING: 'STRING', OBJECT: 'OBJECT' },
+  Type: { STRING: 'STRING', OBJECT: 'OBJECT' },
 }));
 
 async function drain<T>(gen: AsyncGenerator<string, T>) {
@@ -38,26 +38,20 @@ describe('GeminiService', () => {
 
   describe('generateJson', () => {
     it('returns parsed JSON on first-model success', async () => {
-      mockGenerateContent.mockResolvedValue({
-        response: { text: () => '{"a":1}' },
-      });
+      mockGenerateContent.mockResolvedValue({ text: '{"a":1}' });
       const result = await service.generateJson<{ a: number }>('p');
       expect(result).toEqual({ a: 1 });
       expect(mockGenerateContent).toHaveBeenCalledTimes(1);
     });
 
     it('strips markdown fences before parsing', async () => {
-      mockGenerateContent.mockResolvedValue({
-        response: { text: () => '```json\n{"a":1}\n```' },
-      });
+      mockGenerateContent.mockResolvedValue({ text: '```json\n{"a":1}\n```' });
       const result = await service.generateJson<{ a: number }>('p');
       expect(result).toEqual({ a: 1 });
     });
 
     it('throws on unparseable response', async () => {
-      mockGenerateContent.mockResolvedValue({
-        response: { text: () => 'not json' },
-      });
+      mockGenerateContent.mockResolvedValue({ text: 'not json' });
       await expect(service.generateJson('p')).rejects.toThrow(
         'AI returned an unparseable response. Please try again.',
       );
@@ -66,7 +60,7 @@ describe('GeminiService', () => {
     it('switches to the next model when one is unavailable (503/429)', async () => {
       mockGenerateContent
         .mockRejectedValueOnce({ status: 503 })
-        .mockResolvedValueOnce({ response: { text: () => '{"ok":true}' } });
+        .mockResolvedValueOnce({ text: '{"ok":true}' });
       const result = await service.generateJson<{ ok: boolean }>('p');
       expect(result).toEqual({ ok: true });
       expect(mockGenerateContent).toHaveBeenCalledTimes(2);
@@ -89,9 +83,7 @@ describe('GeminiService', () => {
 
   describe('generateJsonStream', () => {
     it('yields chunks and returns parsed result', async () => {
-      mockGenerateContentStream.mockResolvedValue({
-        stream: [{ text: () => '{"a":1}' }],
-      });
+      mockGenerateContentStream.mockResolvedValue([{ text: '{"a":1}' }]);
       const { out, value } = await drain(service.generateJsonStream<{ a: number }>('p'));
       expect(out).toBe('{"a":1}');
       expect(value).toEqual({ a: 1 });

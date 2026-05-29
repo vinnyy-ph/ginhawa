@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
-import { SchemaType } from '@google/generative-ai';
+import { Type } from '@google/genai';
 import { GeminiService } from '../ai/gemini.service';
 
 const VALID_SPECIALIZATIONS = [
@@ -76,10 +76,10 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
     patientContext?: PatientContext,
   ): AsyncGenerator<string, { specialization: string; explanation: string }> {
     const schema = {
-      type: SchemaType.OBJECT,
+      type: Type.OBJECT,
       properties: {
-        specialization: { type: SchemaType.STRING, enum: VALID_SPECIALIZATIONS },
-        explanation: { type: SchemaType.STRING },
+        specialization: { type: Type.STRING, enum: VALID_SPECIALIZATIONS },
+        explanation: { type: Type.STRING },
       },
       required: ['specialization', 'explanation'],
     };
