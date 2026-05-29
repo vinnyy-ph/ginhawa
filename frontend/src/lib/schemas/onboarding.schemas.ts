@@ -1,5 +1,6 @@
 // frontend/src/lib/schemas/onboarding.schemas.ts
 import { z } from 'zod';
+import { isValidPhilHealth, isValidHmoCard } from '@/lib/format';
 
 export const step1Schema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
@@ -26,9 +27,15 @@ export const locationInsuranceSchema = z.object({
   address: z.string().optional(),
   city: z.string().optional(),
   region: z.string().optional(),
-  philhealthId: z.string().optional(),
+  philhealthId: z
+    .string()
+    .optional()
+    .refine((v) => isValidPhilHealth(v ?? ''), 'Enter the full 12-digit PhilHealth ID'),
   hmoProvider: z.string().optional(),
-  hmoCardNo: z.string().optional(),
+  hmoCardNo: z
+    .string()
+    .optional()
+    .refine((v) => isValidHmoCard(v ?? ''), 'Enter the full 12-character HMO card number'),
 });
 
 export const medicalHistorySchema = z.object({

@@ -20,3 +20,15 @@ export const formatHmoCard = (value: string) => {
   const c = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16);
   return (c.match(/.{1,4}/g) ?? []).join('-');
 };
+
+/** Valid when empty (optional) or a complete 12-digit PhilHealth ID. */
+export const isValidPhilHealth = (value: string) => {
+  const d = value.replace(/\D/g, '');
+  return d.length === 0 || d.length === 12;
+};
+
+/** Valid when empty (optional) or exactly 12 alphanumeric HMO card characters. */
+export const isValidHmoCard = (value: string) => {
+  const c = value.replace(/[^a-zA-Z0-9]/g, '');
+  return c.length === 0 || c.length === 12;
+};

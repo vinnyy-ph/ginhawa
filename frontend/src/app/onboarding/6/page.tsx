@@ -1,11 +1,10 @@
 // frontend/src/app/onboarding/6/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
-import { apiRequest, ApiError } from '@/lib/api-client';
+import { apiRequest, apiUpload, ApiError } from '@/lib/api-client';
 import { useOnboarding } from '@/context/onboarding-context';
 import { ProgressIndicator } from '@/components/ui/progress-indicator';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Toast } from '@/components/ui/toast';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { cn } from '@/lib/utils';
-import { formatPhone, formatPhilHealth, formatHmoCard } from '@/lib/format';
+import { formatPhone, formatPhilHealth, formatHmoCard, isValidPhilHealth, isValidHmoCard } from '@/lib/format';
 import type { OnboardingData, CreatePatientProfileBody, UpdateMedicalHistoryBody } from '@/types/patient';
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
@@ -23,6 +22,9 @@ const SMOKING_OPTIONS = [
   { value: 'Former', label: 'Former' },
   { value: 'Current', label: 'Current' },
 ];
+
+const MAX_BYTES = 5 * 1024 * 1024;
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const editInputClass =
   'w-full rounded-md border border-outline-variant bg-surface-white px-2.5 py-1.5 text-sm text-on-surface font-manrope placeholder:text-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20';
@@ -38,6 +40,7 @@ function EditableRow<T extends Partial<OnboardingData>>({
   initial,
   onSave,
   render,
+  validate,
   fullWidth,
 }: {
   label: string;
@@ -45,18 +48,31 @@ function EditableRow<T extends Partial<OnboardingData>>({
   initial: T;
   onSave: (draft: T) => void;
   render: (draft: T, set: <K extends keyof T>(k: K, v: T[K]) => void) => React.ReactNode;
+  validate?: (draft: T) => string | null;
   fullWidth?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<T>(initial);
+  const [error, setError] = useState<string | null>(null);
 
   const start = () => {
     setDraft(initial);
+    setError(null);
     setEditing(true);
   };
   const set = <K extends keyof T>(k: K, v: T[K]) => setDraft((p) => ({ ...p, [k]: v }) as T);
+  const cancel = () => {
+    setError(null);
+    setEditing(false);
+  };
   const save = () => {
+    const err = validate?.(draft) ?? null;
+    if (err) {
+      setError(err);
+      return;
+    }
     onSave(draft);
+    setError(null);
     setEditing(false);
   };
 
@@ -67,14 +83,17 @@ function EditableRow<T extends Partial<OnboardingData>>({
         {editing ? (
           <div className="flex items-center gap-3">
             <button type="button" onClick={save} className="text-[10px] font-bold text-primary hover:underline">SAVE</button>
-            <button type="button" onClick={() => setEditing(false)} className="text-[10px] font-bold text-outline hover:underline">CANCEL</button>
+            <button type="button" onClick={cancel} className="text-[10px] font-bold text-outline hover:underline">CANCEL</button>
           </div>
         ) : (
           <button type="button" onClick={start} className="text-[10px] font-bold text-primary hover:underline">EDIT</button>
         )}
       </div>
       {editing ? (
-        <div className="mt-1">{render(draft, set)}</div>
+        <div className="mt-1 flex flex-col gap-1">
+          {render(draft, set)}
+          {error && <span role="alert" className="text-[11px] font-medium text-error font-manrope">{error}</span>}
+        </div>
       ) : (
         <span className="text-sm font-medium text-on-surface font-manrope">{display || '—'}</span>
       )}
@@ -97,6 +116,37 @@ export default function OnboardingStep6() {
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhotoError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setPhotoError('Please upload a JPEG, PNG, or WebP image.');
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      setPhotoError('Image must be under 5MB.');
+      return;
+    }
+    const token = session?.user?.accessToken;
+    if (!token) {
+      setPhotoError('Session expired. Please log in again.');
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const { url } = await apiUpload<{ url: string }>('/uploads/profile-picture', 'file', file, token);
+      update({ profilePictureUrl: url });
+    } catch (err) {
+      setPhotoError(err instanceof ApiError ? (err.message ?? 'Upload failed. Please try again.') : 'Something went wrong. Please try again.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const hasLocationInsurance =
     !!(data.address || data.city || data.region || data.philhealthId || data.hmoProvider || data.hmoCardNo);
@@ -193,11 +243,29 @@ export default function OnboardingStep6() {
                   </svg>
                 )}
               </div>
-              <Link href="/onboarding/5" className="absolute -bottom-2 -right-2 bg-white text-primary p-2 rounded-xl shadow-lg hover:scale-110 transition-transform" aria-label="Change photo">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                </svg>
-              </Link>
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={uploadingPhoto}
+                className="absolute -bottom-2 -right-2 bg-white text-primary p-2 rounded-xl shadow-lg hover:scale-110 transition-transform disabled:opacity-60 disabled:hover:scale-100"
+                aria-label="Change photo"
+              >
+                {uploadingPhoto ? (
+                  <Spinner className="w-4 h-4" />
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  </svg>
+                )}
+              </button>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                aria-label="Upload profile picture"
+                onChange={handlePhotoChange}
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase font-plus-jakarta mb-1">Digital Patient ID</span>
@@ -206,6 +274,7 @@ export default function OnboardingStep6() {
                 <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
                 <span className="text-xs font-medium text-white/80">Profile Complete</span>
               </div>
+              {photoError && <span role="alert" className="text-xs font-medium text-white/90 mt-1">{photoError}</span>}
             </div>
           </div>
         </div>
@@ -280,6 +349,7 @@ export default function OnboardingStep6() {
                 display={data.philhealthId}
                 initial={{ philhealthId: data.philhealthId }}
                 onSave={update}
+                validate={(d) => (isValidPhilHealth(d.philhealthId ?? '') ? null : "Can't save — enter the full 12-digit PhilHealth ID")}
                 render={(d, set) => (
                   <input className={editInputClass} inputMode="numeric" value={d.philhealthId}
                     onChange={(e) => set('philhealthId', formatPhilHealth(e.target.value))} />
@@ -290,6 +360,7 @@ export default function OnboardingStep6() {
                 display={[data.hmoProvider, data.hmoCardNo].filter(Boolean).join(' · ')}
                 initial={{ hmoProvider: data.hmoProvider, hmoCardNo: data.hmoCardNo }}
                 onSave={update}
+                validate={(d) => (isValidHmoCard(d.hmoCardNo ?? '') ? null : "Can't save — enter the full 12-character HMO card number")}
                 render={(d, set) => (
                   <div className="flex gap-2">
                     <input className={editInputClass} placeholder="Provider" value={d.hmoProvider} onChange={(e) => set('hmoProvider', e.target.value)} />
