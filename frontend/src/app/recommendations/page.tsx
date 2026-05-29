@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { apiRequest } from "@/lib/api-client";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
@@ -21,6 +23,10 @@ import type { RecommendationLog } from "@/types/api";
 import { parse } from 'partial-json';
 
 function RecommendationsContent() {
+  const { data: session } = useSession();
+  const token = session?.user?.accessToken;
+  const [history, setHistory] = useState<RecommendationLog[]>([]);
+
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [symptoms, setSymptoms] = useState("");
   const [result, setResult] = useState<RecommendationLog | null>(null);
@@ -43,6 +49,13 @@ function RecommendationsContent() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional mount-only: pre-fill once from URL, don't reset if URL changes later
   }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    apiRequest<RecommendationLog[]>("/recommendations", { token })
+      .then(setHistory)
+      .catch(() => setHistory([]));
+  }, [token]);
 
   const handleTranscript = (text: string) => {
     setSymptoms((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
@@ -133,7 +146,7 @@ function RecommendationsContent() {
           <FadeIn>
             <ProgressIndicator currentStep={step} totalSteps={3} />
           </FadeIn>
-          
+
           {step === 1 && <WelcomeStep onStart={() => setStep(2)} />}
           {step === 2 && (
             <SymptomsStep
@@ -153,13 +166,55 @@ function RecommendationsContent() {
             />
           )}
           {step === 3 && (
-            <ResultsStep 
-              result={result} 
+            <ResultsStep
+              result={result}
               onRestart={handleRestart}
               isAnalyzing={isAnalyzing}
               streamingSpecialization={streamingSpecialization}
               streamingExplanation={streamingExplanation}
             />
+          )}
+
+          {token && history.length > 0 && (
+            <div className="pt-8 border-t border-outline-variant/30">
+              <h2 className="font-serif text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+                <ActivityLogIcon className="w-5 h-5 text-primary" />
+                Your past symptom checks
+              </h2>
+              <div className="space-y-4">
+                {history.map((item) => (
+                  <Card
+                    key={item.id}
+                    className="p-5 bg-surface-white border border-outline-variant/30 rounded-2xl shadow-sm"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-on-surface-variant line-clamp-2 italic mb-1">
+                          &ldquo;{item.symptomInput}&rdquo;
+                        </p>
+                        {item.aiExplanation && (
+                          <p className="text-xs text-on-surface-variant line-clamp-1 italic opacity-70">
+                            {item.aiExplanation}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="bg-primary/10 text-primary px-3 py-1 rounded-md text-sm font-semibold">
+                          {item.matchedSpecialization}
+                        </span>
+                        <Link
+                          href="/doctors"
+                          className="text-primary hover:text-primary/80 transition-colors"
+                          aria-label={`Find doctors for ${item.matchedSpecialization}`}
+                        >
+                          <ChevronRightIcon className="w-5 h-5" />
+                        </Link>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </main>
