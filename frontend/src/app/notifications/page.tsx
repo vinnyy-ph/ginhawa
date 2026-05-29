@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { notificationHref } from "@/lib/notification-links";
 import { PatientShell } from "@/components/layout/patient-shell";
 import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ import type { Notification } from "@/types/api";
 
 export default function PatientNotificationsPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const token = session?.user?.accessToken;
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -115,6 +118,7 @@ export default function PatientNotificationsPage() {
             <div className="divide-y divide-outline-variant/20">
               {notifications.map(notif => {
                 const isUnread = !notif.readAt;
+                const href = notificationHref(notif.type, "patient");
                 
                 // Formatter for relative time (e.g. "2 hours ago")
                 // Simplified for this component
@@ -136,11 +140,14 @@ export default function PatientNotificationsPage() {
                   <div 
                     key={notif.id} 
                     className={cn(
-                      "p-5 transition-colors cursor-pointer group flex gap-4 items-start",
-                      isUnread ? "bg-primary/5 hover:bg-primary/10" : "bg-surface-white hover:bg-surface"
+                      "p-5 transition-colors flex gap-4 items-start",
+                      href ? "cursor-pointer group" : "cursor-default",
+                      isUnread ? "bg-primary/5" : "bg-surface-white",
+                      href && (isUnread ? "hover:bg-primary/10" : "hover:bg-surface")
                     )}
                     onClick={() => {
                       if (isUnread) markAsRead(notif.id);
+                      if (href) router.push(href);
                     }}
                   >
                     <div className="shrink-0 mt-1 relative">
