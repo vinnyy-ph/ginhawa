@@ -12,6 +12,8 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { TimeField } from "@/components/ui/time-field";
 import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
 import { ClockIcon, PlusIcon, TrashIcon, CheckCircledIcon } from "@radix-ui/react-icons";
+import { Chip } from "@/components/ui/chip";
+import { generateSlots, type WeeklyTemplate } from "@/lib/generate-slots";
 import { cn } from "@/lib/utils";
 import type { AvailabilitySlot, DoctorProfile, SlotStatus } from "@/types/api";
 
@@ -36,6 +38,19 @@ export default function DoctorSchedulePage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const [showTemplate, setShowTemplate] = useState(false);
+  const [tplWeekdays, setTplWeekdays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [tplStartDate, setTplStartDate] = useState("");
+  const [tplWeeks, setTplWeeks] = useState(4);
+  const [tplDayStart, setTplDayStart] = useState("09:00");
+  const [tplDayEnd, setTplDayEnd] = useState("17:00");
+  const [tplSlotMinutes, setTplSlotMinutes] = useState(60);
+  const [tplBreakOn, setTplBreakOn] = useState(false);
+  const [tplBreakStart, setTplBreakStart] = useState("12:00");
+  const [tplBreakEnd, setTplBreakEnd] = useState("13:00");
+  const [tplSubmitting, setTplSubmitting] = useState(false);
+  const [tplError, setTplError] = useState<string | null>(null);
 
   useEffect(() => {
     async function init() {
@@ -173,6 +188,71 @@ export default function DoctorSchedulePage() {
     }
   }
 
+  const template: WeeklyTemplate = useMemo(
+    () => ({
+      weekdays: tplWeekdays,
+      startDate: tplStartDate,
+      weeks: tplWeeks,
+      dayStart: tplDayStart,
+      dayEnd: tplDayEnd,
+      slotMinutes: tplSlotMinutes,
+      breakWindow: tplBreakOn
+        ? { start: tplBreakStart, end: tplBreakEnd }
+        : null,
+    }),
+    [tplWeekdays, tplStartDate, tplWeeks, tplDayStart, tplDayEnd, tplSlotMinutes, tplBreakOn, tplBreakStart, tplBreakEnd],
+  );
+
+  const previewSlots = useMemo(
+    () => (tplStartDate ? generateSlots(template) : []),
+    [template, tplStartDate],
+  );
+
+  async function handleGenerate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!token || !profile) return;
+    setTplError(null);
+
+    if (tplDayEnd <= tplDayStart) {
+      setTplError("Day end time must be after start time");
+      return;
+    }
+    if (tplBreakOn && tplBreakEnd <= tplBreakStart) {
+      setTplError("Break end time must be after break start time");
+      return;
+    }
+    if (previewSlots.length === 0) {
+      setTplError("This template generates no slots. Check your inputs.");
+      return;
+    }
+
+    try {
+      setTplSubmitting(true);
+      const result = await apiRequest<{ created: number; skipped: number }>(
+        "/doctors/slots/bulk",
+        { method: "POST", token, body: { slots: previewSlots } },
+      );
+      const msg =
+        result.skipped > 0
+          ? `${result.created} slots added, ${result.skipped} skipped`
+          : `${result.created} slots added`;
+      setToastMessage(msg);
+      setShowTemplate(false);
+      await fetchSlots(profile.id);
+    } catch (err) {
+      setTplError(err instanceof Error ? err.message : "Failed to generate slots");
+    } finally {
+      setTplSubmitting(false);
+    }
+  }
+
+  const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  function toggleWeekday(d: number) {
+    setTplWeekdays((prev) =>
+      prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
+    );
+  }
+
   // Group slots by date string
   const slotsByDate = useMemo(() => {
     const groups: Record<string, AvailabilitySlot[]> = {};
@@ -211,9 +291,18 @@ export default function DoctorSchedulePage() {
               Manage your availability slots for patient bookings.
             </p>
           </div>
-          <Button onClick={() => setShowAddForm(!showAddForm)} className="shrink-0 gap-2">
-            {showAddForm ? "Cancel" : <><PlusIcon className="w-4 h-4" /> Add Availability Slot</>}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowTemplate(!showTemplate)}
+              className="shrink-0 gap-2"
+            >
+              {showTemplate ? "Cancel" : <><ClockIcon className="w-4 h-4" /> Set weekly schedule</>}
+            </Button>
+            <Button onClick={() => setShowAddForm(!showAddForm)} className="shrink-0 gap-2">
+              {showAddForm ? "Cancel" : <><PlusIcon className="w-4 h-4" /> Add Availability Slot</>}
+            </Button>
+          </div>
         </div>
 
         {/* Add Slot Form */}
@@ -253,6 +342,99 @@ export default function DoctorSchedulePage() {
                 <p className="text-error text-sm mt-4">{formError}</p>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Weekly Template Panel */}
+        {showTemplate && (
+          <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden mb-8 animate-in slide-in-from-top-4 fade-in duration-300">
+            <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30 flex items-center gap-2">
+              <ClockIcon className="w-5 h-5 text-primary" />
+              <h3 className="font-serif text-lg font-bold text-text-primary">Set Weekly Schedule</h3>
+            </div>
+            <form onSubmit={handleGenerate} className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-text-primary mb-2">Days of week</label>
+                <div className="flex flex-wrap gap-2">
+                  {WEEKDAY_LABELS.map((label, d) => (
+                    <Chip key={d} selected={tplWeekdays.includes(d)} onClick={() => toggleWeekday(d)}>
+                      {label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-1">Day start</label>
+                  <TimeField value={tplDayStart} onChange={setTplDayStart} aria-label="Day start time" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-1">Day end</label>
+                  <TimeField value={tplDayEnd} onChange={setTplDayEnd} aria-label="Day end time" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-1">Slot length</label>
+                  <select
+                    value={tplSlotMinutes}
+                    onChange={(e) => setTplSlotMinutes(Number(e.target.value))}
+                    className="w-full h-11 px-3 rounded-lg border border-outline-variant bg-surface-white text-text-primary"
+                  >
+                    <option value={30}>30 minutes</option>
+                    <option value={60}>60 minutes</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-1">Repeat for (weeks)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={12}
+                    value={tplWeeks}
+                    onChange={(e) => setTplWeeks(Math.min(12, Math.max(1, Number(e.target.value))))}
+                    className="w-full h-11 px-3 rounded-lg border border-outline-variant bg-surface-white text-text-primary"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-text-primary mb-1">Start date</label>
+                <DatePicker value={tplStartDate} onChange={setTplStartDate} minDate={localTodayISO()} />
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-text-primary mb-2">
+                  <input type="checkbox" checked={tplBreakOn} onChange={(e) => setTplBreakOn(e.target.checked)} />
+                  Add a daily break (skipped)
+                </label>
+                {tplBreakOn && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-xs font-medium text-on-surface-variant mb-1">Break start</label>
+                      <TimeField value={tplBreakStart} onChange={setTplBreakStart} aria-label="Break start time" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-on-surface-variant mb-1">Break end</label>
+                      <TimeField value={tplBreakEnd} onChange={setTplBreakEnd} aria-label="Break end time" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between gap-4 pt-2 border-t border-outline-variant/30">
+                <p className="text-sm text-on-surface-variant">
+                  {tplStartDate ? <>This will create <span className="font-semibold text-text-primary">{previewSlots.length}</span> slots.</> : "Pick a start date to preview."}
+                </p>
+                <Button type="submit" disabled={tplSubmitting || previewSlots.length === 0} className="min-w-[140px]">
+                  {tplSubmitting ? "Generating..." : "Generate slots"}
+                </Button>
+              </div>
+
+              {tplError && <p className="text-error text-sm">{tplError}</p>}
+            </form>
           </div>
         )}
 
