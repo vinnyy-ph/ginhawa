@@ -55,4 +55,18 @@ export class ReviewsService {
       },
     });
   }
+
+  findByDoctor(doctorId: string) {
+    return this.prisma.review.findMany({
+      where: { doctorId, isVisible: true },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        createdAt: true,
+        patient: { select: { fullName: true, profilePictureUrl: true } },
+      },
+    });
+  }
 }

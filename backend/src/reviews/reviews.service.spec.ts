@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReviewsService } from './reviews.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-  NotFoundException,
   ForbiddenException,
   BadRequestException,
   ConflictException,
@@ -15,7 +14,7 @@ describe('ReviewsService', () => {
   const mockPrismaService = {
     patientProfile: { findUnique: jest.fn() },
     appointment: { findUnique: jest.fn() },
-    review: { findUnique: jest.fn(), create: jest.fn() },
+    review: { findUnique: jest.fn(), create: jest.fn(), findMany: jest.fn() },
   };
 
   beforeEach(async () => {
@@ -86,6 +85,36 @@ describe('ReviewsService', () => {
     await expect(service.create('user-1', dto)).rejects.toThrow(
       ForbiddenException,
     );
+  });
+
+  describe('findByDoctor', () => {
+    it('returns visible reviews newest-first with patient name', async () => {
+      const rows = [
+        {
+          id: 'review-1',
+          rating: 5,
+          comment: 'Great',
+          createdAt: new Date('2026-05-20T00:00:00Z'),
+          patient: { fullName: 'Juan Dela Cruz', profilePictureUrl: null },
+        },
+      ];
+      mockPrismaService.review.findMany.mockResolvedValue(rows);
+
+      const result = await service.findByDoctor('doctor-1');
+
+      expect(result).toBe(rows);
+      expect(mockPrismaService.review.findMany).toHaveBeenCalledWith({
+        where: { doctorId: 'doctor-1', isVisible: true },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+          patient: { select: { fullName: true, profilePictureUrl: true } },
+        },
+      });
+    });
   });
 
   it('rejects a duplicate review', async () => {
