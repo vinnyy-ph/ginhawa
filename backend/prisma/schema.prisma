@@ -163,6 +163,7 @@ model Appointment {
   medicalRecord    MedicalRecord?
   payment          Payment?
   review           Review?
+  followUpFor      MedicalRecord? @relation("FollowUpAppointment")
 
   @@index([patientId])
   @@index([doctorId])
@@ -181,7 +182,11 @@ model MedicalRecord {
   prescription   String?
   recommendations String?
   followUpAdvice String?        @map("follow_up_advice")
+  followUpAppointmentId String?      @unique @map("follow_up_appointment_id")
+  followUpAppointment   Appointment? @relation("FollowUpAppointment", fields: [followUpAppointmentId], references: [id], onDelete: SetNull)
   createdAt      DateTime       @default(now()) @map("created_at")
+
+  prescriptions  Prescription[]
 
   @@index([patientId])
   @@index([doctorId])
@@ -283,4 +288,19 @@ model PatientMedicalHistory {
   updatedAt           DateTime       @updatedAt @map("updated_at")
 
   @@map("patient_medical_histories")
+}
+
+model Prescription {
+  id              String        @id @default(cuid())
+  medicalRecordId String        @map("medical_record_id")
+  medicalRecord   MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+  drugName        String        @map("drug_name")
+  dosage          String
+  frequency       String
+  durationDays    Int?          @map("duration_days")
+  instructions    String?
+  issuedAt        DateTime      @default(now()) @map("issued_at")
+
+  @@index([medicalRecordId])
+  @@map("prescriptions")
 }
