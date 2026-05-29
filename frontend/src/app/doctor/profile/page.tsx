@@ -12,7 +12,6 @@ import { Chip } from "@/components/ui/chip";
 import { ProfileSection } from "@/components/ui/profile-section";
 import { ProfilePhotoField } from "@/components/ui/profile-photo-field";
 import { DatePicker } from "@/components/ui/date-picker";
-import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
 import { useSpecializations } from "@/hooks/use-specializations";
 import {
   onboardingInputClass,
@@ -205,7 +204,7 @@ export default function DoctorProfilePage() {
                   <input id="d-prc" inputMode="numeric" placeholder="0123456" className={onboardingInputClass} value={prcLicenseNo} onChange={(e) => setPrcLicenseNo(formatPrc(e.target.value))} />
                 </FormField>
                 <FormField id="d-prcExpiry" label="PRC License Expiry">
-                  <DatePicker id="d-prcExpiry" value={prcLicenseExpiry} onChange={setPrcLicenseExpiry} minDate={localTodayISO()} />
+                  <DatePicker id="d-prcExpiry" value={prcLicenseExpiry} onChange={setPrcLicenseExpiry} />
                 </FormField>
                 <FormField id="d-ptr" label="PTR Number">
                   <input id="d-ptr" inputMode="numeric" placeholder="12345678" className={onboardingInputClass} value={ptrNo} onChange={(e) => setPtrNo(formatPtr(e.target.value))} />
