@@ -56,6 +56,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
   const [publishError, setPublishError] = useState<string | null>(null);
   const [attested, setAttested] = useState(false);
   const [confirmingPublish, setConfirmingPublish] = useState(false);
+  const [amending, setAmending] = useState(false);
 
   async function runSummarize() {
     if (!token) return;
@@ -104,6 +105,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
 
       if (record) {
         setExistingRecord(record);
+        setAmending(false);
         setLoading(false);
         return;
       }
@@ -117,11 +119,38 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, appointmentId]);
 
+  function startAmend() {
+    if (!existingRecord) return;
+    setDoctorSummary(existingRecord.notes ?? '');
+    setPatientSummary(existingRecord.recommendations ?? '');
+    setPrescriptions(existingRecord.prescription ?? '');
+    setFollowUp(existingRecord.followUpAdvice ?? '');
+    setAttested(false);
+    setConfirmingPublish(false);
+    setPublishError(null);
+    setAmending(true);
+  }
+
   async function handlePublish() {
     if (!token) return;
     setIsPublishing(true);
     setPublishError(null);
     try {
+      if (existingRecord) {
+        await apiRequest(`/medical-records/${existingRecord.id}`, {
+          method: 'PATCH',
+          token,
+          body: {
+            notes: doctorSummary.trim() || undefined,
+            prescription: prescriptions.trim() || undefined,
+            recommendations: patientSummary.trim() || undefined,
+            followUpAdvice: followUp.trim() || undefined,
+          },
+        });
+        setPublishSuccess(true);
+        setTimeout(() => router.push('/doctor/appointments'), 2000);
+        return;
+      }
       await apiRequest('/medical-records', {
         method: 'POST',
         token,
@@ -186,7 +215,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
           <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
             <div className="bg-success text-white px-6 py-3 rounded-lg shadow-lifted flex items-center gap-3">
               <CheckCircledIcon className="w-5 h-5" />
-              <span className="font-medium">Record published! Redirecting...</span>
+              <span className="font-medium">{amending ? 'Record updated! Redirecting...' : 'Record published! Redirecting...'}</span>
             </div>
           </div>
         )}
@@ -238,11 +267,14 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
         </div>
 
         {/* Body */}
-        {isReadOnly ? (
+        {isReadOnly && !amending ? (
           <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
-            <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30">
-              <h3 className="font-serif text-lg font-bold text-text-primary">Clinical Documentation</h3>
-              <p className="text-sm text-on-surface-variant mt-1">This record is published and read-only.</p>
+            <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-serif text-lg font-bold text-text-primary">Clinical Documentation</h3>
+                <p className="text-sm text-on-surface-variant mt-1">This record is published. You can amend it if needed.</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={startAmend}>Amend record</Button>
             </div>
             <div className="p-6 space-y-8">
               {existingRecord!.notes && (
@@ -307,14 +339,16 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
               </div>
             )}
 
-            <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg text-sm">
-              <ExclamationTriangleIcon className="w-5 h-5 shrink-0 mt-0.5" />
-              <p>
-                <strong>AI-generated draft.</strong> Review and verify every field — especially the
-                prescription — before publishing. Publishing signs this into the patient&apos;s
-                permanent medical record.
-              </p>
-            </div>
+            {!amending && (
+              <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg text-sm">
+                <ExclamationTriangleIcon className="w-5 h-5 shrink-0 mt-0.5" />
+                <p>
+                  <strong>AI-generated draft.</strong> Review and verify every field — especially the
+                  prescription — before publishing. Publishing signs this into the patient&apos;s
+                  permanent medical record.
+                </p>
+              </div>
+            )}
 
             <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
               <div className="bg-gradient-to-r from-[#48cab6]/10 to-[#31a795]/10 px-6 py-4 border-b border-outline-variant/30">
@@ -386,11 +420,11 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
                     disabled={!attested || isPublishing || publishSuccess}
                     className="min-w-[160px] bg-[#31a795] text-white hover:bg-[#006b5e]"
                   >
-                    Publish to Patient Record
+                    {amending ? 'Save amendment' : 'Publish to Patient Record'}
                   </Button>
                 ) : (
                   <>
-                    <span className="text-sm text-on-surface-variant">Publish to the patient&apos;s permanent record?</span>
+                    <span className="text-sm text-on-surface-variant">{amending ? 'Save changes to this record?' : "Publish to the patient's permanent record?"}</span>
                     <Button variant="outline" onClick={() => setConfirmingPublish(false)} disabled={isPublishing}>
                       Back
                     </Button>
@@ -399,7 +433,7 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
                       disabled={isPublishing || publishSuccess}
                       className="bg-[#31a795] text-white hover:bg-[#006b5e]"
                     >
-                      {isPublishing ? 'Publishing...' : 'Confirm publish'}
+                      {isPublishing ? (amending ? 'Saving...' : 'Publishing...') : (amending ? 'Confirm amend' : 'Confirm publish')}
                     </Button>
                   </>
                 )}

@@ -20,6 +20,7 @@ describe('MedicalRecordsService', () => {
       findUnique: jest.fn(),
       create: jest.fn(),
       findMany: jest.fn(),
+      update: jest.fn(),
     },
   };
 
@@ -208,6 +209,49 @@ describe('MedicalRecordsService', () => {
           data: expect.objectContaining({
             followUpAppointmentId: 'followup-1',
           }),
+        }),
+      );
+    });
+  });
+
+  describe('update', () => {
+    it('throws NotFoundException when doctor profile not found', async () => {
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue(null);
+      await expect(
+        service.update('user-doctor-1', 'rec-1', { notes: 'x' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws NotFoundException when record not found', async () => {
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1', fullName: 'Dr. S' });
+      mockPrismaService.medicalRecord.findUnique.mockResolvedValue(null);
+      await expect(
+        service.update('user-doctor-1', 'rec-1', { notes: 'x' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws ForbiddenException when record belongs to another doctor', async () => {
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1', fullName: 'Dr. S' });
+      mockPrismaService.medicalRecord.findUnique.mockResolvedValue({ id: 'rec-1', doctorId: 'doctor-2' });
+      await expect(
+        service.update('user-doctor-1', 'rec-1', { notes: 'x' }),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('updates the four free-text fields for the owning doctor', async () => {
+      mockPrismaService.doctorProfile.findUnique.mockResolvedValue({ id: 'doctor-1', fullName: 'Dr. S' });
+      mockPrismaService.medicalRecord.findUnique.mockResolvedValue({ id: 'rec-1', doctorId: 'doctor-1' });
+      mockPrismaService.medicalRecord.update.mockResolvedValue({ id: 'rec-1', notes: 'updated' });
+
+      const result = await service.update('user-doctor-1', 'rec-1', {
+        notes: 'updated', prescription: 'rx', recommendations: 'rec', followUpAdvice: 'fu',
+      });
+
+      expect(result).toEqual({ id: 'rec-1', notes: 'updated' });
+      expect(mockPrismaService.medicalRecord.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'rec-1' },
+          data: { notes: 'updated', prescription: 'rx', recommendations: 'rec', followUpAdvice: 'fu' },
         }),
       );
     });

@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '@prisma/client';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
+import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
 
 @Injectable()
 export class MedicalRecordsService {
@@ -105,6 +106,42 @@ export class MedicalRecordsService {
     }
 
     return record;
+  }
+
+  async update(
+    userId: string,
+    recordId: string,
+    dto: UpdateMedicalRecordDto,
+  ) {
+    const doctorProfile = await this.prisma.doctorProfile.findUnique({
+      where: { userId },
+    });
+    if (!doctorProfile) {
+      throw new NotFoundException('Doctor profile not found');
+    }
+    const record = await this.prisma.medicalRecord.findUnique({
+      where: { id: recordId },
+    });
+    if (!record) {
+      throw new NotFoundException('Medical record not found');
+    }
+    if (record.doctorId !== doctorProfile.id) {
+      throw new ForbiddenException('You are not authorized to amend this record');
+    }
+    return this.prisma.medicalRecord.update({
+      where: { id: recordId },
+      data: {
+        notes: dto.notes,
+        prescription: dto.prescription,
+        recommendations: dto.recommendations,
+        followUpAdvice: dto.followUpAdvice,
+      },
+      include: {
+        appointment: true,
+        prescriptions: true,
+        patient: { include: { user: { select: { email: true } } } },
+      },
+    });
   }
 
   async findAllForPatient(userId: string) {
