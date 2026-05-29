@@ -12,6 +12,11 @@ export type SlotStatus = 'AVAILABLE' | 'BOOKED' | 'BLOCKED';
 
 // ─── Doctor ─────────────────────────────────────────────────────────────────
 
+export interface DoctorSpecializationLink {
+  isPrimary: boolean;
+  specialization: { id: string; name: string };
+}
+
 export interface DoctorProfile {
   id: string;
   userId?: string;
@@ -25,9 +30,22 @@ export interface DoctorProfile {
   languagesSpoken?: string[];
   consultationFee?: number;
   consultationFocusAreas?: string;
+  city?: string;
+  region?: string;
+  isVerified?: boolean;
+  prcLicenseNo?: string;
+  specializations?: DoctorSpecializationLink[];
   availabilitySlots?: AvailabilitySlot[];
   avgRating?: number;
   reviewCount?: number;
+}
+
+export interface DoctorReview {
+  id: string;
+  rating: number;
+  comment?: string | null;
+  createdAt: string;
+  patient: { fullName: string; profilePictureUrl?: string | null };
 }
 
 // ─── Availability Slot ───────────────────────────────────────────────────────
