@@ -21,12 +21,13 @@ export interface AppointmentCardProps {
   onToggleExpand?: () => void;
 }
 
-//always return true for now
 function isWithinJoinWindow(appt: Appointment): boolean {
   if (!appt.slot) return false;
-  // Allow joining 15 minutes before start until slot end time
-  // return now >= start - 15 * 60 * 1000 && now <= end;
-  return true;
+  const now = Date.now();
+  const start = new Date(appt.slot.startTime).getTime();
+  const end = new Date(appt.slot.endTime).getTime();
+  // Joinable from 15 minutes before start until the slot end time.
+  return now >= start - 15 * 60 * 1000 && now <= end;
 }
 
 const statusConfig: Record<string, { variant: "secondary" | "success" | "destructive" | "info" | "outline", border: string }> = {
@@ -289,7 +290,7 @@ export function AppointmentCard({
                   <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
                 </Button>
               )}
-              {appt.id && (
+              {appt.id && slot && Date.now() >= new Date(slot.startTime).getTime() && (
                 <Button size="sm" asChild variant="outline">
                   <Link href={`/doctor/finalize/${appt.id}`}>Complete &amp; Document</Link>
                 </Button>
