@@ -155,7 +155,7 @@ export function DoctorCardCompact({ doctor }: DoctorCardCompactProps) {
         )}
 
         <Link
-          href={`/doctors/${doctor.id}`}
+          href={`/dashboard/find-doctors/${doctor.id}`}
           aria-label={`Book appointment with ${doctor.fullName}`}
         >
           <Button className="w-full rounded-2xl py-6 font-semibold bg-primary hover:bg-primary/90 text-white shadow-soft">
