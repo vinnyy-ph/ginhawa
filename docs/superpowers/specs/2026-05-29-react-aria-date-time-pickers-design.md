@@ -106,14 +106,20 @@ Time (→ new `TimeField`):
 - Partial/invalid typed entry yields no `onChange` until a complete valid date — the
   field shows RAC's validation state; consumers see empty string until valid.
 
-## Testing
+## Testing / Verification
 
-- Unit tests for the 3 primitives:
-  - string ⇄ internal round-trip (`"YYYY-MM-DD"` / `"HH:mm"`).
-  - `minDate`/`maxDate` disable out-of-range days.
-  - `onChange` emits the correct string; clearing emits `""`.
-- Existing onboarding test suite must pass unchanged — that is the proof the string
-  interface held across the migration.
+The frontend has no test runner (scripts are only `build` + `lint`); the established
+verification pattern for all frontend work is the TypeScript build, lint, and manual
+smoke. This migration follows that pattern — no test infra is introduced.
+
+- `next build` green, 0 TypeScript errors (proves the string interface held — every
+  consumer still type-checks against `value: string` / `onChange(string)`).
+- `eslint` clean.
+- Manual smoke per surface group:
+  - Birthday: type a year (e.g. 1990), pick via calendar, confirm future dates blocked.
+  - Expiry: confirm past dates blocked (min today).
+  - Schedule: add a slot — date + start/end time round-trip, end-after-start validation,
+    slot persists.
 
 ## Rollout / Verification
 
