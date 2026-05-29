@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { DoctorProfile, AvailabilitySlot } from "@/types/api";
+import { StarRating } from "@/components/ui/star-rating";
 
 interface DoctorCardProps {
   doctor: DoctorProfile;
@@ -87,6 +88,9 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
               <span className="text-primary font-semibold uppercase tracking-widest text-[11px]">
                 {doctor.specialization}
               </span>
+            </div>
+            <div className="mt-2">
+              <StarRating rating={doctor.avgRating ?? 0} count={doctor.reviewCount ?? 0} />
             </div>
           </div>
           
