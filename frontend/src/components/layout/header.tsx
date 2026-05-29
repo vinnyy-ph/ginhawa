@@ -1,13 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { CalendarIcon, FileTextIcon, PersonIcon, ExitIcon, BellIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
+import { apiRequest } from "@/lib/api-client";
+import type { PatientProfile } from "@/types/patient";
 
-function Avatar({ name }: { name: string }) {
+function Avatar({ name, src }: { name: string; src?: string | null }) {
+  const [failed, setFailed] = useState(false);
+  const [prevSrc, setPrevSrc] = useState(src);
+  if (src !== prevSrc) {
+    setPrevSrc(src);
+    setFailed(false);
+  }
+  if (src && !failed) {
+    return (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img src={src} alt={name} className="w-9 h-9 rounded-full object-cover" onError={() => setFailed(true)} />
+    );
+  }
   return (
     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-light to-brand flex items-center justify-center text-white text-sm font-bold">
       {name.charAt(0).toUpperCase()}
@@ -19,6 +34,15 @@ export function Header() {
   const { data: session, status } = useSession();
   const role = session?.user?.role;
   const name = session?.user?.name || session?.user?.email || "User";
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = session?.user?.accessToken;
+    if (role !== "PATIENT" || !token) return;
+    apiRequest<PatientProfile>("/patients/profile", { token })
+      .then((d) => setAvatarUrl(d.profilePictureUrl ?? null))
+      .catch(() => {});
+  }, [role, session?.user?.accessToken]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-outline-variant bg-surface/80 backdrop-blur-md">
@@ -55,7 +79,7 @@ export function Header() {
               </Link>
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger aria-label="Account menu" className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary/30">
-                  <Avatar name={name} />
+                  <Avatar name={name} src={avatarUrl} />
                 </DropdownMenu.Trigger>
                 <DropdownMenu.Portal>
                   <DropdownMenu.Content align="end" sideOffset={8} className="z-50 min-w-[200px] rounded-xl border border-outline-variant bg-surface-white p-1.5 shadow-lifted">
