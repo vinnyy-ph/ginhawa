@@ -43,9 +43,10 @@ export class PatientsService {
 
   async updateMedicalHistory(userId: string, dto: UpdateMedicalHistoryDto) {
     const profile = await this.findByUserId(userId);
-    return this.prisma.patientMedicalHistory.update({
+    return this.prisma.patientMedicalHistory.upsert({
       where: { patientId: profile.id },
-      data: dto,
+      update: dto,
+      create: { patientId: profile.id, ...dto },
     });
   }
 

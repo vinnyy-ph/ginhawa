@@ -14,7 +14,7 @@ describe('PatientsService', () => {
       update: jest.fn(),
     },
     patientMedicalHistory: {
-      update: jest.fn(),
+      upsert: jest.fn(),
     },
   };
 
@@ -149,17 +149,26 @@ describe('PatientsService', () => {
   });
 
   describe('updateMedicalHistory', () => {
-    it('updates the history row for the caller patient profile', async () => {
+    it('upserts the history row for the caller patient profile', async () => {
       mockPrismaService.patientProfile.findUnique.mockResolvedValue({ id: 'patient-1' });
-      mockPrismaService.patientMedicalHistory.update.mockResolvedValue({ id: 'h1', allergies: ['nuts'] });
+      mockPrismaService.patientMedicalHistory.upsert.mockResolvedValue({ id: 'h1', allergies: ['nuts'] });
 
       const result = await service.updateMedicalHistory('user-1', { allergies: ['nuts'] });
 
-      expect(mockPrismaService.patientMedicalHistory.update).toHaveBeenCalledWith({
+      expect(mockPrismaService.patientMedicalHistory.upsert).toHaveBeenCalledWith({
         where: { patientId: 'patient-1' },
-        data: { allergies: ['nuts'] },
+        update: { allergies: ['nuts'] },
+        create: { patientId: 'patient-1', allergies: ['nuts'] },
       });
       expect(result.allergies).toEqual(['nuts']);
+    });
+
+    it('throws NotFoundException when the patient profile does not exist', async () => {
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.updateMedicalHistory('user-1', { allergies: ['nuts'] }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
