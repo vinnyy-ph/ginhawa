@@ -32,7 +32,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 - [x] **D7** Identity papercuts: clean greeting (no "Dr. Dr."), dropped raw-UUID patient id — `44f3de6`
 
 ## Appearance, design & a11y
-- [ ] **V1** Design tokens: gradient + warning token; route the ~17 hardcoded `#48cab6/#31a795` files through them
+- [x] **V1** Brand/warning design tokens; ~17 files routed through them (verified utilities generate) — `221a8ae`
 - [x] **V2** Shared `<Alert>` component; profile pages migrated (kills two-reds there) — `1e89b8f`
 - [x] **V3** Wordmark font unified to font-serif across login boundary — `2041293`
 - [x] **V4** Truncation tooltips on review-id-card name/subtitle — `2041293`
