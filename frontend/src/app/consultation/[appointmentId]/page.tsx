@@ -39,6 +39,10 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
   const callFrameRef = useRef<DailyCall | null>(null);
   const hasJoinedRef = useRef(false);
 
+  const [doctorDisconnected, setDoctorDisconnected] = useState(false);
+  const [showReturn, setShowReturn] = useState(false);
+  const returnTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (!token) return;
     apiRequest<{ roomUrl: string; userName: string; patientContext?: PatientContext }>(`/consultation/${appointmentId}/room`, { token })
@@ -66,19 +70,34 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
       }
     };
     const handleParticipantLeft = () => {
-      // In a 1:1 consult, the only other participant is the doctor.
-      router.push('/appointments');
+      // Doctor dropped — could be a transient network blip. Show reconnecting
+      // UI instead of ejecting; only an explicit 'call-ended' leaves the call.
+      setDoctorDisconnected(true);
+      setShowReturn(false);
+      if (returnTimerRef.current) clearTimeout(returnTimerRef.current);
+      returnTimerRef.current = setTimeout(() => setShowReturn(true), 60_000);
+    };
+    const handleParticipantJoined = () => {
+      setDoctorDisconnected(false);
+      setShowReturn(false);
+      if (returnTimerRef.current) {
+        clearTimeout(returnTimerRef.current);
+        returnTimerRef.current = null;
+      }
     };
     if (!isDoctor) {
       callFrame.on('app-message', handleAppMessage);
       callFrame.on('participant-left', handleParticipantLeft);
+      callFrame.on('participant-joined', handleParticipantJoined);
     }
 
     return () => {
       if (!isDoctor) {
         callFrame.off('app-message', handleAppMessage);
         callFrame.off('participant-left', handleParticipantLeft);
+        callFrame.off('participant-joined', handleParticipantJoined);
       }
+      if (returnTimerRef.current) clearTimeout(returnTimerRef.current);
       callFrame.destroy();
       callFrameRef.current = null;
       hasJoinedRef.current = false;
@@ -130,8 +149,25 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
   return (
     <div className="flex h-screen bg-[#0a0a0a]">
       {/* Video */}
-      <div className={isDoctor ? "flex-1" : "w-full"}>
+      <div className={isDoctor ? "flex-1 relative" : "w-full relative"}>
         <div ref={containerRef} className="w-full h-full" />
+        {!isDoctor && doctorDisconnected && (
+          <div className="absolute inset-x-0 top-0 z-20 flex justify-center p-4 pointer-events-none">
+            <div className="pointer-events-auto bg-surface-white/95 shadow-lifted rounded-xl px-5 py-4 max-w-sm text-center space-y-3">
+              <p className="text-sm font-semibold text-text-primary">
+                Doctor disconnected — reconnecting…
+              </p>
+              {showReturn && (
+                <button
+                  onClick={() => router.push('/appointments')}
+                  className="text-sm font-medium text-white bg-[#31a795] hover:bg-[#006b5e] rounded-md px-4 py-2 transition-colors"
+                >
+                  Return to appointments
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Doctor Sidebar */}
