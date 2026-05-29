@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   doctorCredentialsSchema,
@@ -14,6 +14,7 @@ import { FormField } from '@/components/ui/form-field';
 import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { onboardingInputClass } from '@/lib/onboarding-styles';
+import { DatePicker } from '@/components/ui/date-picker';
 
 export default function DoctorOnboardingStep2() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function DoctorOnboardingStep2() {
 
   const {
     register,
+    control,
     handleSubmit,
     setValue,
     formState: { errors },
@@ -67,7 +69,18 @@ export default function DoctorOnboardingStep2() {
         </FormField>
 
         <FormField id="prcLicenseExpiry" label="PRC License Expiry" error={errors.prcLicenseExpiry?.message} required>
-          <input id="prcLicenseExpiry" type="date" min={today} className={onboardingInputClass} {...register('prcLicenseExpiry')} />
+          <Controller
+            control={control}
+            name="prcLicenseExpiry"
+            render={({ field }) => (
+              <DatePicker
+                id="prcLicenseExpiry"
+                value={field.value}
+                onChange={field.onChange}
+                minDate={today}
+              />
+            )}
+          />
         </FormField>
 
         <FormField id="ptrNo" label="PTR Number (Optional)" error={errors.ptrNo?.message}>

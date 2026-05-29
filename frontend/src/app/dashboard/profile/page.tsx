@@ -12,6 +12,8 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { Chip } from "@/components/ui/chip";
 import { ProfileSection } from "@/components/ui/profile-section";
 import { ProfilePhotoField } from "@/components/ui/profile-photo-field";
+import { DatePicker } from "@/components/ui/date-picker";
+import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
 import {
   onboardingInputClass,
   onboardingTextareaClass,
@@ -219,7 +221,7 @@ export default function PatientProfilePage() {
                   <input id="p-fullName" className={onboardingInputClass} value={fullName} onChange={(e) => setFullName(e.target.value)} />
                 </FormField>
                 <FormField id="p-birthdate" label="Date of birth">
-                  <input id="p-birthdate" type="date" className={onboardingInputClass} value={birthdate} onChange={(e) => setBirthdate(e.target.value)} />
+                  <DatePicker id="p-birthdate" value={birthdate} onChange={setBirthdate} maxDate={localTodayISO()} />
                 </FormField>
                 <FormField id="p-contact" label="Contact number">
                   <PhoneInput

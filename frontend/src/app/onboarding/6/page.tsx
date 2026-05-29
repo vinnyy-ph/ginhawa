@@ -11,6 +11,8 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { cn } from '@/lib/utils';
 import { formatPhone, formatPhilHealth, formatHmoCard, isValidPhilHealth, isValidHmoCard } from '@/lib/format';
 import { EditableRow, editInputClass } from '@/components/ui/editable-row';
+import { DatePicker } from '@/components/ui/date-picker';
+import { localTodayISO } from '@/lib/schemas/onboarding.schemas';
 import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { ReviewIdCard, ReviewErrorAlert } from '@/components/ui/review-id-card';
@@ -178,7 +180,7 @@ export default function OnboardingStep6() {
             initial={{ birthdate: data.birthdate }}
             onSave={update}
             render={(d, set) => (
-              <input type="date" className={editInputClass} value={d.birthdate} onChange={(e) => set('birthdate', e.target.value)} />
+              <DatePicker value={d.birthdate} onChange={(v) => set('birthdate', v)} maxDate={localTodayISO()} />
             )}
           />
           <EditableRow

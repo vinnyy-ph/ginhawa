@@ -7,6 +7,8 @@ import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
 import { apiRequest, apiUpload, ApiError } from '@/lib/api-client';
 import { Toast } from '@/components/ui/toast';
 import { EditableRow, editInputClass } from '@/components/ui/editable-row';
+import { DatePicker } from '@/components/ui/date-picker';
+import { localTodayISO } from '@/lib/schemas/onboarding.schemas';
 import { useSpecializations } from '@/hooks/use-specializations';
 import { formatPrc, formatPtr, isValidPrc, isValidPtr } from '@/lib/format';
 import { OnboardingShell } from '@/components/ui/onboarding-shell';
@@ -135,7 +137,7 @@ export default function DoctorOnboardingStep5() {
             validate={(d) => (isValidPrc(d.prcLicenseNo) ? null : "Can't save — PRC license number must be 7 digits")}
             render={(d, set) => <input className={editInputClass} inputMode="numeric" value={d.prcLicenseNo} onChange={(e) => set('prcLicenseNo', formatPrc(e.target.value))} />} />
           <EditableRow label="PRC Expiry" display={data.prcLicenseExpiry} initial={{ prcLicenseExpiry: data.prcLicenseExpiry }} onSave={update}
-            render={(d, set) => <input type="date" className={editInputClass} value={d.prcLicenseExpiry} onChange={(e) => set('prcLicenseExpiry', e.target.value)} />} />
+            render={(d, set) => <DatePicker value={d.prcLicenseExpiry} onChange={(v) => set('prcLicenseExpiry', v)} minDate={localTodayISO()} />} />
 
           <EditableRow label="PTR No." display={data.ptrNo} initial={{ ptrNo: data.ptrNo }} onSave={update}
             validate={(d) => (isValidPtr(d.ptrNo) ? null : "Can't save — PTR number must be 7–8 digits")}

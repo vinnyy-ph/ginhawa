@@ -10,7 +10,8 @@ import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { onboardingInputClass } from '@/lib/onboarding-styles';
 import { FormField } from '@/components/ui/form-field';
-import { BirthdateInput } from '@/components/ui/birthdate-input';
+import { DatePicker } from '@/components/ui/date-picker';
+import { localTodayISO } from '@/lib/schemas/onboarding.schemas';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { formatPhone } from '@/lib/format';
 
@@ -50,9 +51,11 @@ export default function OnboardingStep1() {
             control={control}
             name="birthdate"
             render={({ field }) => (
-              <BirthdateInput
+              <DatePicker
+                id="ob1-birthdate"
                 value={field.value}
                 onChange={field.onChange}
+                maxDate={localTodayISO()}
               />
             )}
           />
