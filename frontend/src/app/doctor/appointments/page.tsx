@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
@@ -14,14 +15,21 @@ import { AppointmentCard } from "@/components/appointment-card";
 
 type FilterTab = "All" | "Pending" | "Confirmed" | "Completed" | "Cancelled";
 
-export default function DoctorAppointmentsPage() {
+function DoctorAppointmentsContent() {
   const { data: session, status } = useSession();
   const token = session?.user?.accessToken;
+
+  const searchParams = useSearchParams();
+  const statusParam = searchParams.get('status');
+  const initialTab: FilterTab =
+    statusParam && (["Pending", "Confirmed", "Completed", "Cancelled", "All"] as string[]).includes(statusParam)
+      ? (statusParam as FilterTab)
+      : "All";
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<FilterTab>("All");
+  const [activeTab, setActiveTab] = useState<FilterTab>(initialTab);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -215,5 +223,13 @@ export default function DoctorAppointmentsPage() {
         )}
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function DoctorAppointmentsPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <DoctorAppointmentsContent />
+    </React.Suspense>
   );
 }
