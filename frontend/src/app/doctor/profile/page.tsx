@@ -7,6 +7,21 @@ import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { CheckCircledIcon } from "@radix-ui/react-icons";
+import { FormField } from "@/components/ui/form-field";
+import { Chip } from "@/components/ui/chip";
+import { ProfileSection } from "@/components/ui/profile-section";
+import { ProfilePhotoField } from "@/components/ui/profile-photo-field";
+import { useSpecializations } from "@/hooks/use-specializations";
+import {
+  onboardingInputClass,
+  onboardingTextareaClass,
+} from "@/lib/onboarding-styles";
+import {
+  formatPrc,
+  formatPtr,
+  isValidPrc,
+  isValidPtr,
+} from "@/lib/format";
 
 interface DoctorProfileData {
   fullName: string;
@@ -19,11 +34,21 @@ interface DoctorProfileData {
   consultationFocusAreas: string | null;
   availabilitySummary: string | null;
   profilePictureUrl: string | null;
+  prcLicenseNo: string | null;
+  prcLicenseExpiry: string | null;
+  ptrNo: string | null;
+  region: string | null;
+  city: string | null;
 }
+
+const COMMON_LANGUAGES = ["English", "Tagalog", "Cebuano", "Ilocano"];
+
+const toItems = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 
 export default function DoctorProfilePage() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
+  const { specializations, loading: specsLoading } = useSpecializations();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,35 +57,74 @@ export default function DoctorProfilePage() {
 
   const [fullName, setFullName] = useState("");
   const [professionalTitle, setProfessionalTitle] = useState("");
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+
+  const [prcLicenseNo, setPrcLicenseNo] = useState("");
+  const [prcLicenseExpiry, setPrcLicenseExpiry] = useState("");
+  const [ptrNo, setPtrNo] = useState("");
+  const [region, setRegion] = useState("");
+  const [city, setCity] = useState("");
+
   const [specialization, setSpecialization] = useState("");
-  const [bio, setBio] = useState("");
   const [yearsOfExperience, setYearsOfExperience] = useState("");
-  const [consultationFee, setConsultationFee] = useState("");
   const [languagesSpoken, setLanguagesSpoken] = useState("");
+  const [bio, setBio] = useState("");
   const [consultationFocusAreas, setConsultationFocusAreas] = useState("");
+  const [consultationFee, setConsultationFee] = useState("");
   const [availabilitySummary, setAvailabilitySummary] = useState("");
 
   useEffect(() => {
     if (!token) return;
     apiRequest<DoctorProfileData>("/doctors/profile", { token })
-      .then((data) => {
-        setFullName(data.fullName ?? "");
-        setProfessionalTitle(data.professionalTitle ?? "");
-        setSpecialization(data.specialization ?? "");
-        setBio(data.bio ?? "");
-        setYearsOfExperience(data.yearsOfExperience != null ? String(data.yearsOfExperience) : "");
-        setConsultationFee(data.consultationFee != null ? String(data.consultationFee) : "");
-        setLanguagesSpoken(data.languagesSpoken?.join(', ') ?? "");
-        setConsultationFocusAreas(data.consultationFocusAreas ?? "");
-        setAvailabilitySummary(data.availabilitySummary ?? "");
+      .then((d) => {
+        setFullName(d.fullName ?? "");
+        setProfessionalTitle(d.professionalTitle ?? "");
+        setProfilePictureUrl(d.profilePictureUrl ?? null);
+        setPrcLicenseNo(d.prcLicenseNo ?? "");
+        setPrcLicenseExpiry(d.prcLicenseExpiry ? d.prcLicenseExpiry.split("T")[0] : "");
+        setPtrNo(d.ptrNo ?? "");
+        setRegion(d.region ?? "");
+        setCity(d.city ?? "");
+        setSpecialization(d.specialization ?? "");
+        setYearsOfExperience(d.yearsOfExperience != null ? String(d.yearsOfExperience) : "");
+        setLanguagesSpoken(d.languagesSpoken?.join(", ") ?? "");
+        setBio(d.bio ?? "");
+        setConsultationFocusAreas(d.consultationFocusAreas ?? "");
+        setConsultationFee(d.consultationFee != null ? String(d.consultationFee) : "");
+        setAvailabilitySummary(d.availabilitySummary ?? "");
       })
       .catch(() => setError("Failed to load profile."))
       .finally(() => setLoading(false));
   }, [token]);
 
+  // Keep an already-saved specialization selectable even if not in the fetched list.
+  const specOptions =
+    specialization && !specializations.includes(specialization)
+      ? [specialization, ...specializations]
+      : specializations;
+  const specFetchFailed = !specsLoading && specializations.length === 0;
+
+  const toggleLanguage = (value: string) => {
+    const items = toItems(languagesSpoken);
+    const next = items.includes(value)
+      ? items.filter((i) => i !== value)
+      : [...items, value];
+    setLanguagesSpoken(next.join(", "));
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!token) return;
+
+    if (prcLicenseNo && !isValidPrc(prcLicenseNo)) {
+      setError("PRC license number must be 7 digits, or leave it blank.");
+      return;
+    }
+    if (ptrNo && !isValidPtr(ptrNo)) {
+      setError("PTR number must be 7–8 digits, or leave it blank.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
     setSuccess(false);
@@ -71,14 +135,20 @@ export default function DoctorProfilePage() {
         body: {
           fullName: fullName.trim() || undefined,
           professionalTitle: professionalTitle.trim() || undefined,
+          profilePictureUrl: profilePictureUrl || undefined,
+          prcLicenseNo: prcLicenseNo.trim() || undefined,
+          prcLicenseExpiry: prcLicenseExpiry || undefined,
+          ptrNo: ptrNo.trim() || undefined,
+          region: region.trim() || undefined,
+          city: city.trim() || undefined,
           specialization: specialization.trim() || undefined,
-          bio: bio.trim() || undefined,
           yearsOfExperience: yearsOfExperience ? Number(yearsOfExperience) : undefined,
-          consultationFee: consultationFee ? Number(consultationFee) : undefined,
           languagesSpoken: languagesSpoken.trim()
-            ? languagesSpoken.split(',').map((s) => s.trim()).filter(Boolean)
+            ? languagesSpoken.split(",").map((s) => s.trim()).filter(Boolean)
             : [],
+          bio: bio.trim() || undefined,
           consultationFocusAreas: consultationFocusAreas.trim() || undefined,
+          consultationFee: consultationFee ? Number(consultationFee) : undefined,
           availabilitySummary: availabilitySummary.trim() || undefined,
         },
       });
@@ -90,9 +160,6 @@ export default function DoctorProfilePage() {
       setSaving(false);
     }
   }
-
-  const inputClass =
-    "w-full rounded-md border border-outline-variant px-3 py-2.5 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary";
 
   return (
     <DashboardLayout role="doctor">
@@ -118,48 +185,80 @@ export default function DoctorProfilePage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-text-primary mb-1">Full Name</label>
-                  <input className={inputClass} value={fullName} onChange={e => setFullName(e.target.value)} />
+            <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+              <ProfileSection title="Personal">
+                <ProfilePhotoField value={profilePictureUrl} onChange={setProfilePictureUrl} />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField id="d-fullName" label="Full name">
+                    <input id="d-fullName" className={onboardingInputClass} value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                  </FormField>
+                  <FormField id="d-title" label="Professional title">
+                    <input id="d-title" className={onboardingInputClass} placeholder="MD, FPCP" value={professionalTitle} onChange={(e) => setProfessionalTitle(e.target.value)} />
+                  </FormField>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-text-primary mb-1">Title (e.g. Dr., MD)</label>
-                  <input className={inputClass} value={professionalTitle} onChange={e => setProfessionalTitle(e.target.value)} />
+              </ProfileSection>
+
+              <ProfileSection title="Credentials">
+                <FormField id="d-prc" label="PRC License Number">
+                  <input id="d-prc" inputMode="numeric" placeholder="0123456" className={onboardingInputClass} value={prcLicenseNo} onChange={(e) => setPrcLicenseNo(formatPrc(e.target.value))} />
+                </FormField>
+                <FormField id="d-prcExpiry" label="PRC License Expiry">
+                  <input id="d-prcExpiry" type="date" className={onboardingInputClass} value={prcLicenseExpiry} onChange={(e) => setPrcLicenseExpiry(e.target.value)} />
+                </FormField>
+                <FormField id="d-ptr" label="PTR Number">
+                  <input id="d-ptr" inputMode="numeric" placeholder="12345678" className={onboardingInputClass} value={ptrNo} onChange={(e) => setPtrNo(formatPtr(e.target.value))} />
+                </FormField>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField id="d-region" label="Region">
+                    <input id="d-region" className={onboardingInputClass} placeholder="NCR" value={region} onChange={(e) => setRegion(e.target.value)} />
+                  </FormField>
+                  <FormField id="d-city" label="City">
+                    <input id="d-city" className={onboardingInputClass} placeholder="Makati" value={city} onChange={(e) => setCity(e.target.value)} />
+                  </FormField>
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-text-primary mb-1">Specialization</label>
-                <input className={inputClass} value={specialization} onChange={e => setSpecialization(e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-text-primary mb-1">Bio</label>
-                <textarea className={`${inputClass} min-h-[100px]`} value={bio} onChange={e => setBio(e.target.value)} placeholder="Brief professional background..." />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-text-primary mb-1">Years of Experience</label>
-                  <input type="number" className={inputClass} value={yearsOfExperience} onChange={e => setYearsOfExperience(e.target.value)} min="0" />
+              </ProfileSection>
+
+              <ProfileSection title="Practice">
+                <FormField id="d-spec" label="Primary Specialization">
+                  {specFetchFailed ? (
+                    <input id="d-spec" className={onboardingInputClass} placeholder="e.g. Cardiology" value={specialization} onChange={(e) => setSpecialization(e.target.value)} />
+                  ) : (
+                    <select id="d-spec" className={onboardingInputClass} value={specialization} onChange={(e) => setSpecialization(e.target.value)}>
+                      <option value="" disabled>{specsLoading ? "Loading…" : "Select your specialization"}</option>
+                      {specOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  )}
+                </FormField>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField id="d-years" label="Years of Experience">
+                    <input id="d-years" type="number" min="0" className={onboardingInputClass} value={yearsOfExperience} onChange={(e) => setYearsOfExperience(e.target.value)} />
+                  </FormField>
+                  <FormField id="d-fee" label="Consultation Fee (₱)">
+                    <input id="d-fee" type="number" min="0" step="50" className={onboardingInputClass} value={consultationFee} onChange={(e) => setConsultationFee(e.target.value)} />
+                  </FormField>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-text-primary mb-1">Consultation Fee (₱)</label>
-                  <input type="number" className={inputClass} value={consultationFee} onChange={e => setConsultationFee(e.target.value)} min="0" step="50" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-text-primary mb-1">Languages Spoken</label>
-                <input className={inputClass} value={languagesSpoken} onChange={e => setLanguagesSpoken(e.target.value)} placeholder="English, Filipino" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-text-primary mb-1">Focus Areas (comma-separated)</label>
-                <input className={inputClass} value={consultationFocusAreas} onChange={e => setConsultationFocusAreas(e.target.value)} placeholder="Hypertension, Diabetes, Preventive Care" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-text-primary mb-1">Availability Summary</label>
-                <input className={inputClass} value={availabilitySummary} onChange={e => setAvailabilitySummary(e.target.value)} placeholder="Mon–Fri 9am–5pm" />
-              </div>
-              <div className="pt-2 flex justify-end">
+                <FormField id="d-langs" label="Languages Spoken" hint="Tap a suggestion or type your own, separated by commas">
+                  <div className="flex flex-col gap-2.5">
+                    <div className="flex flex-wrap gap-2">
+                      {COMMON_LANGUAGES.map((v) => (
+                        <Chip key={v} selected={toItems(languagesSpoken).includes(v)} onClick={() => toggleLanguage(v)}>{v}</Chip>
+                      ))}
+                    </div>
+                    <input id="d-langs" className={onboardingInputClass} placeholder="English, Tagalog" value={languagesSpoken} onChange={(e) => setLanguagesSpoken(e.target.value)} />
+                  </div>
+                </FormField>
+                <FormField id="d-bio" label="Professional Bio">
+                  <textarea id="d-bio" className={`${onboardingTextareaClass} min-h-[120px]`} placeholder="Tell patients about your background and approach to care..." value={bio} onChange={(e) => setBio(e.target.value)} />
+                </FormField>
+                <FormField id="d-focus" label="Focus Areas (comma-separated)">
+                  <textarea id="d-focus" className={onboardingTextareaClass} placeholder="Hypertension management, Preventive cardiology..." value={consultationFocusAreas} onChange={(e) => setConsultationFocusAreas(e.target.value)} />
+                </FormField>
+                <FormField id="d-avail" label="Availability Summary">
+                  <input id="d-avail" className={onboardingInputClass} placeholder="Weekdays 9 AM - 5 PM" value={availabilitySummary} onChange={(e) => setAvailabilitySummary(e.target.value)} />
+                </FormField>
+              </ProfileSection>
+
+              <div className="flex justify-end">
                 <Button type="submit" disabled={saving} className="min-w-[120px]">
                   {saving ? "Saving..." : "Save Changes"}
                 </Button>
