@@ -14,7 +14,7 @@ Scope: **everything except legal** (Privacy/Terms legal pages are out, per decis
 
 ## Patient UX
 - [ ] **P1** Onboarding "skip for now" → reach booking with name/DOB/contact, defer clinical intake
-- [ ] **P2** Disabled-button reasons (reason-for-visit 5-char, profile-pic optional/skip, weight+height, hero symptom 10-char)
+- [x] **P2** Disabled-button reasons + profile photo made optional — `b5846db`
 - [x] **P3** Confirm-booking copy + redirect (pre-session) — accurate "request" copy shipped
 - [ ] **P4** Prescription as clean medication list (render structured `prescriptions[]`, drop error-red)
 - [x] **P5** Join surfaces (30s poll + "Join opens at" hint) — `3a0c73b`
