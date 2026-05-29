@@ -11,96 +11,73 @@ export default function DoctorOnboardingStep3() {
   const router = useRouter();
   const { data, update } = useDoctorOnboarding();
 
-  const [bio, setBio] = useState(data.bio);
-  const [consultationFocusAreas, setConsultationFocusAreas] = useState(data.consultationFocusAreas);
-  const [consultationFee, setConsultationFee] = useState(data.consultationFee?.toString() || '');
-  const [availabilitySummary, setAvailabilitySummary] = useState(data.availabilitySummary);
+  const [specialization, setSpecialization] = useState(data.specialization);
+  const [yearsOfExperience, setYearsOfExperience] = useState(data.yearsOfExperience?.toString() || '');
+  const [languagesSpoken, setLanguagesSpoken] = useState(data.languagesSpoken);
   
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleNext = () => {
-    if (!bio.trim()) {
-      setErrors({ bio: 'Professional bio is required' });
+    if (!specialization.trim()) {
+      setErrors({ specialization: 'Specialization is required' });
       return;
     }
 
-    const fee = consultationFee.trim();
-    const parsedFee = (fee && !isNaN(parseFloat(fee))) ? parseFloat(fee) : null;
-
     update({ 
-      bio, 
-      consultationFocusAreas,
-      consultationFee: parsedFee,
-      availabilitySummary
+      specialization, 
+      yearsOfExperience: (yearsOfExperience && !isNaN(parseInt(yearsOfExperience, 10))) ? parseInt(yearsOfExperience, 10) : null,
+      languagesSpoken 
     });
     router.push('/onboarding/doctor/4');
   };
 
   return (
     <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={3} totalSteps={4} />
+      <ProgressIndicator currentStep={3} totalSteps={5} />
       <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Practice Details</h1>
+        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Specialization & Experience</h1>
         <p className="mt-1 text-sm text-on-surface-variant font-manrope">
-          Share more about your practice and availability.
+          Help patients understand your expertise.
         </p>
       </div>
 
       <div className="flex flex-col gap-4">
-        <FormField id="bio" label="Professional Bio" error={errors.bio} required>
-          <textarea 
-            id="bio" 
-            value={bio} 
+        <FormField id="specialization" label="Primary Specialization" error={errors.specialization} required>
+          <input 
+            id="specialization" 
+            value={specialization} 
             onChange={e => {
-              setBio(e.target.value);
-              if (errors.bio) setErrors(prev => {
+              setSpecialization(e.target.value);
+              if (errors.specialization) setErrors(prev => {
                 const n = { ...prev };
-                delete n.bio;
+                delete n.specialization;
                 return n;
               });
             }} 
-            className="w-full min-h-[120px] rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
-            placeholder="Tell patients about your background, approach to care, and achievements..." 
+            className="w-full rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+            placeholder="Cardiology" 
           />
         </FormField>
-        
-        <FormField id="consultationFocusAreas" label="Focus Areas (Optional)">
-          <textarea 
-            id="consultationFocusAreas" 
-            value={consultationFocusAreas} 
-            onChange={e => setConsultationFocusAreas(e.target.value)} 
-            className="w-full min-h-[80px] rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
-            placeholder="e.g. Hypertension management, Preventive cardiology, Heart failure..." 
+        <FormField id="yearsOfExperience" label="Years of Experience (Optional)">
+          <input 
+            id="yearsOfExperience" 
+            type="number" 
+            min="0" 
+            value={yearsOfExperience} 
+            onChange={e => setYearsOfExperience(e.target.value)} 
+            className="w-full rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+            placeholder="10" 
           />
         </FormField>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField id="consultationFee" label="Consultation Fee (Optional)">
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm font-manrope">₱</span>
-              <input 
-                id="consultationFee" 
-                type="number" 
-                min="0" 
-                step="0.01"
-                value={consultationFee} 
-                onChange={e => setConsultationFee(e.target.value)} 
-                className="w-full rounded-xl border border-outline-variant bg-surface-white pl-8 pr-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
-                placeholder="500.00" 
-              />
-            </div>
-          </FormField>
-
-          <FormField id="availabilitySummary" label="Availability Summary (Optional)">
-            <input 
-              id="availabilitySummary" 
-              value={availabilitySummary} 
-              onChange={e => setAvailabilitySummary(e.target.value)} 
-              className="w-full rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
-              placeholder="e.g. Weekdays 9 AM - 5 PM" 
-            />
-          </FormField>
-        </div>
+        <FormField id="languagesSpoken" label="Languages Spoken (Optional)">
+          <input 
+            id="languagesSpoken" 
+            value={languagesSpoken} 
+            onChange={e => setLanguagesSpoken(e.target.value)} 
+            className="w-full rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+            placeholder="English, Tagalog" 
+          />
+        </FormField>
       </div>
 
       <div className="flex justify-between items-center pt-4">

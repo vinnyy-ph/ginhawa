@@ -86,7 +86,7 @@ export default function DoctorOnboardingStep1() {
 
   return (
     <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={1} totalSteps={4} />
+      <ProgressIndicator currentStep={1} totalSteps={5} />
       <div>
         <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Personal Information</h1>
         <p className="mt-1 text-sm text-on-surface-variant font-manrope">

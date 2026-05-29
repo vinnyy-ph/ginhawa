@@ -45,3 +45,32 @@ export type Step1Schema = z.infer<typeof step1Schema>;
 export type Step2Schema = z.infer<typeof step2Schema>;
 export type LocationInsuranceSchema = z.infer<typeof locationInsuranceSchema>;
 export type MedicalHistorySchema = z.infer<typeof medicalHistorySchema>;
+
+/** Local (not UTC) date as YYYY-MM-DD — used for "expiry >= today" checks so
+ *  the comparison matches the user's calendar day (the app's users are UTC+8). */
+export function localTodayISO(): string {
+  const d = new Date();
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
+export const doctorCredentialsSchema = z.object({
+  prcLicenseNo: z.string().min(1, 'PRC license number is required'),
+  prcLicenseExpiry: z
+    .string()
+    .min(1, 'PRC license expiry is required')
+    .refine(
+      // input type="date" yields "YYYY-MM-DD"; lexical compare against today is valid.
+      // Use >= so a license expiring today is still accepted.
+      (val) => val >= localTodayISO(),
+      'License expiry must be today or a future date',
+    ),
+  ptrNo: z.string().optional(),
+  region: z.string().optional(),
+  city: z.string().optional(),
+});
+
+export type DoctorCredentialsSchema = z.infer<typeof doctorCredentialsSchema>;

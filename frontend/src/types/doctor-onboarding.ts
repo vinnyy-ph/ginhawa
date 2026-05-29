@@ -9,6 +9,11 @@ export interface DoctorOnboardingData {
   consultationFocusAreas: string;
   availabilitySummary: string;
   profilePictureUrl: string | null;
+  prcLicenseNo: string;
+  prcLicenseExpiry: string; // "YYYY-MM-DD"
+  ptrNo: string;
+  region: string;
+  city: string;
 }
 
 export const DOCTOR_ONBOARDING_DEFAULTS: DoctorOnboardingData = {
@@ -22,4 +27,9 @@ export const DOCTOR_ONBOARDING_DEFAULTS: DoctorOnboardingData = {
   consultationFocusAreas: '',
   availabilitySummary: '',
   profilePictureUrl: null,
+  prcLicenseNo: '',
+  prcLicenseExpiry: '',
+  ptrNo: '',
+  region: '',
+  city: '',
 };
