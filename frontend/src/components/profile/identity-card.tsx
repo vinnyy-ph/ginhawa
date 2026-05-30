@@ -7,38 +7,17 @@ import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
 import { onboardingInputClass } from "@/lib/onboarding-styles";
 import { formatPhone } from "@/lib/format";
 import { StatCell } from "./profile-fields";
+import type { PatientProfileForm, SetProfileField } from "./use-patient-profile-form";
 
 interface IdentityCardProps {
   isEditing: boolean;
-  profilePictureUrl: string | null;
-  setProfilePictureUrl: (v: string | null) => void;
-  fullName: string;
-  setFullName: (v: string) => void;
-  birthdate: string;
-  setBirthdate: (v: string) => void;
-  contactDigits: string;
-  setContactDigits: (v: string) => void;
-  weight: string;
-  setWeight: (v: string) => void;
-  height: string;
-  setHeight: (v: string) => void;
+  values: PatientProfileForm;
+  setField: SetProfileField;
 }
 
-export function IdentityCard({
-  isEditing,
-  profilePictureUrl,
-  setProfilePictureUrl,
-  fullName,
-  setFullName,
-  birthdate,
-  setBirthdate,
-  contactDigits,
-  setContactDigits,
-  weight,
-  setWeight,
-  height,
-  setHeight,
-}: IdentityCardProps) {
+export function IdentityCard({ isEditing, values, setField }: IdentityCardProps) {
+  const { fullName, birthdate, contactDigits, weight, height, profilePictureUrl } = values;
+
   const bmi = useMemo(() => {
     const w = parseFloat(weight);
     const h = parseFloat(height);
@@ -66,7 +45,7 @@ export function IdentityCard({
         <div className="flex items-start gap-6">
           <ProfilePhotoField
             value={profilePictureUrl}
-            onChange={setProfilePictureUrl}
+            onChange={(v) => setField("profilePictureUrl", v)}
             readOnly={!isEditing}
           />
           <div className="flex-1 flex flex-col gap-4 min-w-0">
@@ -77,7 +56,7 @@ export function IdentityCard({
                   className={onboardingInputClass}
                   placeholder="Juan dela Cruz"
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(e) => setField("fullName", e.target.value)}
                 />
               </FormField>
             ) : (
@@ -99,14 +78,14 @@ export function IdentityCard({
         {isEditing ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField id="p-birthdate" label="Date of birth">
-              <DatePicker id="p-birthdate" value={birthdate} onChange={setBirthdate} maxDate={localTodayISO()} />
+              <DatePicker id="p-birthdate" value={birthdate} onChange={(v) => setField("birthdate", v)} maxDate={localTodayISO()} />
             </FormField>
             <FormField id="p-contact" label="Contact number">
               <PhoneInput
                 placeholder="917 123 4567"
                 value={formatPhone(contactDigits)}
                 onChange={(e) =>
-                  setContactDigits(e.target.value.replace(/\D/g, "").replace(/^0/, "").slice(0, 10))
+                  setField("contactDigits", e.target.value.replace(/\D/g, "").replace(/^0/, "").slice(0, 10))
                 }
               />
             </FormField>
@@ -132,7 +111,7 @@ export function IdentityCard({
                 className={onboardingInputClass}
                 placeholder="65"
                 value={weight}
-                onChange={(e) => setWeight(e.target.value)}
+                onChange={(e) => setField("weight", e.target.value)}
               />
             </FormField>
             <FormField id="p-height" label="Height (cm)">
@@ -144,7 +123,7 @@ export function IdentityCard({
                 className={onboardingInputClass}
                 placeholder="170"
                 value={height}
-                onChange={(e) => setHeight(e.target.value)}
+                onChange={(e) => setField("height", e.target.value)}
               />
             </FormField>
           </div>

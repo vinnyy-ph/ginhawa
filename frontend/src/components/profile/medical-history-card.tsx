@@ -12,42 +12,20 @@ import {
   COMMON_CONDITIONS,
   COMMON_MEDICATIONS,
 } from "./profile-fields";
+import type { PatientProfileForm, SetProfileField } from "./use-patient-profile-form";
 
 interface MedicalHistoryCardProps {
   isEditing: boolean;
-  bloodType: string;
-  setBloodType: (v: string) => void;
-  smokingStatus: string;
-  setSmokingStatus: (v: string) => void;
-  allergies: string;
-  setAllergies: (v: string) => void;
-  chronicConditions: string;
-  setChronicConditions: (v: string) => void;
-  currentMedications: string;
-  setCurrentMedications: (v: string) => void;
-  pastSurgeries: string;
-  setPastSurgeries: (v: string) => void;
-  familyHistory: string;
-  setFamilyHistory: (v: string) => void;
+  values: PatientProfileForm;
+  setField: SetProfileField;
 }
 
-export function MedicalHistoryCard({
-  isEditing,
-  bloodType,
-  setBloodType,
-  smokingStatus,
-  setSmokingStatus,
-  allergies,
-  setAllergies,
-  chronicConditions,
-  setChronicConditions,
-  currentMedications,
-  setCurrentMedications,
-  pastSurgeries,
-  setPastSurgeries,
-  familyHistory,
-  setFamilyHistory,
-}: MedicalHistoryCardProps) {
+export function MedicalHistoryCard({ isEditing, values, setField }: MedicalHistoryCardProps) {
+  const {
+    bloodType, smokingStatus, allergies, chronicConditions,
+    currentMedications, pastSurgeries, familyHistory,
+  } = values;
+
   const smokingLabel = SMOKING_OPTIONS.find((o) => o.value === smokingStatus)?.label ?? smokingStatus;
 
   return (
@@ -64,7 +42,7 @@ export function MedicalHistoryCard({
               id="p-bloodType"
               className={onboardingInputClass}
               value={bloodType}
-              onChange={(e) => setBloodType(e.target.value)}
+              onChange={(e) => setField("bloodType", e.target.value)}
             >
               <option value="">Select…</option>
               {BLOOD_TYPES.map((bt) => <option key={bt} value={bt}>{bt}</option>)}
@@ -84,7 +62,7 @@ export function MedicalHistoryCard({
               id="p-smoking"
               className={onboardingInputClass}
               value={smokingStatus}
-              onChange={(e) => setSmokingStatus(e.target.value)}
+              onChange={(e) => setField("smokingStatus", e.target.value)}
             >
               {SMOKING_OPTIONS.map((o) => <option key={o.label} value={o.value}>{o.label}</option>)}
             </select>
@@ -117,7 +95,7 @@ export function MedicalHistoryCard({
           <div className="flex flex-col gap-2.5">
             <div className="flex flex-wrap gap-2">
               {COMMON_ALLERGIES.map((v) => (
-                <Chip key={v} selected={toItems(allergies).includes(v)} onClick={() => toggleChip(v, allergies, setAllergies)}>{v}</Chip>
+                <Chip key={v} selected={toItems(allergies).includes(v)} onClick={() => toggleChip(v, allergies, (next) => setField("allergies", next))}>{v}</Chip>
               ))}
             </div>
             <input
@@ -125,7 +103,7 @@ export function MedicalHistoryCard({
               className={onboardingInputClass}
               placeholder="Penicillin, Peanuts"
               value={allergies}
-              onChange={(e) => setAllergies(e.target.value)}
+              onChange={(e) => setField("allergies", e.target.value)}
             />
           </div>
         ) : (
@@ -143,7 +121,7 @@ export function MedicalHistoryCard({
           <div className="flex flex-col gap-2.5">
             <div className="flex flex-wrap gap-2">
               {COMMON_CONDITIONS.map((v) => (
-                <Chip key={v} selected={toItems(chronicConditions).includes(v)} onClick={() => toggleChip(v, chronicConditions, setChronicConditions)}>{v}</Chip>
+                <Chip key={v} selected={toItems(chronicConditions).includes(v)} onClick={() => toggleChip(v, chronicConditions, (next) => setField("chronicConditions", next))}>{v}</Chip>
               ))}
             </div>
             <input
@@ -151,7 +129,7 @@ export function MedicalHistoryCard({
               className={onboardingInputClass}
               placeholder="Hypertension, Asthma"
               value={chronicConditions}
-              onChange={(e) => setChronicConditions(e.target.value)}
+              onChange={(e) => setField("chronicConditions", e.target.value)}
             />
           </div>
         ) : (
@@ -169,7 +147,7 @@ export function MedicalHistoryCard({
           <div className="flex flex-col gap-2.5">
             <div className="flex flex-wrap gap-2">
               {COMMON_MEDICATIONS.map((v) => (
-                <Chip key={v} selected={toItems(currentMedications).includes(v)} onClick={() => toggleChip(v, currentMedications, setCurrentMedications)}>{v}</Chip>
+                <Chip key={v} selected={toItems(currentMedications).includes(v)} onClick={() => toggleChip(v, currentMedications, (next) => setField("currentMedications", next))}>{v}</Chip>
               ))}
             </div>
             <input
@@ -177,7 +155,7 @@ export function MedicalHistoryCard({
               className={onboardingInputClass}
               placeholder="Amlodipine 5mg, Metformin"
               value={currentMedications}
-              onChange={(e) => setCurrentMedications(e.target.value)}
+              onChange={(e) => setField("currentMedications", e.target.value)}
             />
           </div>
         ) : (
@@ -196,7 +174,7 @@ export function MedicalHistoryCard({
               className={onboardingTextareaClass}
               placeholder="e.g. Appendectomy (2018)"
               value={pastSurgeries}
-              onChange={(e) => setPastSurgeries(e.target.value)}
+              onChange={(e) => setField("pastSurgeries", e.target.value)}
             />
           ) : (
             <p className="text-sm text-text-primary font-manrope leading-relaxed py-1">
@@ -211,7 +189,7 @@ export function MedicalHistoryCard({
               className={onboardingTextareaClass}
               placeholder="e.g. Diabetes (mother), Hypertension (father)"
               value={familyHistory}
-              onChange={(e) => setFamilyHistory(e.target.value)}
+              onChange={(e) => setField("familyHistory", e.target.value)}
             />
           ) : (
             <p className="text-sm text-text-primary font-manrope leading-relaxed py-1">

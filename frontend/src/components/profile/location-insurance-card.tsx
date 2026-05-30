@@ -2,38 +2,17 @@ import { FormField } from "@/components/ui/form-field";
 import { onboardingInputClass } from "@/lib/onboarding-styles";
 import { formatPhilHealth, formatHmoCard } from "@/lib/format";
 import { InfoRow } from "./profile-fields";
+import type { PatientProfileForm, SetProfileField } from "./use-patient-profile-form";
 
 interface LocationInsuranceCardProps {
   isEditing: boolean;
-  address: string;
-  setAddress: (v: string) => void;
-  city: string;
-  setCity: (v: string) => void;
-  region: string;
-  setRegion: (v: string) => void;
-  philhealthId: string;
-  setPhilhealthId: (v: string) => void;
-  hmoProvider: string;
-  setHmoProvider: (v: string) => void;
-  hmoCardNo: string;
-  setHmoCardNo: (v: string) => void;
+  values: PatientProfileForm;
+  setField: SetProfileField;
 }
 
-export function LocationInsuranceCard({
-  isEditing,
-  address,
-  setAddress,
-  city,
-  setCity,
-  region,
-  setRegion,
-  philhealthId,
-  setPhilhealthId,
-  hmoProvider,
-  setHmoProvider,
-  hmoCardNo,
-  setHmoCardNo,
-}: LocationInsuranceCardProps) {
+export function LocationInsuranceCard({ isEditing, values, setField }: LocationInsuranceCardProps) {
+  const { address, city, region, philhealthId, hmoProvider, hmoCardNo } = values;
+
   return (
     <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-6 flex flex-col gap-6">
       <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-manrope">
@@ -48,7 +27,7 @@ export function LocationInsuranceCard({
             className={onboardingInputClass}
             placeholder="123 Rizal St., Barangay Poblacion"
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            onChange={(e) => setField("address", e.target.value)}
           />
         ) : (
           <InfoRow label="" value={address} />
@@ -64,7 +43,7 @@ export function LocationInsuranceCard({
               className={onboardingInputClass}
               placeholder="Makati"
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onChange={(e) => setField("city", e.target.value)}
             />
           ) : (
             <InfoRow label="" value={city} />
@@ -77,7 +56,7 @@ export function LocationInsuranceCard({
               className={onboardingInputClass}
               placeholder="NCR"
               value={region}
-              onChange={(e) => setRegion(e.target.value)}
+              onChange={(e) => setField("region", e.target.value)}
             />
           ) : (
             <InfoRow label="" value={region} />
@@ -97,7 +76,7 @@ export function LocationInsuranceCard({
               placeholder="12-345678901-2"
               className={onboardingInputClass}
               value={philhealthId}
-              onChange={(e) => setPhilhealthId(formatPhilHealth(e.target.value))}
+              onChange={(e) => setField("philhealthId", formatPhilHealth(e.target.value))}
             />
           ) : (
             <InfoRow label="" value={philhealthId} />
@@ -114,7 +93,7 @@ export function LocationInsuranceCard({
               className={onboardingInputClass}
               placeholder="Maxicare"
               value={hmoProvider}
-              onChange={(e) => setHmoProvider(e.target.value)}
+              onChange={(e) => setField("hmoProvider", e.target.value)}
             />
           ) : (
             <InfoRow label="" value={hmoProvider} />
@@ -127,7 +106,7 @@ export function LocationInsuranceCard({
               placeholder="XXXX-XXXX-XXXX"
               className={onboardingInputClass}
               value={hmoCardNo}
-              onChange={(e) => setHmoCardNo(formatHmoCard(e.target.value))}
+              onChange={(e) => setField("hmoCardNo", formatHmoCard(e.target.value))}
             />
           ) : (
             <InfoRow label="" value={hmoCardNo} />

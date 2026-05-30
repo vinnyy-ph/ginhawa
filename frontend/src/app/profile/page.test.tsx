@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import PatientProfilePage from './page';
+
+function patchCallFor(path: string) {
+  const calls = (globalThis.fetch as unknown as { mock: { calls: [string, RequestInit?][] } }).mock.calls;
+  return calls.find(([url, opts]) => String(url).includes(path) && opts?.method === 'PATCH');
+}
 
 vi.mock('next-auth/react', () => ({
   useSession: () => ({
@@ -81,5 +86,38 @@ describe('PatientProfilePage', () => {
     expect(screen.getByText('O+')).toBeInTheDocument(); // blood type pill
     expect(screen.getByText('Hypertension')).toBeInTheDocument(); // chronic condition
     expect(screen.getByText('Penicillin')).toBeInTheDocument(); // allergy
+  });
+
+  it('edits a field and PATCHes both profile and medical-history on save', async () => {
+    render(<PatientProfilePage />);
+    await screen.findByText(/Location & Insurance/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Profile' }));
+    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Maria Edited' } });
+    fireEvent.change(screen.getByLabelText('City'), { target: { value: 'Cebu' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(() => expect(screen.getByText('Profile updated successfully.')).toBeInTheDocument());
+
+    const profilePatch = patchCallFor('/patients/profile');
+    expect(profilePatch).toBeTruthy();
+    const body = JSON.parse(String(profilePatch![1]!.body));
+    expect(body.fullName).toBe('Maria Edited');
+    expect(body.city).toBe('Cebu');
+    expect(patchCallFor('/patients/medical-history')).toBeTruthy();
+  });
+
+  it('reverts edits when Discard is clicked', async () => {
+    render(<PatientProfilePage />);
+    await screen.findByText(/Location & Insurance/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Profile' }));
+    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Temp Name' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Discard Changes' }));
+
+    // Back in read mode, and re-entering edit shows the original value.
+    expect(screen.queryByLabelText('Full name')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Profile' }));
+    expect(screen.getByLabelText('Full name')).toHaveValue('Juan Dela Cruz');
   });
 });
