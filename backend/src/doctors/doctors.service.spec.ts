@@ -423,4 +423,28 @@ describe('DoctorsService', () => {
       await expect(service.findById('1')).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe('findRankingCandidates', () => {
+    it('returns only active+verified doctors with ratings attached', async () => {
+      mockPrismaService.doctorProfile.findMany.mockResolvedValue([
+        { id: 'doc-1', fullName: 'A' },
+      ]);
+      mockPrismaService.review.groupBy.mockResolvedValue([
+        { doctorId: 'doc-1', _avg: { rating: 4.5 }, _count: { rating: 6 } },
+      ]);
+
+      const result = await service.findRankingCandidates();
+
+      expect(mockPrismaService.doctorProfile.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { isActive: true, isVerified: true },
+        }),
+      );
+      expect(result[0]).toMatchObject({
+        id: 'doc-1',
+        avgRating: 4.5,
+        reviewCount: 6,
+      });
+    });
+  });
 });

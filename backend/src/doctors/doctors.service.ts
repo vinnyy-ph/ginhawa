@@ -119,6 +119,17 @@ export class DoctorsService {
     });
   }
 
+  async findRankingCandidates() {
+    const profiles = await this.prisma.doctorProfile.findMany({
+      where: { isActive: true, isVerified: true },
+      include: {
+        availabilitySlots: true,
+        specializations: { include: { specialization: true } },
+      },
+    });
+    return this.attachRatings(profiles);
+  }
+
   async searchAll(search?: string, specialization?: string, sortBy?: string) {
     const where: Prisma.DoctorProfileWhereInput = {
       isActive: true,

@@ -40,6 +40,26 @@ export interface DoctorProfile {
   reviewCount?: number;
 }
 
+export interface MatchCriteria {
+  specialization: string | null;
+  city: string | null;
+  region: string | null;
+  minYears: number | null;
+  minRating: number | null;
+}
+
+export interface MatchedDoctor extends DoctorProfile {
+  matchScore: number;
+  matchReason: string;
+}
+
+export interface MatchResult {
+  explanation: string;
+  criteria: MatchCriteria;
+  emergency: boolean;
+  doctors: MatchedDoctor[];
+}
+
 export interface DoctorReview {
   id: string;
   rating: number;

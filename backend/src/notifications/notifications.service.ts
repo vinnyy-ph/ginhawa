@@ -59,7 +59,12 @@ export class NotificationsService {
     );
     const notifications$ = this.stream$.pipe(
       filter((n) => n.userId === userId),
-      map((n): MessageEvent => ({ type: 'notification', data: JSON.stringify(n) })),
+      map(
+        (n): MessageEvent => ({
+          type: 'notification',
+          data: JSON.stringify(n),
+        }),
+      ),
     );
     return merge(heartbeat$, notifications$);
   }
