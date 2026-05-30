@@ -8,5 +8,8 @@
 CREATE TYPE "NotificationType" AS ENUM ('APPOINTMENT_BOOKED', 'APPOINTMENT_CONFIRMED', 'APPOINTMENT_CANCELLED', 'APPOINTMENT_COMPLETED', 'APPOINTMENT_RESCHEDULED', 'APPOINTMENT_REMINDER', 'PRESCRIPTION_READY', 'MEDICAL_RECORD_CREATED', 'GENERAL');
 
 -- AlterTable
-ALTER TABLE "notifications" DROP COLUMN "type",
-ADD COLUMN     "type" "NotificationType" NOT NULL;
+-- Backfill existing rows to 'GENERAL' so the NOT NULL column applies cleanly on a populated table.
+ALTER TABLE "notifications" ADD COLUMN "type_new" "NotificationType" NOT NULL DEFAULT 'GENERAL';
+ALTER TABLE "notifications" DROP COLUMN "type";
+ALTER TABLE "notifications" RENAME COLUMN "type_new" TO "type";
+ALTER TABLE "notifications" ALTER COLUMN "type" DROP DEFAULT;
