@@ -18,7 +18,6 @@ Ginhawa is structured as a monorepo for rapid development and type safety:
 
 - **`frontend/`**: Next.js application handling the patient and doctor dashboards, discovery, and consultation rooms.
 - **`backend/`**: NestJS REST API providing business logic, authentication, and integration with Prisma.
-- **`docs/`**: Project documentation, including the [Core Specifications](./docs/SPECS.md).
 
 ## 🛠️ Local Setup
 
@@ -78,12 +77,6 @@ npm run dev
 
 - Frontend: [http://localhost:3000](http://localhost:3000)
 - Backend: [http://localhost:3001](http://localhost:3001)
-
-## 📄 Documentation
-
-- [Core Specifications](./docs/SPECS.md) - Detailed product requirements and features.
-- [Design Document](./docs/DESIGN.md) - Architectural decisions and UI/UX design.
-- [Storage Specs](./docs/STORAGE-SPECS.md) - File upload and storage strategy.
 
 ## 🚢 Deployment
 
