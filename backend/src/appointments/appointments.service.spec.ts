@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppointmentsService } from './appointments.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotFoundException } from '@nestjs/common';
 import { AppointmentStatus, SlotStatus } from '@prisma/client';

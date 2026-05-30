@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DoctorsService } from './doctors.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 

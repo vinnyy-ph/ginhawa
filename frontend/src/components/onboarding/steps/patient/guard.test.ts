@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { firstIncompletePatientSlug } from './guard';
-import { ONBOARDING_DEFAULTS } from '@/types/patient';
+import { ONBOARDING_DEFAULTS } from '@/types/patient-profile';
 
 describe('firstIncompletePatientSlug', () => {
   it('returns "personal" when required personal fields are missing', () => {

@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConsultationService } from './consultation.service';
+import { UpdateNotesDto } from './dto/update-notes.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -29,7 +30,7 @@ export class ConsultationController {
   updateNotes(
     @Param('id') id: string,
     @Request() req: { user: { id: string } },
-    @Body() body: { notes: string },
+    @Body() body: UpdateNotesDto,
   ) {
     return this.consultationService.updateNotes(id, req.user.id, body.notes);
   }

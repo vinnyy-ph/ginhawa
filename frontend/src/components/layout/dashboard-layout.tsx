@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { doctorNav, patientNav, patientMobileNav } from './dashboard-nav';
-import { usePatientSidebarData } from './use-patient-sidebar-data';
+import { usePatientSidebarData } from '@/hooks/use-patient-sidebar-data';
 import { DashboardSidebar } from './dashboard-sidebar';
 import { MobileBottomNav } from './mobile-bottom-nav';
 import { MobileTopHeader } from './mobile-top-header';

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest, ApiError } from "@/lib/api-client";
 import { Spinner } from "@/components/ui/spinner";
-import { ScheduleCalendar } from "@/components/schedule/ScheduleCalendar";
+import { ScheduleCalendar } from "@/components/schedule/schedule-calendar";
 import { WeeklyTemplateForm } from "@/components/schedule/weekly-template-form";
 import { ScheduleToast } from "@/components/schedule/schedule-toast";
 import type { GeneratedSlot } from "@/lib/generate-slots";

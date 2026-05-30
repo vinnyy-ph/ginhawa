@@ -7,7 +7,7 @@ import { Alert } from "@/components/ui/alert";
 import { DoctorIdentityCard } from "@/components/doctor-profile/identity-card";
 import { PracticeDetailsCard } from "@/components/doctor-profile/practice-details-card";
 import { CredentialsLocationCard } from "@/components/doctor-profile/credentials-location-card";
-import { useDoctorProfileForm } from "@/components/doctor-profile/use-doctor-profile-form";
+import { useDoctorProfileForm } from "@/hooks/use-doctor-profile-form";
 
 export default function DoctorProfilePage() {
   const { values, setField, isEditing, loading, saving, error, success, beginEdit, discard, save } =

@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { apiUpload, ApiError } from '@/lib/api-client';
-import { useOnboarding } from '@/context/onboarding-context';
+import { useOnboarding } from '@/providers/onboarding-context';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { Button } from '@/components/ui/button';
 import { CameraCapture } from '@/components/ui/camera-capture';

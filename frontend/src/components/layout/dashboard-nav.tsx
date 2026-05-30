@@ -9,7 +9,7 @@ import {
   FileTextIcon,
   AvatarIcon,
 } from '@radix-ui/react-icons';
-import type { PatientProfile } from '@/types/patient';
+import type { PatientProfile } from '@/types/patient-profile';
 
 export interface NavItem {
   href: string;

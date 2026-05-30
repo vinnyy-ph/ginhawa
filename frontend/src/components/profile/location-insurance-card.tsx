@@ -1,8 +1,8 @@
 import { FormField } from "@/components/ui/form-field";
-import { onboardingInputClass } from "@/lib/onboarding-styles";
+import { onboardingInputClass } from "@/components/ui/onboarding-styles";
 import { formatPhilHealth, formatHmoCard } from "@/lib/format";
 import { InfoRow } from "./profile-fields";
-import type { PatientProfileForm, SetProfileField } from "./use-patient-profile-form";
+import type { PatientProfileForm, SetProfileField } from "@/hooks/use-patient-profile-form";
 
 interface LocationInsuranceCardProps {
   isEditing: boolean;

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import type { DoctorProfile } from "@/types/api";
-import { FilterState, defaultFilters } from "./DoctorFilters";
-import { SortOption } from "./DoctorSort";
+import { FilterState, defaultFilters } from "@/components/doctors/doctor-filters";
+import { SortOption } from "@/components/doctors/doctor-sort";
 import { apiRequest } from "@/lib/api-client";
 
 export function useDoctorDiscovery() {

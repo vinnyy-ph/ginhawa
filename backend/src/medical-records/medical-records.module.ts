@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MedicalRecordsService } from './medical-records.service';
 import { MedicalRecordsController } from './medical-records.controller';
-import { PrismaModule } from '../prisma/prisma.module';
+import { PrismaModule } from '../infrastructure/prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({

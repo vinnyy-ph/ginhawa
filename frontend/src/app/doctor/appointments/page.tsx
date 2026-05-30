@@ -11,7 +11,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import type { Appointment, AppointmentStatus } from "@/types/api";
-import { AppointmentCard } from "@/components/appointment-card";
+import { AppointmentCard } from "@/components/appointment-card/appointment-card";
 
 type FilterTab = "All" | "Pending" | "Confirmed" | "Completed" | "Cancelled";
 

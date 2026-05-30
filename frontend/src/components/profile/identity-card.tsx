@@ -4,10 +4,10 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { ProfilePhotoField } from "@/components/ui/profile-photo-field";
 import { DatePicker } from "@/components/ui/date-picker";
 import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
-import { onboardingInputClass } from "@/lib/onboarding-styles";
+import { onboardingInputClass } from "@/components/ui/onboarding-styles";
 import { formatPhone } from "@/lib/format";
 import { StatCell } from "./profile-fields";
-import type { PatientProfileForm, SetProfileField } from "./use-patient-profile-form";
+import type { PatientProfileForm, SetProfileField } from "@/hooks/use-patient-profile-form";
 
 interface IdentityCardProps {
   isEditing: boolean;

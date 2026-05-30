@@ -3,9 +3,9 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { step1Schema, type Step1Schema } from '@/lib/schemas/onboarding.schemas';
-import { useOnboarding } from '@/context/onboarding-context';
+import { useOnboarding } from '@/providers/onboarding-context';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
-import { onboardingInputClass } from '@/lib/onboarding-styles';
+import { onboardingInputClass } from '@/components/ui/onboarding-styles';
 import { FormField } from '@/components/ui/form-field';
 import { DatePicker } from '@/components/ui/date-picker';
 import { localTodayISO } from '@/lib/schemas/onboarding.schemas';

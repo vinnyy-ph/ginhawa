@@ -2,7 +2,7 @@ import { apiRequest } from "@/lib/api-client";
 import { isValidPhilHealth, isValidHmoCard } from "@/lib/format";
 import { toItems } from "@/components/profile/profile-fields";
 import { useEditableResource } from "@/hooks/use-editable-resource";
-import type { PatientProfile } from "@/types/patient";
+import type { PatientProfile } from "@/types/patient-profile";
 
 export interface PatientProfileForm {
   fullName: string; birthdate: string; contactDigits: string;

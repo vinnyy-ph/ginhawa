@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { OnboardingProvider } from '@/context/onboarding-context';
+import { OnboardingProvider } from '@/providers/onboarding-context';
 import { ReviewStep } from './review';
 import type { OnboardingNav } from '@/components/onboarding/steps/types';
 

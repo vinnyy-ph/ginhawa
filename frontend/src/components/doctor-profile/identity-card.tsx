@@ -1,8 +1,8 @@
 import { FormField } from "@/components/ui/form-field";
 import { ProfilePhotoField } from "@/components/ui/profile-photo-field";
-import { onboardingInputClass, onboardingTextareaClass } from "@/lib/onboarding-styles";
+import { onboardingInputClass, onboardingTextareaClass } from "@/components/ui/onboarding-styles";
 import { Empty } from "@/components/profile/profile-fields";
-import type { DoctorProfileForm, SetDoctorField } from "./use-doctor-profile-form";
+import type { DoctorProfileForm, SetDoctorField } from "@/hooks/use-doctor-profile-form";
 
 interface DoctorIdentityCardProps {
   isEditing: boolean;

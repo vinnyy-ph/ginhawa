@@ -3,9 +3,9 @@
 import { useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { formatPHTime } from "@/lib/datetime"
-import { AddSlotPopover } from "./AddSlotPopover"
-import { SlotDetailPopover } from "./SlotDetailPopover"
-import { DayDetailPopover } from "./DayDetailPopover"
+import { AddSlotPopover } from "./add-slot-popover"
+import { SlotDetailPopover } from "./slot-detail-popover"
+import { DayDetailPopover } from "./day-detail-popover"
 import type { AvailabilitySlot, SlotStatus } from "@/types/api"
 
 const DOW = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const

@@ -1,9 +1,9 @@
 import { FormField } from "@/components/ui/form-field";
 import { DatePicker } from "@/components/ui/date-picker";
-import { onboardingInputClass } from "@/lib/onboarding-styles";
+import { onboardingInputClass } from "@/components/ui/onboarding-styles";
 import { formatPrc, formatPtr } from "@/lib/format";
 import { InfoRow } from "@/components/profile/profile-fields";
-import type { DoctorProfileForm, SetDoctorField } from "./use-doctor-profile-form";
+import type { DoctorProfileForm, SetDoctorField } from "@/hooks/use-doctor-profile-form";
 
 interface CredentialsLocationCardProps {
   isEditing: boolean;

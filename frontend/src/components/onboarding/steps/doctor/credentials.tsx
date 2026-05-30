@@ -7,11 +7,11 @@ import {
   localTodayISO,
   type DoctorCredentialsSchema,
 } from '@/lib/schemas/onboarding.schemas';
-import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
+import { useDoctorOnboarding } from '@/providers/doctor-onboarding-context';
 import { formatPrc, formatPtr } from '@/lib/format';
 import { FormField } from '@/components/ui/form-field';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
-import { onboardingInputClass } from '@/lib/onboarding-styles';
+import { onboardingInputClass } from '@/components/ui/onboarding-styles';
 import { DatePicker } from '@/components/ui/date-picker';
 import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 

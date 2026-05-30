@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
+import { useDoctorOnboarding } from '@/providers/doctor-onboarding-context';
 import { apiRequest, apiUpload, ApiError } from '@/lib/api-client';
 import { Toast } from '@/components/ui/toast';
 import { EditableRow, editInputClass } from '@/components/ui/editable-row';

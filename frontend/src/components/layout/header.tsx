@@ -8,7 +8,7 @@ import { CalendarIcon, FileTextIcon, PersonIcon, ExitIcon, BellIcon, HamburgerMe
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { apiRequest } from "@/lib/api-client";
-import type { PatientProfile } from "@/types/patient";
+import type { PatientProfile } from "@/types/patient-profile";
 
 function Avatar({ name, src }: { name: string; src?: string | null }) {
   const [failed, setFailed] = useState(false);

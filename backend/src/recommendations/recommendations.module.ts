@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { RecommendationsService } from './recommendations.service';
 import { RecommendationsController } from './recommendations.controller';
-import { AiModule } from '../ai/ai.module';
+import { AiModule } from '../infrastructure/ai/ai.module';
 
 @Module({
   imports: [AiModule],

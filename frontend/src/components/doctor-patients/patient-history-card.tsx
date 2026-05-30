@@ -15,7 +15,7 @@ const statusVariant: Record<
   RESCHEDULED: "outline",
 };
 
-export function PatientAppointmentCard({ appt }: { appt: Appointment }) {
+export function PatientHistoryCard({ appt }: { appt: Appointment }) {
   const start = appt.slot ? new Date(appt.slot.startTime) : null;
 
   return (
