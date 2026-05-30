@@ -10,6 +10,7 @@ import {
   ActivityLogIcon,
   ExclamationTriangleIcon,
   ChevronRightIcon,
+  CheckCircledIcon,
 } from "@radix-ui/react-icons";
 
 type WidgetState = "idle" | "analyzing" | "result" | "emergency";
@@ -86,142 +87,159 @@ export function InlineRecommendationWidget() {
   };
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl border border-outline-variant bg-surface-white shadow-lifted">
-      <div
-        className="absolute inset-0 bg-[radial-gradient(600px_circle_at_60%_20%,rgba(72,202,182,0.18),transparent_55%)]"
-        aria-hidden="true"
-      />
-      <CardHeader className="relative pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-secondary-container/40 bg-secondary-container/25">
-              <ActivityLogIcon className="h-5 w-5 text-on-secondary-container" aria-hidden="true" />
+    <>
+      <Card className="relative overflow-hidden rounded-2xl border border-outline-variant bg-surface-white shadow-[0_8px_32px_rgba(0,107,94,0.12)]">
+        <div
+          className="absolute inset-0 bg-[radial-gradient(600px_circle_at_60%_20%,rgba(72,202,182,0.18),transparent_55%)]"
+          aria-hidden="true"
+        />
+        <CardHeader className="relative pb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-secondary-container/40 bg-secondary-container/25">
+                <ActivityLogIcon className="h-5 w-5 text-on-secondary-container" aria-hidden="true" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">Symptom Check</CardTitle>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-semibold tracking-wide text-on-surface-variant">Powered by Gemini</p>
-              <CardTitle className="text-xl">Symptom Check</CardTitle>
-            </div>
-          </div>
-          <Badge
-            variant="secondary"
-            className="border border-secondary-container/40 bg-secondary-container/25 text-on-secondary-container"
-          >
-            AI
-          </Badge>
-        </div>
-      </CardHeader>
-
-      <CardContent className="relative">
-        {widgetState === "idle" && (
-          <div className="space-y-4">
-            <textarea
-              className="w-full min-h-[120px] resize-none rounded-xl border border-outline-variant bg-surface-container-lowest p-4 text-on-surface outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
-              placeholder="e.g., I've had a headache for 3 days with nausea..."
-              value={symptoms}
-              onChange={(e) => { setSymptoms(e.target.value); if (error) setError(null); }}
-              aria-label="Describe your symptoms"
-            />
-            {error && (
-              <p className="flex items-center gap-2 text-sm text-error" role="alert">
-                <ExclamationTriangleIcon className="h-4 w-4 shrink-0" />
-                {error}
-              </p>
-            )}
-            <Button
-              size="lg"
-              className="w-full rounded-xl"
-              disabled={symptoms.trim().length < 10}
-              onClick={handleAnalyze}
+            <Badge
+              variant="secondary"
+              className="border border-secondary-container/40 bg-secondary-container/25 text-on-secondary-container"
             >
-              Analyze Symptoms →
-            </Button>
-            <p className="flex items-center gap-1.5 text-xs text-on-surface-variant">
-              <ExclamationTriangleIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              Not a diagnosis. For emergencies, call 911 immediately.
-            </p>
+              AI
+            </Badge>
           </div>
-        )}
+          <p className="mt-2 text-xs text-on-surface-variant">
+            Describe what you&apos;re feeling — we&apos;ll point you to the right specialist.
+          </p>
+        </CardHeader>
 
-        {widgetState === "analyzing" && (
-          <div className="space-y-6 py-4 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-secondary-container/25 animate-pulse">
-              <ActivityLogIcon className="h-8 w-8 text-on-secondary-container" aria-hidden="true" />
+        <CardContent className="relative pt-0">
+          {widgetState === "idle" && (
+            <div className="space-y-4">
+              <div className="mb-3 flex flex-col gap-1">
+                <span className="inline-flex items-center gap-1.5 text-xs text-on-surface-variant">
+                  <CheckCircledIcon className="h-4 w-4 text-success" aria-hidden="true" />
+                  Free symptom check
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs text-on-surface-variant">
+                  <CheckCircledIcon className="h-4 w-4 text-success" aria-hidden="true" />
+                  No account needed
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs text-on-surface-variant">
+                  <CheckCircledIcon className="h-4 w-4 text-success" aria-hidden="true" />
+                  Results in seconds
+                </span>
+              </div>
+              <textarea
+                className="w-full min-h-[120px] resize-none rounded-xl border border-outline-variant bg-surface-container-lowest p-4 text-on-surface outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                placeholder="e.g., I've had a headache for 3 days with nausea..."
+                value={symptoms}
+                onChange={(e) => { setSymptoms(e.target.value); if (error) setError(null); }}
+                aria-label="Describe your symptoms"
+              />
+              {error && (
+                <p className="flex items-center gap-2 text-sm text-error" role="alert">
+                  <ExclamationTriangleIcon className="h-4 w-4 shrink-0" />
+                  {error}
+                </p>
+              )}
+              <Button
+                size="lg"
+                className="w-full rounded-xl"
+                disabled={symptoms.trim().length < 10}
+                onClick={handleAnalyze}
+              >
+                Analyze Symptoms →
+              </Button>
             </div>
-            <p className="text-sm font-medium text-on-surface-variant">Analyzing your symptoms...</p>
-            {streamingSpecialization && (
-              <div className="space-y-1">
-                <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+          )}
+
+          {widgetState === "analyzing" && (
+            <div className="space-y-6 py-4 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-secondary-container/25 animate-pulse">
+                <ActivityLogIcon className="h-8 w-8 text-on-secondary-container" aria-hidden="true" />
+              </div>
+              <p className="text-sm font-medium text-on-surface-variant">Analyzing your symptoms...</p>
+              {streamingSpecialization && (
+                <div className="space-y-1">
+                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                    Recommended Specialist
+                  </p>
+                  <p className="text-2xl font-bold text-primary">{streamingSpecialization}</p>
+                </div>
+              )}
+              {streamingExplanation && (
+                <p className="border-l-4 border-primary/30 pl-3 text-left text-sm italic leading-relaxed text-on-surface-variant">
+                  {streamingExplanation}
+                  <span className="ml-1 inline-block h-4 w-1.5 animate-pulse bg-primary/70 align-middle" />
+                </p>
+              )}
+            </div>
+          )}
+
+          {widgetState === "result" && (
+            <div className="space-y-5">
+              <div className="rounded-xl bg-gradient-to-br from-primary to-primary-container p-6 text-center text-white">
+                <p className="mb-1 text-xs font-bold uppercase tracking-widest opacity-80">
                   Recommended Specialist
                 </p>
-                <p className="text-2xl font-bold text-primary">{streamingSpecialization}</p>
+                <p className="text-3xl font-bold">{streamingSpecialization}</p>
               </div>
-            )}
-            {streamingExplanation && (
-              <p className="border-l-4 border-primary/30 pl-3 text-left text-sm italic leading-relaxed text-on-surface-variant">
-                {streamingExplanation}
-                <span className="ml-1 inline-block h-4 w-1.5 animate-pulse bg-primary/70 align-middle" />
-              </p>
-            )}
-          </div>
-        )}
-
-        {widgetState === "result" && (
-          <div className="space-y-5">
-            <div className="rounded-xl bg-gradient-to-br from-primary to-primary-container p-6 text-center text-white">
-              <p className="mb-1 text-xs font-bold uppercase tracking-widest opacity-80">
-                Recommended Specialist
-              </p>
-              <p className="text-3xl font-bold">{streamingSpecialization}</p>
-            </div>
-            {streamingExplanation && (
-              <p className="border-l-4 border-primary/30 pl-3 text-sm italic leading-relaxed text-on-surface-variant">
-                {streamingExplanation}
-              </p>
-            )}
-            <Button size="lg" className="w-full rounded-xl" asChild>
-              <Link
-                href={`/doctors?specialization=${encodeURIComponent(streamingSpecialization ?? "")}`}
-              >
-                Find {streamingSpecialization}s
-                <ChevronRightIcon className="ml-2 h-5 w-5" aria-hidden="true" />
-              </Link>
-            </Button>
-            <div className="text-center">
-              <button
-                onClick={handleReset}
-                className="text-sm font-semibold text-primary hover:underline"
-              >
-                Start over
-              </button>
-            </div>
-          </div>
-        )}
-
-        {widgetState === "emergency" && (
-          <div className="space-y-5">
-            <div className="space-y-3 rounded-xl border-2 border-error bg-red-50/50 p-6 text-center">
-              <div className="mx-auto flex h-14 w-14 animate-pulse items-center justify-center rounded-full bg-error/10">
-                <ExclamationTriangleIcon className="h-7 w-7 text-error" aria-hidden="true" />
+              {streamingExplanation && (
+                <p className="border-l-4 border-primary/30 pl-3 text-sm italic leading-relaxed text-on-surface-variant">
+                  {streamingExplanation}
+                </p>
+              )}
+              <Button size="lg" className="w-full rounded-xl" asChild>
+                <Link
+                  href={`/doctors?specialization=${encodeURIComponent(streamingSpecialization ?? "")}`}
+                >
+                  Find {streamingSpecialization}s
+                  <ChevronRightIcon className="ml-2 h-5 w-5" aria-hidden="true" />
+                </Link>
+              </Button>
+              <div className="text-center">
+                <button
+                  onClick={handleReset}
+                  className="text-sm font-semibold text-primary hover:underline"
+                >
+                  Start over
+                </button>
               </div>
-              <p className="text-lg font-bold text-error">Emergency Detected</p>
-              <p className="text-sm text-on-surface-variant">
-                Your symptoms need immediate attention. Do not book a telehealth consultation.
-              </p>
             </div>
-            <Button size="lg" variant="destructive" className="w-full rounded-xl font-bold" asChild>
-              <a href="tel:911">Call 911 Now</a>
-            </Button>
-            <div className="text-center">
-              <button
-                onClick={handleReset}
-                className="text-sm font-semibold text-primary hover:underline"
-              >
-                Start over
-              </button>
+          )}
+
+          {widgetState === "emergency" && (
+            <div className="space-y-5">
+              <div className="space-y-3 rounded-xl border-2 border-error bg-red-50/50 p-6 text-center">
+                <div className="mx-auto flex h-14 w-14 animate-pulse items-center justify-center rounded-full bg-error/10">
+                  <ExclamationTriangleIcon className="h-7 w-7 text-error" aria-hidden="true" />
+                </div>
+                <p className="text-lg font-bold text-error">Emergency Detected</p>
+                <p className="text-sm text-on-surface-variant">
+                  Your symptoms need immediate attention. Do not book a telehealth consultation.
+                </p>
+              </div>
+              <Button size="lg" variant="destructive" className="w-full rounded-xl font-bold" asChild>
+                <a href="tel:911">Call 911 Now</a>
+              </Button>
+              <div className="text-center">
+                <button
+                  onClick={handleReset}
+                  className="text-sm font-semibold text-primary hover:underline"
+                >
+                  Start over
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+      <p className="mt-3 text-center text-xs text-on-surface-variant">
+        Not a diagnosis. For emergencies, call 911 immediately.
+      </p>
+    </>
   );
 }

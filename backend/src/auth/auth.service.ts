@@ -5,7 +5,11 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 
-type PublicUser = Omit<User, 'passwordHash'>;
+type ProfileName = { fullName: string } | null;
+type PublicUser = Omit<User, 'passwordHash'> & {
+  patientProfile?: ProfileName;
+  doctorProfile?: ProfileName;
+};
 
 @Injectable()
 export class AuthService {
@@ -31,12 +35,15 @@ export class AuthService {
 
   login(user: PublicUser) {
     const payload = { email: user.email, sub: user.id, role: user.role };
+    const name =
+      user.doctorProfile?.fullName ?? user.patientProfile?.fullName ?? null;
     return {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
         email: user.email,
         role: user.role,
+        name,
       },
     };
   }

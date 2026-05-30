@@ -30,7 +30,7 @@ export function Toast({ message, variant = 'success', onDismiss }: ToastProps) {
         'shadow-lifted text-sm font-manrope font-semibold',
         'animate-toast-in',
         variant === 'success'
-          ? 'bg-gradient-to-r from-[#48cab6] to-[#31a795] text-white'
+          ? 'bg-gradient-to-r from-brand-light to-brand text-white'
           : 'bg-error text-white',
       )}
     >

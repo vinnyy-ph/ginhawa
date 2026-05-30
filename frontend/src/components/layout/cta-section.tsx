@@ -13,7 +13,7 @@ export function CTASection() {
             Ready to find the right care?
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-on-surface-variant mb-10">
-            Answer a few questions about your symptoms and Ginhawa will match you to the right specialist — free, no account needed.
+            Answer a few questions about your symptoms and <span className="text-primary font-bold">Ginhawa</span> will match you to the right specialist — free, no account needed.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button size="lg" className="rounded-full px-10" asChild>

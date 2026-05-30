@@ -11,6 +11,7 @@ import {
 import { SlotsService } from './slots.service';
 import { CreateSlotDto } from './dto/create-slot.dto';
 import { UpdateSlotDto } from './dto/update-slot.dto';
+import { CreateBulkSlotsDto } from './dto/create-bulk-slots.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 
@@ -25,6 +26,15 @@ export class SlotsController {
     @Body() createSlotDto: CreateSlotDto,
   ) {
     return this.slotsService.create(req.user.id, createSlotDto);
+  }
+
+  @Post('slots/bulk')
+  @Roles('DOCTOR')
+  createBulk(
+    @Request() req: { user: { id: string } },
+    @Body() dto: CreateBulkSlotsDto,
+  ) {
+    return this.slotsService.createBulk(req.user.id, dto.slots);
   }
 
   @Public()

@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
+import { UpdateMedicalHistoryDto } from './dto/update-medical-history.dto';
 
 @Injectable()
 export class PatientsService {
@@ -27,6 +28,7 @@ export class PatientsService {
         ...createPatientDto,
         birthdate: new Date(createPatientDto.birthdate),
         user: { connect: { id: userId } },
+        medicalHistoryRecord: { create: {} },
       },
     });
   }
@@ -34,9 +36,19 @@ export class PatientsService {
   async findByUserId(userId: string) {
     const profile = await this.prisma.patientProfile.findUnique({
       where: { userId },
+      include: { medicalHistoryRecord: true },
     });
     if (!profile) throw new NotFoundException('Profile not found');
     return profile;
+  }
+
+  async updateMedicalHistory(userId: string, dto: UpdateMedicalHistoryDto) {
+    const profile = await this.findByUserId(userId);
+    return this.prisma.patientMedicalHistory.upsert({
+      where: { patientId: profile.id },
+      update: dto,
+      create: { patientId: profile.id, ...dto },
+    });
   }
 
   async update(userId: string, updatePatientDto: UpdatePatientDto) {

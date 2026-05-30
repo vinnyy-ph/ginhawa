@@ -1,75 +1,89 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { format } from "date-fns"
-import { CalendarIcon } from "@radix-ui/react-icons"
-
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import {
+  DatePicker as AriaDatePicker,
+  Group,
+  DateInput,
+  DateSegment,
+  Button,
   Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+  Dialog,
+} from 'react-aria-components'
+import { CalendarIcon } from '@radix-ui/react-icons'
+import { parseDate, type CalendarDate } from '@internationalized/date'
+import { cn } from '@/lib/utils'
+import { PickerCalendar } from '@/components/ui/calendar'
 
 interface DatePickerProps {
-  date?: Date
-  setDate: (date?: Date) => void
-  placeholder?: string
-  className?: string
+  value?: string // "YYYY-MM-DD"
+  onChange: (value: string) => void
+  minDate?: string // "YYYY-MM-DD"
+  maxDate?: string // "YYYY-MM-DD"
   disabled?: boolean
-  fromDate?: Date
-  toDate?: Date
+  id?: string
+  className?: string
+  'aria-label'?: string
+}
+
+function toCalendarDate(v?: string): CalendarDate | null {
+  if (!v) return null
+  try {
+    return parseDate(v)
+  } catch {
+    return null
+  }
 }
 
 export function DatePicker({
-  date,
-  setDate,
-  placeholder = "Pick a date",
-  className,
+  value,
+  onChange,
+  minDate,
+  maxDate,
   disabled,
-  fromDate,
-  toDate,
+  id,
+  className,
+  ...aria
 }: DatePickerProps) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
-          disabled={disabled}
-          className={cn(
-            "w-full justify-start text-left font-normal border-outline-variant bg-surface hover:bg-surface-container transition-colors",
-            !date && "text-on-surface-variant",
-            className
+    <AriaDatePicker
+      aria-label={aria['aria-label'] ?? 'Date'}
+      value={toCalendarDate(value)}
+      onChange={(d) => onChange(d ? d.toString() : '')}
+      minValue={toCalendarDate(minDate)}
+      maxValue={toCalendarDate(maxDate)}
+      isDisabled={disabled}
+      shouldForceLeadingZeros
+    >
+      <Group
+        id={id}
+        className={cn(
+          'flex h-10 w-full items-center rounded-md border border-outline-variant bg-surface px-3 text-sm transition-colors',
+          'focus-within:ring-2 focus-within:ring-primary data-[disabled]:opacity-50',
+          className,
+        )}
+      >
+        <DateInput className="flex flex-1 items-center">
+          {(segment) => (
+            <DateSegment
+              segment={segment}
+              className={cn(
+                'rounded px-0.5 tabular-nums outline-none',
+                'data-[placeholder]:text-on-surface-variant/50',
+                'data-[focused]:bg-primary data-[focused]:text-white',
+                'data-[disabled]:text-on-surface-variant/40',
+              )}
+            />
           )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-          {date ? format(date, "PPP") : <span>{placeholder}</span>}
+        </DateInput>
+        <Button className="ml-2 flex items-center text-primary outline-none data-[disabled]:opacity-50">
+          <CalendarIcon className="h-4 w-4" />
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-4" align="start">
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={setDate}
-          autoFocus
-          startMonth={fromDate}
-          endMonth={toDate}
-          disabled={[
-            fromDate ? { before: fromDate } : undefined,
-            toDate ? { after: toDate } : undefined,
-          ].filter((m): m is NonNullable<typeof m> => !!m)}
-          classNames={{
-            months: "relative",
-            month_caption: "flex justify-center h-7 pt-1 items-center",
-            caption_label: "text-sm font-medium",
-            nav: "absolute top-0 left-0 right-0 flex justify-between items-center z-10",
-            button_previous: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-            button_next: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-          }}
-        />
-      </PopoverContent>
-    </Popover>
+      </Group>
+      <Popover className="rounded-lg border border-outline-variant bg-surface-white p-3 shadow-lifted outline-none">
+        <Dialog className="outline-none">
+          <PickerCalendar />
+        </Dialog>
+      </Popover>
+    </AriaDatePicker>
   )
 }

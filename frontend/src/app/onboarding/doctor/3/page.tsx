@@ -4,117 +4,123 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
-import { Button } from '@/components/ui/button';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { OnboardingShell } from '@/components/ui/onboarding-shell';
+import { OnboardingNav } from '@/components/ui/onboarding-nav';
+import { onboardingInputClass } from '@/lib/onboarding-styles';
+import { Chip } from '@/components/ui/chip';
+import { useSpecializations } from '@/hooks/use-specializations';
+
+const COMMON_LANGUAGES = ['English', 'Tagalog', 'Cebuano', 'Ilocano'];
 
 export default function DoctorOnboardingStep3() {
   const router = useRouter();
   const { data, update } = useDoctorOnboarding();
+  const { specializations, loading } = useSpecializations();
 
-  const [bio, setBio] = useState(data.bio);
-  const [consultationFocusAreas, setConsultationFocusAreas] = useState(data.consultationFocusAreas);
-  const [consultationFee, setConsultationFee] = useState(data.consultationFee?.toString() || '');
-  const [availabilitySummary, setAvailabilitySummary] = useState(data.availabilitySummary);
-  
+  const [specialization, setSpecialization] = useState(data.specialization);
+  const [yearsOfExperience, setYearsOfExperience] = useState(data.yearsOfExperience?.toString() || '');
+  const [languagesSpoken, setLanguagesSpoken] = useState(data.languagesSpoken);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Keep a previously chosen value selectable even if the fetched list lacks it.
+  const options = specialization && !specializations.includes(specialization)
+    ? [specialization, ...specializations]
+    : specializations;
+  // If the fetch failed (or returned nothing), fall back to free text so the
+  // doctor is never hard-stuck on a required field.
+  const specFetchFailed = !loading && specializations.length === 0;
+
+  const handleSpecChange = (value: string) => {
+    setSpecialization(value);
+    if (errors.specialization) setErrors((prev) => {
+      const n = { ...prev };
+      delete n.specialization;
+      return n;
+    });
+  };
+
+  const toItems = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
+  const toggleLanguage = (value: string) => {
+    const items = toItems(languagesSpoken);
+    const next = items.includes(value) ? items.filter((i) => i !== value) : [...items, value];
+    setLanguagesSpoken(next.join(', '));
+  };
+  const isLanguageSelected = (value: string) => toItems(languagesSpoken).includes(value);
+
   const handleNext = () => {
-    if (!bio.trim()) {
-      setErrors({ bio: 'Professional bio is required' });
+    if (!specialization.trim()) {
+      setErrors({ specialization: 'Specialization is required' });
       return;
     }
 
-    const fee = consultationFee.trim();
-    const parsedFee = (fee && !isNaN(parseFloat(fee))) ? parseFloat(fee) : null;
-
-    update({ 
-      bio, 
-      consultationFocusAreas,
-      consultationFee: parsedFee,
-      availabilitySummary
+    update({
+      specialization,
+      yearsOfExperience: (yearsOfExperience && !isNaN(parseInt(yearsOfExperience, 10))) ? parseInt(yearsOfExperience, 10) : null,
+      languagesSpoken,
     });
     router.push('/onboarding/doctor/4');
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={3} totalSteps={4} />
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Practice Details</h1>
-        <p className="mt-1 text-sm text-on-surface-variant font-manrope">
-          Share more about your practice and availability.
-        </p>
-      </div>
+    <OnboardingShell step={3} totalSteps={5} title="Specialization & Experience" subtitle="Help patients understand your expertise.">
 
       <div className="flex flex-col gap-4">
-        <FormField id="bio" label="Professional Bio" error={errors.bio} required>
-          <textarea 
-            id="bio" 
-            value={bio} 
-            onChange={e => {
-              setBio(e.target.value);
-              if (errors.bio) setErrors(prev => {
-                const n = { ...prev };
-                delete n.bio;
-                return n;
-              });
-            }} 
-            className="w-full min-h-[120px] rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
-            placeholder="Tell patients about your background, approach to care, and achievements..." 
-          />
-        </FormField>
-        
-        <FormField id="consultationFocusAreas" label="Focus Areas (Optional)">
-          <textarea 
-            id="consultationFocusAreas" 
-            value={consultationFocusAreas} 
-            onChange={e => setConsultationFocusAreas(e.target.value)} 
-            className="w-full min-h-[80px] rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
-            placeholder="e.g. Hypertension management, Preventive cardiology, Heart failure..." 
-          />
-        </FormField>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField id="consultationFee" label="Consultation Fee (Optional)">
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm font-manrope">₱</span>
-              <input 
-                id="consultationFee" 
-                type="number" 
-                min="0" 
-                step="0.01"
-                value={consultationFee} 
-                onChange={e => setConsultationFee(e.target.value)} 
-                className="w-full rounded-xl border border-outline-variant bg-surface-white pl-8 pr-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
-                placeholder="500.00" 
-              />
-            </div>
-          </FormField>
-
-          <FormField id="availabilitySummary" label="Availability Summary (Optional)">
-            <input 
-              id="availabilitySummary" 
-              value={availabilitySummary} 
-              onChange={e => setAvailabilitySummary(e.target.value)} 
-              className="w-full rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
-              placeholder="e.g. Weekdays 9 AM - 5 PM" 
+        <FormField id="specialization" label="Primary Specialization" error={errors.specialization} required>
+          {specFetchFailed ? (
+            <input
+              id="specialization"
+              value={specialization}
+              onChange={(e) => handleSpecChange(e.target.value)}
+              className={onboardingInputClass}
+              placeholder="e.g. Cardiology"
             />
-          </FormField>
-        </div>
+          ) : (
+            <select
+              id="specialization"
+              value={specialization}
+              onChange={(e) => handleSpecChange(e.target.value)}
+              className={onboardingInputClass}
+            >
+              <option value="" disabled>{loading ? 'Loading…' : 'Select your specialization'}</option>
+              {options.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          )}
+        </FormField>
+
+        <FormField id="yearsOfExperience" label="Years of Experience (Optional)">
+          <input
+            id="yearsOfExperience"
+            type="number"
+            min="0"
+            value={yearsOfExperience}
+            onChange={(e) => setYearsOfExperience(e.target.value)}
+            className={onboardingInputClass}
+            placeholder="10"
+          />
+        </FormField>
+
+        <FormField id="languagesSpoken" label="Languages Spoken (Optional)" hint="Tap a suggestion or type your own, separated by commas">
+          <div className="flex flex-col gap-2.5">
+            <div className="flex flex-wrap gap-2">
+              {COMMON_LANGUAGES.map((v) => (
+                <Chip key={v} selected={isLanguageSelected(v)} onClick={() => toggleLanguage(v)}>{v}</Chip>
+              ))}
+            </div>
+            <input
+              id="languagesSpoken"
+              value={languagesSpoken}
+              onChange={(e) => setLanguagesSpoken(e.target.value)}
+              className={onboardingInputClass}
+              placeholder="English, Tagalog"
+            />
+          </div>
+        </FormField>
       </div>
 
-      <div className="flex justify-between items-center pt-4">
-        <Button 
-          variant="ghost" 
-          onClick={() => router.push('/onboarding/doctor/2')}
-          className="text-on-surface-variant hover:text-primary"
-        >
-          ← Back
-        </Button>
-        <Button onClick={handleNext} className="rounded-full px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all">
-          Continue →
-        </Button>
-      </div>
-    </div>
+      <OnboardingNav onBack={() => router.push('/onboarding/doctor/2')} submitType="button" onSubmit={handleNext} submitLabel="Continue →" />
+    </OnboardingShell>
   );
 }

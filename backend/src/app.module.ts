@@ -18,6 +18,8 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { MedicalRecordsModule } from './medical-records/medical-records.module';
 import { ConsultationModule } from './consultation/consultation.module';
 import { SpeechModule } from './speech/speech.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { SpecializationsModule } from './specializations/specializations.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { SpeechModule } from './speech/speech.module';
     MedicalRecordsModule,
     ConsultationModule,
     SpeechModule,
+    ReviewsModule,
+    SpecializationsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -13,6 +13,9 @@ describe('PatientsService', () => {
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    patientMedicalHistory: {
+      upsert: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -57,13 +60,44 @@ describe('PatientsService', () => {
 
       const result = await service.create(userId, dto);
 
-      expect(mockPrismaService.patientProfile.create).toHaveBeenCalledWith({
-        data: {
-          ...dto,
-          birthdate: new Date(dto.birthdate),
-          user: { connect: { id: userId } },
-        },
-      });
+      expect(mockPrismaService.patientProfile.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            ...dto,
+            birthdate: new Date(dto.birthdate),
+            user: { connect: { id: userId } },
+          }),
+        }),
+      );
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should create a PatientMedicalHistory record alongside the patient profile', async () => {
+      const userId = 'user123';
+      const dto = {
+        fullName: 'John Doe',
+        birthdate: '1990-01-01',
+        contactDetails: 'john@example.com',
+      };
+      const expectedResult = {
+        id: 'profile123',
+        userId,
+        fullName: dto.fullName,
+        birthdate: new Date(dto.birthdate),
+        medicalHistoryRecord: { id: 'history-1' },
+      };
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue(null);
+      mockPrismaService.patientProfile.create.mockResolvedValue(expectedResult);
+
+      const result = await service.create(userId, dto);
+
+      expect(mockPrismaService.patientProfile.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            medicalHistoryRecord: { create: {} },
+          }),
+        }),
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -89,9 +123,13 @@ describe('PatientsService', () => {
   });
 
   describe('findByUserId', () => {
-    it('should return a profile if found', async () => {
+    it('should return a profile (with medical history) if found', async () => {
       const userId = 'user123';
-      const expectedResult = { id: 'profile123', userId };
+      const expectedResult = {
+        id: 'profile123',
+        userId,
+        medicalHistoryRecord: { id: 'h1', allergies: ['nuts'] },
+      };
       mockPrismaService.patientProfile.findUnique.mockResolvedValue(
         expectedResult,
       );
@@ -100,6 +138,7 @@ describe('PatientsService', () => {
 
       expect(mockPrismaService.patientProfile.findUnique).toHaveBeenCalledWith({
         where: { userId },
+        include: { medicalHistoryRecord: true },
       });
       expect(result).toEqual(expectedResult);
     });
@@ -114,10 +153,47 @@ describe('PatientsService', () => {
     });
   });
 
+  describe('updateMedicalHistory', () => {
+    it('upserts the history row for the caller patient profile', async () => {
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue({
+        id: 'patient-1',
+      });
+      mockPrismaService.patientMedicalHistory.upsert.mockResolvedValue({
+        id: 'h1',
+        allergies: ['nuts'],
+      });
+
+      const result = await service.updateMedicalHistory('user-1', {
+        allergies: ['nuts'],
+      });
+
+      expect(
+        mockPrismaService.patientMedicalHistory.upsert,
+      ).toHaveBeenCalledWith({
+        where: { patientId: 'patient-1' },
+        update: { allergies: ['nuts'] },
+        create: { patientId: 'patient-1', allergies: ['nuts'] },
+      });
+      expect(result.allergies).toEqual(['nuts']);
+    });
+
+    it('throws NotFoundException when the patient profile does not exist', async () => {
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.updateMedicalHistory('user-1', { allergies: ['nuts'] }),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
   describe('update', () => {
     it('should update a profile', async () => {
       const userId = 'user123';
-      const profile = { id: 'profile123', userId } as PatientProfile;
+      const profile = {
+        id: 'profile123',
+        userId,
+        medicalHistoryRecord: null,
+      } as PatientProfile & { medicalHistoryRecord: null };
       const dto = { fullName: 'Jane Doe' };
       const expectedResult = { ...profile, ...dto };
 

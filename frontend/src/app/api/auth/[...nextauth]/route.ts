@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          const data = await apiRequest<{ access_token: string, user: { id: string, email: string, role: string } }>('/auth/login', {
+          const data = await apiRequest<{ access_token: string, user: { id: string, email: string, name: string | null, role: string } }>('/auth/login', {
             method: 'POST',
             body: {
               email: credentials.email,
@@ -26,6 +26,7 @@ export const authOptions: NextAuthOptions = {
             return {
               id: data.user.id,
               email: data.user.email,
+              name: data.user.name,
               role: data.user.role,
               accessToken: data.access_token,
             };
@@ -44,6 +45,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.name = user.name;
         token.role = user.role;
         token.accessToken = user.accessToken;
       }
@@ -52,6 +54,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
+        session.user.name = token.name;
         session.user.role = token.role;
         session.user.accessToken = token.accessToken;
       }

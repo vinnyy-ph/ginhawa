@@ -11,6 +11,7 @@ import {
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
+import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -42,6 +43,30 @@ export class AppointmentsController {
     return this.appointmentsService.findAllForDoctor(req.user.id);
   }
 
+  @Get('doctor/patients')
+  @Roles('DOCTOR')
+  findPatientsForDoctor(@Request() req: { user: { id: string } }) {
+    return this.appointmentsService.findPatientsForDoctor(req.user.id);
+  }
+
+  @Get('doctor/patients/:patientId')
+  @Roles('DOCTOR')
+  findPatientHistory(
+    @Request() req: { user: { id: string } },
+    @Param('patientId') patientId: string,
+  ) {
+    return this.appointmentsService.findPatientHistoryForDoctor(
+      req.user.id,
+      patientId,
+    );
+  }
+
+  @Get('patient/doctors')
+  @Roles('PATIENT')
+  findDoctorsForPatient(@Request() req: { user: { id: string } }) {
+    return this.appointmentsService.findDoctorsForPatient(req.user.id);
+  }
+
   @Get(':id')
   @Roles('DOCTOR')
   findOne(@Request() req: { user: { id: string } }, @Param('id') id: string) {
@@ -60,6 +85,22 @@ export class AppointmentsController {
       req.user.role,
       id,
       updateAppointmentStatusDto.status,
+      updateAppointmentStatusDto.cancelReason,
+    );
+  }
+
+  @Post(':id/reschedule')
+  @Roles('DOCTOR', 'PATIENT')
+  reschedule(
+    @Request() req: { user: { id: string; role: Role } },
+    @Param('id') id: string,
+    @Body() rescheduleAppointmentDto: RescheduleAppointmentDto,
+  ) {
+    return this.appointmentsService.reschedule(
+      req.user.id,
+      req.user.role,
+      id,
+      rescheduleAppointmentDto.newSlotId,
     );
   }
 }

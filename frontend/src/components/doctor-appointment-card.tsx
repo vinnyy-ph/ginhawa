@@ -1,0 +1,187 @@
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon, ClockIcon } from "@radix-ui/react-icons";
+import { cn } from "@/lib/utils";
+import { formatPHTime, formatPHDate } from "@/lib/datetime";
+import { RescheduleDialog } from "@/components/booking/reschedule-dialog";
+import {
+  isWithinJoinWindow,
+  hasConsultEnded,
+  statusConfig,
+  type AppointmentCardBodyProps,
+} from "./appointment-card.helpers";
+
+export function DoctorAppointmentCard({
+  appointment: appt,
+  isUpdating = false,
+  onUpdateStatus,
+  token,
+  onRescheduled,
+}: AppointmentCardBodyProps) {
+  const slot = appt.slot;
+  const config = statusConfig[appt.status] || { variant: "outline", border: "border-l-outline" };
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+  // Re-render periodically so time-based join/finalize actions stay current.
+  const [, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const pat = appt.patient;
+  const dateStr = slot ? formatPHDate(slot.startTime, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown Date';
+  const timeStr = slot ? `${formatPHTime(slot.startTime)} (PHT)` : '';
+
+  return (
+    <div className={cn(
+      "bg-surface-white rounded-xl shadow-soft overflow-hidden border-l-4 transition-all duration-200 flex flex-col h-full",
+      config.border,
+      isUpdating ? "opacity-70 pointer-events-none" : ""
+    )}>
+      <div className="p-5 flex-1 flex flex-col">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex gap-3 items-center">
+            <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-text-primary font-serif font-bold text-lg shrink-0">
+              {pat?.fullName.charAt(0) || 'P'}
+            </div>
+            <div>
+              <h3 className="font-bold text-text-primary leading-tight">
+                {pat?.fullName || 'Patient'}
+              </h3>
+            </div>
+          </div>
+          <Badge variant={config.variant} className="capitalize px-2.5 py-0.5 text-[10px]">
+            {appt.status.toLowerCase()}
+          </Badge>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-text-primary mb-4">
+          <span className="flex items-center gap-1.5 bg-surface px-2.5 py-1.5 rounded-md">
+            <CalendarIcon className="w-3.5 h-3.5 text-primary" />
+            {dateStr}
+          </span>
+          <span className="flex items-center gap-1.5 bg-surface px-2.5 py-1.5 rounded-md">
+            <ClockIcon className="w-3.5 h-3.5 text-primary" />
+            {timeStr}
+          </span>
+        </div>
+
+        <div className="flex-1">
+          <p className="text-xs font-bold text-outline uppercase tracking-wider mb-1.5">Reason for Visit</p>
+          <p className="text-sm text-on-surface-variant bg-surface p-3 rounded-lg line-clamp-3 min-h-[60px]">
+            {appt.reasonForVisit || "No reason provided."}
+          </p>
+        </div>
+      </div>
+
+      {/* Actions Footer */}
+      <div className="p-4 bg-surface-container/30 border-t border-outline-variant/20 flex gap-2 justify-end">
+        {appt.status === "PENDING" && (
+          <>
+            {!confirmCancel ? (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setConfirmCancel(true)}
+                className="bg-error/10 text-error hover:bg-error/20 border-0"
+              >
+                Decline
+              </Button>
+            ) : (
+              <div className="flex flex-col gap-2 w-full text-xs font-semibold">
+                <textarea
+                  rows={2}
+                  value={declineReason}
+                  onChange={e => setDeclineReason(e.target.value)}
+                  placeholder="Reason for declining (optional, shared with the patient)"
+                  className="w-full resize-none rounded-md border border-outline-variant/50 bg-surface px-2.5 py-1.5 text-xs text-on-surface-variant placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { onUpdateStatus?.(appt.id, "CANCELLED", declineReason.trim() || undefined); setConfirmCancel(false); }}
+                    className="px-2 py-1 bg-error text-white rounded shadow-sm hover:bg-error/90"
+                  >
+                    Send decline
+                  </button>
+                  <button
+                    onClick={() => setConfirmCancel(false)}
+                    className="px-2 py-1 bg-surface-container text-on-surface-variant rounded hover:bg-surface-variant"
+                  >
+                    Back
+                  </button>
+                </div>
+              </div>
+            )}
+            <Button variant="default" size="sm" onClick={() => onUpdateStatus?.(appt.id, "CONFIRMED")}>
+              Confirm Request
+            </Button>
+          </>
+        )}
+
+        {appt.status === "CONFIRMED" && (
+          <>
+            {!confirmCancel ? (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setConfirmCancel(true)}
+                className="bg-error/10 text-error hover:bg-error/20 border-0 mr-auto"
+              >
+                Cancel
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2 text-xs font-semibold mr-auto">
+                <span className="text-error">Cancel?</span>
+                <button
+                  onClick={() => { onUpdateStatus?.(appt.id, "CANCELLED"); setConfirmCancel(false); }}
+                  className="px-2 py-1 bg-error text-white rounded shadow-sm hover:bg-error/90"
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setConfirmCancel(false)}
+                  className="px-2 py-1 bg-surface-container text-on-surface-variant rounded hover:bg-surface-variant"
+                >
+                  No
+                </button>
+              </div>
+            )}
+            <RescheduleDialog
+              appointment={appt}
+              token={token}
+              onRescheduled={() => onRescheduled?.()}
+              trigger={
+                <Button variant="outline" size="sm">
+                  Reschedule
+                </Button>
+              }
+            />
+            {appt.id && isWithinJoinWindow(appt) && (
+              <Button size="sm" asChild className="bg-brand text-white hover:bg-brand-dark">
+                <Link href={`/consultation/${appt.id}`}>Join Consultation</Link>
+              </Button>
+            )}
+            {appt.id && hasConsultEnded(appt) && (
+              <Button size="sm" asChild variant="outline">
+                <Link href={`/doctor/finalize/${appt.id}`}>Complete &amp; Document</Link>
+              </Button>
+            )}
+          </>
+        )}
+
+        {appt.status === "COMPLETED" && appt.id && (
+          <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
+            <Link href={`/doctor/finalize/${appt.id}`}>View Record</Link>
+          </Button>
+        )}
+
+        {appt.status === "CANCELLED" && (
+          <p className="text-xs text-on-surface-variant italic w-full text-center py-1.5">No actions available</p>
+        )}
+      </div>
+    </div>
+  );
+}

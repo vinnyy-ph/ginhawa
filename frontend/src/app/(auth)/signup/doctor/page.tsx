@@ -45,7 +45,7 @@ export default function DoctorSignupPage() {
       });
 
       if (result?.ok) {
-        router.push('/doctor/dashboard');
+        router.push('/onboarding/doctor');
       } else {
         router.push('/login');
       }

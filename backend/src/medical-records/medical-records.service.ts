@@ -3,10 +3,13 @@ import {
   NotFoundException,
   ForbiddenException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '@prisma/client';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
+import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
 
 @Injectable()
 export class MedicalRecordsService {
@@ -48,6 +51,25 @@ export class MedicalRecordsService {
       );
     }
 
+    if (createMedicalRecordDto.followUpAppointmentId) {
+      const followUp = await this.prisma.appointment.findUnique({
+        where: { id: createMedicalRecordDto.followUpAppointmentId },
+      });
+      if (!followUp || followUp.patientId !== appointment.patientId) {
+        throw new BadRequestException('Invalid follow-up appointment');
+      }
+      const alreadyLinked = await this.prisma.medicalRecord.findUnique({
+        where: {
+          followUpAppointmentId: createMedicalRecordDto.followUpAppointmentId,
+        },
+      });
+      if (alreadyLinked) {
+        throw new ConflictException(
+          'Follow-up appointment is already linked to another record',
+        );
+      }
+    }
+
     const record = await this.prisma.medicalRecord.create({
       data: {
         appointmentId: appointment.id,
@@ -57,9 +79,14 @@ export class MedicalRecordsService {
         prescription: createMedicalRecordDto.prescription,
         recommendations: createMedicalRecordDto.recommendations,
         followUpAdvice: createMedicalRecordDto.followUpAdvice,
+        followUpAppointmentId: createMedicalRecordDto.followUpAppointmentId,
+        ...(createMedicalRecordDto.prescriptions?.length
+          ? { prescriptions: { create: createMedicalRecordDto.prescriptions } }
+          : {}),
       },
       include: {
         appointment: true,
+        prescriptions: true,
         patient: {
           include: { user: { select: { email: true } } },
         },
@@ -71,7 +98,7 @@ export class MedicalRecordsService {
       this.notifications
         .createNotification(
           record.patient.userId,
-          'MEDICAL_RECORD_CREATED',
+          NotificationType.MEDICAL_RECORD_CREATED,
           'New Medical Record',
           `${doctorProfile.fullName} has added consultation notes and a prescription to your records.`,
         )
@@ -79,6 +106,40 @@ export class MedicalRecordsService {
     }
 
     return record;
+  }
+
+  async update(userId: string, recordId: string, dto: UpdateMedicalRecordDto) {
+    const doctorProfile = await this.prisma.doctorProfile.findUnique({
+      where: { userId },
+    });
+    if (!doctorProfile) {
+      throw new NotFoundException('Doctor profile not found');
+    }
+    const record = await this.prisma.medicalRecord.findUnique({
+      where: { id: recordId },
+    });
+    if (!record) {
+      throw new NotFoundException('Medical record not found');
+    }
+    if (record.doctorId !== doctorProfile.id) {
+      throw new ForbiddenException(
+        'You are not authorized to amend this record',
+      );
+    }
+    return this.prisma.medicalRecord.update({
+      where: { id: recordId },
+      data: {
+        notes: dto.notes,
+        prescription: dto.prescription,
+        recommendations: dto.recommendations,
+        followUpAdvice: dto.followUpAdvice,
+      },
+      include: {
+        appointment: true,
+        prescriptions: true,
+        patient: { include: { user: { select: { email: true } } } },
+      },
+    });
   }
 
   async findAllForPatient(userId: string) {
@@ -97,6 +158,7 @@ export class MedicalRecordsService {
           include: { user: { select: { email: true } } },
         },
         appointment: true,
+        prescriptions: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -118,6 +180,7 @@ export class MedicalRecordsService {
           include: { user: { select: { email: true } } },
         },
         appointment: true,
+        prescriptions: true,
       },
       orderBy: { createdAt: 'desc' },
     });

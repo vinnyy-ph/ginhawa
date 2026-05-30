@@ -38,4 +38,32 @@ export class CreatePatientDto {
   @IsOptional()
   @IsString()
   medicalHistory?: string;
+
+  @IsOptional()
+  @IsString()
+  phoneNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  region?: string;
+
+  @IsOptional()
+  @IsString()
+  philhealthId?: string;
+
+  @IsOptional()
+  @IsString()
+  hmoProvider?: string;
+
+  @IsOptional()
+  @IsString()
+  hmoCardNo?: string;
 }

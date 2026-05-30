@@ -1,176 +1,159 @@
 // frontend/src/app/onboarding/5/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
-import { apiRequest, ApiError } from '@/lib/api-client';
+import { apiUpload, ApiError } from '@/lib/api-client';
 import { useOnboarding } from '@/context/onboarding-context';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { OnboardingShell } from '@/components/ui/onboarding-shell';
+import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
-import { Toast } from '@/components/ui/toast';
-import type { CreatePatientProfileBody } from '@/types/patient';
+import { CameraCapture } from '@/components/ui/camera-capture';
 
-function ReviewSection({
-  title,
-  editHref,
-  children,
-}: {
-  title: string;
-  editHref: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-lg border border-outline-variant bg-surface-white p-5">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-on-surface font-plus-jakarta">{title}</h2>
-        <Link
-          href={editHref}
-          className="text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded font-manrope"
-        >
-          Edit
-        </Link>
-      </div>
-      <div className="flex flex-col gap-1.5 text-sm text-on-surface-variant font-manrope">{children}</div>
-    </div>
-  );
-}
-
-function ReviewRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex gap-2">
-      <span className="min-w-[120px] text-outline text-xs uppercase tracking-wide font-semibold">{label}</span>
-      <span className="text-on-surface">{value || '—'}</span>
-    </div>
-  );
-}
+const MAX_BYTES = 5 * 1024 * 1024;
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export default function OnboardingStep5() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { data, reset } = useOnboarding();
-  const [submitting, setSubmitting] = useState(false);
+  const { data, update } = useOnboarding();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const [preview, setPreview] = useState<string | null>(data.profilePictureUrl ?? null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [showToast, setShowToast] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
-  const medicalHistory = [
-    data.conditions && `Conditions: ${data.conditions}`,
-    data.allergies && `Allergies: ${data.allergies}`,
-    data.medications && `Medications: ${data.medications}`,
-  ]
-    .filter(Boolean)
-    .join('\n');
-
-  const handleSubmit = async () => {
+  const acceptFile = (file: File) => {
+    setFileError(null);
     setServerError(null);
-    setSubmitting(true);
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setFileError('Please upload a JPEG, PNG, or WebP image.');
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      setFileError('Image must be under 5MB.');
+      return;
+    }
+
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) acceptFile(file);
+  };
+
+  const handleUploadAndContinue = async () => {
+    setServerError(null);
+
+    if (!selectedFile) {
+      router.push('/onboarding/6');
+      return;
+    }
+
+    setUploading(true);
 
     const token = session?.user?.accessToken;
     if (!token) {
       setServerError('Session expired. Please log in again.');
-      setSubmitting(false);
+      setUploading(false);
       return;
     }
 
-    const body: CreatePatientProfileBody = {
-      fullName: data.fullName,
-      birthdate: data.birthdate,
-      contactDetails: data.contactDetails,
-      weight: data.weightKg ?? undefined,
-      height: data.heightCm ?? undefined,
-      profilePictureUrl: data.profilePictureUrl ?? undefined,
-      medicalHistory: medicalHistory || undefined,
-    };
-
-    const doSubmit = async (method: 'POST' | 'PATCH') => {
-      await apiRequest('/patients/profile', { method, body, token });
-      reset();
-      setShowToast(true);
-      setTimeout(() => router.push('/dashboard'), 1800);
-    };
-
     try {
-      await doSubmit('POST');
+      const { url } = await apiUpload<{ url: string }>('/uploads/profile-picture', 'file', selectedFile, token);
+      update({ profilePictureUrl: url });
+      router.push('/onboarding/6');
     } catch (err) {
-      if (err instanceof ApiError && err.status === 409) {
-        try {
-          await doSubmit('PATCH');
-        } catch {
-          setServerError('Something went wrong. Please try again.');
-        }
+      if (err instanceof ApiError) {
+        setServerError(err.message ?? 'Upload failed. Please try again.');
       } else {
         setServerError('Something went wrong. Please try again.');
       }
     } finally {
-      setSubmitting(false);
+      setUploading(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={5} totalSteps={5} />
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Review &amp; Confirm</h1>
-        <p className="mt-1 text-sm text-on-surface-variant font-manrope">Check your information before saving your profile.</p>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <ReviewSection title="Personal Information" editHref="/onboarding/1">
-          <ReviewRow label="Name" value={data.fullName} />
-          <ReviewRow label="Birthday" value={data.birthdate} />
-          <ReviewRow label="Contact" value={data.contactDetails} />
-        </ReviewSection>
-
-        <ReviewSection title="Body Metrics" editHref="/onboarding/2">
-          <ReviewRow label="Weight" value={data.weightKg ? `${data.weightKg} kg` : ''} />
-          <ReviewRow label="Height" value={data.heightCm ? `${data.heightCm} cm` : ''} />
-        </ReviewSection>
-
-        <ReviewSection title="Medical History" editHref="/onboarding/3">
-          <ReviewRow label="Conditions" value={data.conditions} />
-          <ReviewRow label="Allergies" value={data.allergies} />
-          {data.medications && <ReviewRow label="Medications" value={data.medications} />}
-        </ReviewSection>
-
-        <ReviewSection title="Profile Picture" editHref="/onboarding/4">
-          {data.profilePictureUrl ? (
-            <div className="flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={data.profilePictureUrl} alt="Profile preview" className="h-12 w-12 rounded-full object-cover border border-outline-variant" />
-              <span className="text-success text-sm font-semibold">Photo uploaded</span>
+    <OnboardingShell step={5} totalSteps={6} title="Profile Picture" subtitle="Add a photo so doctors can recognise you — optional.">
+      <div className="flex flex-col items-center gap-5">
+        <div
+          className="h-32 w-32 rounded-full bg-surface-container border-2 border-dashed border-outline-variant overflow-hidden flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
+          onClick={() => inputRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          aria-label="Choose profile picture"
+          onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
+        >
+          {preview ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={preview} alt="Preview" className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex flex-col items-center gap-1 text-outline">
+              <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" />
+              </svg>
+              <span className="text-xs font-manrope">Click to upload</span>
             </div>
-          ) : (
-            <span className="text-outline italic">No photo — skipped</span>
           )}
-        </ReviewSection>
-      </div>
-
-      {serverError && (
-        <div role="alert" className="flex items-center gap-2 rounded-md border border-error/30 bg-error/5 px-4 py-3 text-sm text-error font-manrope">
-          <svg aria-hidden="true" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
-          {serverError}
-          <button onClick={handleSubmit} className="ml-auto text-xs font-semibold underline hover:no-underline focus-visible:outline-none">Retry</button>
         </div>
-      )}
 
-      <div className="flex justify-between pt-2">
-        <Button id="ob5-back" type="button" variant="outline" size="lg" onClick={() => router.push('/onboarding/4')} disabled={submitting}>← Back</Button>
-        <Button id="ob5-complete" type="button" size="lg" className="min-w-[160px]" disabled={submitting} onClick={handleSubmit}>
-          {submitting ? (
-            <span className="flex items-center gap-2"><Spinner /> Saving…</span>
-          ) : (
-            'Complete Profile ✓'
+        <input
+          ref={inputRef}
+          id="ob5-file-input"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="sr-only"
+          aria-label="Upload profile picture"
+          onChange={handleFileChange}
+        />
+
+        <div className="flex items-center gap-2">
+          {preview && (
+            <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
+              Change photo
+            </Button>
           )}
-        </Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => setCameraOpen(true)}>
+            Take photo
+          </Button>
+        </div>
+
+        {fileError && (
+          <p role="alert" className="flex items-center gap-1 text-xs text-error font-manrope">
+            <svg aria-hidden="true" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            {fileError}
+          </p>
+        )}
+
+        {serverError && (
+          <p role="alert" className="text-xs text-error font-manrope">{serverError}</p>
+        )}
       </div>
 
-      {showToast && (
-        <Toast message="Your profile is ready. Welcome to Ginhawa!" variant="success" />
-      )}
-    </div>
+      <CameraCapture open={cameraOpen} onClose={() => setCameraOpen(false)} onCapture={acceptFile} />
+
+      <p className="text-xs text-on-surface-variant text-center">A profile photo is optional — you can add it later.</p>
+      <OnboardingNav
+        onBack={() => router.push('/onboarding/4')}
+        submitType="button"
+        onSubmit={handleUploadAndContinue}
+        loading={uploading}
+        loadingLabel="Uploading…"
+        submitLabel={selectedFile ? 'Upload & Continue →' : 'Continue →'}
+        onSkip={() => router.push('/onboarding/6')}
+      />
+    </OnboardingShell>
   );
 }

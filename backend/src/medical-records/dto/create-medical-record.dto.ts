@@ -1,4 +1,36 @@
-import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsArray,
+  IsInt,
+  ValidateNested,
+  Min,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class PrescriptionItemDto {
+  @IsString()
+  @IsNotEmpty()
+  drugName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  dosage: string;
+
+  @IsString()
+  @IsNotEmpty()
+  frequency: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  durationDays?: number;
+
+  @IsOptional()
+  @IsString()
+  instructions?: string;
+}
 
 export class CreateMedicalRecordDto {
   @IsString()
@@ -20,4 +52,15 @@ export class CreateMedicalRecordDto {
   @IsString()
   @IsOptional()
   followUpAdvice?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PrescriptionItemDto)
+  prescriptions?: PrescriptionItemDto[];
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  followUpAppointmentId?: string;
 }

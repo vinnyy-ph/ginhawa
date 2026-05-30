@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
+import { OnboardingShell } from '@/components/ui/onboarding-shell';
+import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { Button } from '@/components/ui/button';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
-import { Spinner } from '@/components/ui/spinner';
+import { CameraCapture } from '@/components/ui/camera-capture';
+import { onboardingInputClass } from '@/lib/onboarding-styles';
 import { apiUpload, ApiError } from '@/lib/api-client';
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -27,12 +29,10 @@ export default function DoctorOnboardingStep1() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const acceptFile = (file: File) => {
     setServerError(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-
     if (!ALLOWED_TYPES.includes(file.type)) {
       setServerError('Please upload a JPEG, PNG, or WebP image.');
       return;
@@ -41,11 +41,15 @@ export default function DoctorOnboardingStep1() {
       setServerError('Image must be under 5MB.');
       return;
     }
-
     setSelectedFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => setPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) acceptFile(file);
   };
 
   const handleNext = async () => {
@@ -85,14 +89,7 @@ export default function DoctorOnboardingStep1() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <ProgressIndicator currentStep={1} totalSteps={4} />
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary font-plus-jakarta">Personal Information</h1>
-        <p className="mt-1 text-sm text-on-surface-variant font-manrope">
-          Let patients know who they are consulting with.
-        </p>
-      </div>
+    <OnboardingShell step={1} totalSteps={5} title="Personal Information" subtitle="Let patients know who they are consulting with.">
 
       <div className="flex flex-col items-center gap-5 my-4">
         <div
@@ -123,6 +120,9 @@ export default function DoctorOnboardingStep1() {
           )}
         </div>
         <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleFileChange} />
+        <Button type="button" variant="outline" size="sm" onClick={() => setCameraOpen(true)}>
+          Take photo
+        </Button>
         {serverError && <p className="text-xs text-error font-manrope">{serverError}</p>}
       </div>
 
@@ -139,8 +139,8 @@ export default function DoctorOnboardingStep1() {
                 return n;
               });
             }} 
-            className="w-full rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
-            placeholder="Dr. Jane Doe" 
+            className={onboardingInputClass}
+            placeholder="Dr. Jane Doe"
           />
         </FormField>
         <FormField id="professionalTitle" label="Professional Title" error={errors.professionalTitle} required>
@@ -155,17 +155,14 @@ export default function DoctorOnboardingStep1() {
                 return n;
               });
             }} 
-            className="w-full rounded-xl border border-outline-variant bg-surface-white px-4 py-3 text-sm text-on-surface font-manrope focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
-            placeholder="MD, FPCP" 
+            className={onboardingInputClass}
+            placeholder="MD, FPCP"
           />
         </FormField>
       </div>
 
-      <div className="flex justify-end pt-4">
-        <Button onClick={handleNext} disabled={uploading} className="rounded-full px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all">
-           {uploading ? <><Spinner className="mr-2" /> Uploading...</> : 'Continue →'}
-        </Button>
-      </div>
-    </div>
+      <OnboardingNav submitType="button" onSubmit={handleNext} loading={uploading} loadingLabel="Uploading…" submitLabel="Continue →" />
+      <CameraCapture open={cameraOpen} onClose={() => setCameraOpen(false)} onCapture={acceptFile} />
+    </OnboardingShell>
   );
 }

@@ -40,7 +40,7 @@ function LoginForm() {
     if (result?.ok) {
       const session = await getSession();
       const role = session?.user?.role;
-      const defaultRedirect = role === 'DOCTOR' ? '/doctor/dashboard' : '/dashboard';
+      const defaultRedirect = role === 'DOCTOR' ? '/doctor/dashboard' : '/';
       router.push(callbackUrl ? decodeURIComponent(callbackUrl) : defaultRedirect);
     } else {
       setServerError('Incorrect email or password.');

@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsNumber, IsUrl, Min } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsDateString,
+  IsUrl,
+  IsArray,
+  Min,
+} from 'class-validator';
 
 export class CreateDoctorProfileDto {
   @IsString()
@@ -25,8 +33,9 @@ export class CreateDoctorProfileDto {
   consultationFee?: number;
 
   @IsOptional()
-  @IsString()
-  languagesSpoken?: string;
+  @IsArray()
+  @IsString({ each: true })
+  languagesSpoken?: string[];
 
   @IsOptional()
   @IsString()
@@ -39,4 +48,24 @@ export class CreateDoctorProfileDto {
   @IsOptional()
   @IsUrl({ require_tld: false })
   profilePictureUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  prcLicenseNo?: string;
+
+  @IsOptional()
+  @IsDateString()
+  prcLicenseExpiry?: string;
+
+  @IsOptional()
+  @IsString()
+  ptrNo?: string;
+
+  @IsOptional()
+  @IsString()
+  region?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
 }

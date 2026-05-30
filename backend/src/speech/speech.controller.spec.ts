@@ -29,6 +29,8 @@ describe('SpeechController', () => {
   });
 
   it('throws BadRequestException if no file provided', async () => {
-    await expect(controller.transcribe(undefined)).rejects.toThrow(BadRequestException);
+    await expect(controller.transcribe(undefined)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 });

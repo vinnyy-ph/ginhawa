@@ -4,6 +4,7 @@ import * as Checkbox from "@radix-ui/react-checkbox";
 import { Cross2Icon, MixerHorizontalIcon, CheckIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { FilterPillGroup } from "./filter-pill-group";
 
 export interface FilterState {
   specialization: string;
@@ -66,12 +67,12 @@ export function DoctorFilters({
           className={cn(
             "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border rounded-lg focus:outline-none focus:ring-2 shadow-sm",
             activeCount > 0
-              ? "bg-[#48cab6]/10 border-[#31a795] text-[#004d43] focus:ring-[#31a795]/40"
+              ? "bg-brand-light/10 border-brand text-[#004d43] focus:ring-brand/40"
               : "bg-surface-white border-outline-variant text-text-primary hover:border-primary/40 focus:ring-primary/40"
           )}
         >
           <MixerHorizontalIcon className="w-4 h-4" />
-          Filters {activeCount > 0 && <span className="bg-[#31a795] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold ml-1">{activeCount}</span>}
+          Filters {activeCount > 0 && <span className="bg-brand text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold ml-1">{activeCount}</span>}
         </button>
       </Dialog.Trigger>
 
@@ -113,81 +114,45 @@ export function DoctorFilters({
             </div>
 
             {/* Availability */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-bold text-text-primary">Availability</h4>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { id: "any", label: "Any time" },
-                  { id: "today", label: "Available Today" },
-                  { id: "week", label: "Available this Week" }
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    onClick={() => setLocalFilters({ ...localFilters, availability: opt.id })}
-                    className={cn(
-                      "px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/40",
-                      localFilters.availability === opt.id
-                        ? "bg-[#004d43] text-white border-[#004d43] shadow-sm"
-                        : "bg-surface-white text-on-surface-variant border-outline-variant hover:border-primary/50 hover:text-primary"
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <FilterPillGroup
+              title="Availability"
+              shape="pill"
+              value={localFilters.availability}
+              onChange={(id) => setLocalFilters({ ...localFilters, availability: id })}
+              options={[
+                { id: "any", label: "Any time" },
+                { id: "today", label: "Available Today" },
+                { id: "week", label: "Available this Week" },
+              ]}
+            />
 
             {/* Fee Range */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-bold text-text-primary">Consultation Fee</h4>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: "any", label: "Any Price" },
-                  { id: "under_1000", label: "Under ₱1,000" },
-                  { id: "1000_3000", label: "₱1,000 - ₱3,000" },
-                  { id: "above_3000", label: "Above ₱3,000" }
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    onClick={() => setLocalFilters({ ...localFilters, feeRange: opt.id })}
-                    className={cn(
-                      "px-3 py-2 text-xs font-semibold rounded-lg border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/40 text-center",
-                      localFilters.feeRange === opt.id
-                        ? "bg-[#004d43] text-white border-[#004d43] shadow-sm"
-                        : "bg-surface-white text-on-surface-variant border-outline-variant hover:border-primary/50 hover:text-primary"
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <FilterPillGroup
+              title="Consultation Fee"
+              shape="grid"
+              value={localFilters.feeRange}
+              onChange={(id) => setLocalFilters({ ...localFilters, feeRange: id })}
+              options={[
+                { id: "any", label: "Any Price" },
+                { id: "under_1000", label: "Under ₱1,000" },
+                { id: "1000_3000", label: "₱1,000 - ₱3,000" },
+                { id: "above_3000", label: "Above ₱3,000" },
+              ]}
+            />
 
             {/* Experience */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-bold text-text-primary">Years of Experience</h4>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { id: "any", label: "Any" },
-                  { id: "5plus", label: "5+ Years" },
-                  { id: "10plus", label: "10+ Years" },
-                  { id: "15plus", label: "15+ Years" }
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    onClick={() => setLocalFilters({ ...localFilters, experience: opt.id })}
-                    className={cn(
-                      "px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/40",
-                      localFilters.experience === opt.id
-                        ? "bg-[#004d43] text-white border-[#004d43] shadow-sm"
-                        : "bg-surface-white text-on-surface-variant border-outline-variant hover:border-primary/50 hover:text-primary"
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <FilterPillGroup
+              title="Years of Experience"
+              shape="pill"
+              value={localFilters.experience}
+              onChange={(id) => setLocalFilters({ ...localFilters, experience: id })}
+              options={[
+                { id: "any", label: "Any" },
+                { id: "5plus", label: "5+ Years" },
+                { id: "10plus", label: "10+ Years" },
+                { id: "15plus", label: "15+ Years" },
+              ]}
+            />
 
             {/* Languages */}
             {availableLanguages.length > 0 && (
@@ -234,7 +199,7 @@ export function DoctorFilters({
           <div className="p-4 border-t border-surface-container bg-surface flex gap-3">
             <Button
               variant="outline"
-              className="flex-1 border-[#31a795] text-[#004d43]"
+              className="flex-1 border-brand text-[#004d43]"
               onClick={clearLocalFilters}
             >
               Clear

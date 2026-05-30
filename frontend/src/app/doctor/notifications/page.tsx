@@ -2,16 +2,20 @@
 
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { notificationHref } from "@/lib/notification-links";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { BellIcon, CheckIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
+import { formatRelativeTime } from '@/lib/datetime';
 import type { Notification } from "@/types/api";
 
 export default function DoctorNotificationsPage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const token = session?.user?.accessToken;
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -46,13 +50,13 @@ export default function DoctorNotificationsPage() {
     if (!token) return;
     try {
       // Optimistic update
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.id === id ? { ...n, readAt: new Date().toISOString() } : n)
       );
-      
-      await apiRequest(`/notifications/${id}/read`, { 
+
+      await apiRequest(`/notifications/${id}/read`, {
         method: 'PATCH',
-        token 
+        token
       });
     } catch (err) {
       console.error("Failed to mark as read", err);
@@ -71,8 +75,8 @@ export default function DoctorNotificationsPage() {
 
   return (
     <DashboardLayout role="doctor">
-      <div className="animate-in fade-in duration-500 max-w-3xl mx-auto">
-        
+      <div className="animate-in fade-in duration-500 mx-auto">
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
@@ -88,7 +92,7 @@ export default function DoctorNotificationsPage() {
               System alerts, appointment updates, and reminders.
             </p>
           </div>
-          
+
           {unreadCount > 0 && (
             <Button variant="outline" size="sm" onClick={markAllAsRead} className="shrink-0">
               <CheckIcon className="w-4 h-4 mr-2" />
@@ -121,30 +125,22 @@ export default function DoctorNotificationsPage() {
             <div className="divide-y divide-outline-variant/20">
               {notifications.map(notif => {
                 const isUnread = !notif.readAt;
-                
-                const date = new Date(notif.createdAt);
-                const now = new Date();
-                const diffMs = now.getTime() - date.getTime();
-                const diffMins = Math.floor(diffMs / 60000);
-                const diffHours = Math.floor(diffMins / 60);
-                const diffDays = Math.floor(diffHours / 24);
-                
-                let timeStr = "";
-                if (diffMins < 1) timeStr = "Just now";
-                else if (diffMins < 60) timeStr = `${diffMins}m ago`;
-                else if (diffHours < 24) timeStr = `${diffHours}h ago`;
-                else if (diffDays === 1) timeStr = "Yesterday";
-                else timeStr = date.toLocaleDateString();
+                const href = notificationHref(notif.type, "doctor");
+
+                const timeStr = formatRelativeTime(notif.createdAt);
 
                 return (
-                  <div 
-                    key={notif.id} 
+                  <div
+                    key={notif.id}
                     className={cn(
-                      "p-5 transition-colors cursor-pointer group flex gap-4 items-start",
-                      isUnread ? "bg-primary/5 hover:bg-primary/10" : "bg-surface-white hover:bg-surface"
+                      "p-5 transition-colors flex gap-4 items-start",
+                      href ? "cursor-pointer group" : "cursor-default",
+                      isUnread ? "bg-primary/5" : "bg-surface-white",
+                      href && (isUnread ? "hover:bg-primary/10" : "hover:bg-surface")
                     )}
                     onClick={() => {
                       if (isUnread) markAsRead(notif.id);
+                      if (href) router.push(href);
                     }}
                   >
                     <div className="shrink-0 mt-1 relative">
@@ -158,7 +154,7 @@ export default function DoctorNotificationsPage() {
                         <span className="absolute top-0 right-0 w-3 h-3 bg-error border-2 border-surface-white rounded-full" />
                       )}
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-2 mb-1">
                         <h4 className={cn("font-semibold text-text-primary", isUnread && "font-bold")}>

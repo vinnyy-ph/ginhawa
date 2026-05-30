@@ -10,7 +10,6 @@ import {
   Request,
 } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
-import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { toPublicDoctorProfile } from './dto/public-doctor.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -55,18 +54,28 @@ export class DoctorsController {
   async findAll(
     @Query('search') search?: string,
     @Query('specialization') specialization?: string,
+    @Query('sortBy') sortBy?: string,
   ) {
     const profiles = await this.doctorsService.searchAll(
       search,
       specialization,
+      sortBy,
     );
-    return profiles.map(toPublicDoctorProfile);
+    return profiles.map((p) => ({
+      ...toPublicDoctorProfile(p),
+      avgRating: p.avgRating,
+      reviewCount: p.reviewCount,
+    }));
   }
 
   @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const profile = await this.doctorsService.findById(id);
-    return toPublicDoctorProfile(profile);
+    return {
+      ...toPublicDoctorProfile(profile),
+      avgRating: profile.avgRating,
+      reviewCount: profile.reviewCount,
+    };
   }
 }

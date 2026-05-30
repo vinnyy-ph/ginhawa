@@ -27,12 +27,16 @@ export class UploadsService {
 
   private async uploadToCloudinary(file: Express.Multer.File): Promise<string> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload(
+      void cloudinary.uploader.upload(
         file.path,
         { folder: 'telehealth-profiles' },
         (error, result) => {
           if (error || !result)
-            return reject(error ?? new Error('No result from Cloudinary'));
+            return reject(
+              error instanceof Error
+                ? error
+                : new Error(error?.message ?? 'No result from Cloudinary'),
+            );
           resolve(result.secure_url);
         },
       );

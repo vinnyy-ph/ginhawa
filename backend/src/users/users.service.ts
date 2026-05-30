@@ -44,8 +44,14 @@ export class UsersService {
     return user ? this.sanitizeUser(user) : null;
   }
 
-  findByEmail(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { email } });
+  findByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        patientProfile: { select: { fullName: true } },
+        doctorProfile: { select: { fullName: true } },
+      },
+    });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<PublicUser> {
