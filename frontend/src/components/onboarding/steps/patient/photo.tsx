@@ -1,21 +1,18 @@
-// frontend/src/app/onboarding/5/page.tsx
 'use client';
 
 import { useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { apiUpload, ApiError } from '@/lib/api-client';
 import { useOnboarding } from '@/context/onboarding-context';
-import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { Button } from '@/components/ui/button';
 import { CameraCapture } from '@/components/ui/camera-capture';
+import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-export default function OnboardingStep5() {
-  const router = useRouter();
+export function PhotoStep({ nav }: { nav: OnboardingNavType }) {
   const { data: session } = useSession();
   const { data, update } = useOnboarding();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -55,7 +52,7 @@ export default function OnboardingStep5() {
     setServerError(null);
 
     if (!selectedFile) {
-      router.push('/onboarding/6');
+      nav.goToReview();
       return;
     }
 
@@ -71,7 +68,7 @@ export default function OnboardingStep5() {
     try {
       const { url } = await apiUpload<{ url: string }>('/uploads/profile-picture', 'file', selectedFile, token);
       update({ profilePictureUrl: url });
-      router.push('/onboarding/6');
+      nav.goToReview();
     } catch (err) {
       if (err instanceof ApiError) {
         setServerError(err.message ?? 'Upload failed. Please try again.');
@@ -84,7 +81,7 @@ export default function OnboardingStep5() {
   };
 
   return (
-    <OnboardingShell step={5} totalSteps={6} title="Profile Picture" subtitle="Add a photo so doctors can recognise you — optional.">
+    <>
       <div className="flex flex-col items-center gap-5">
         <div
           className="h-32 w-32 rounded-full bg-surface-container border-2 border-dashed border-outline-variant overflow-hidden flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
@@ -146,14 +143,14 @@ export default function OnboardingStep5() {
 
       <p className="text-xs text-on-surface-variant text-center">A profile photo is optional — you can add it later.</p>
       <OnboardingNav
-        onBack={() => router.push('/onboarding/4')}
+        onBack={() => nav.goBack()}
         submitType="button"
         onSubmit={handleUploadAndContinue}
         loading={uploading}
         loadingLabel="Uploading…"
         submitLabel={selectedFile ? 'Upload & Continue →' : 'Continue →'}
-        onSkip={() => router.push('/onboarding/6')}
+        onSkip={() => nav.goToReview()}
       />
-    </OnboardingShell>
+    </>
   );
 }

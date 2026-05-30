@@ -46,7 +46,7 @@ export default async function Home() {
       await apiRequest("/patients/profile", { token });
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        redirect("/onboarding/1");
+        redirect("/onboarding");
       }
     }
   }

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { OnboardingProvider } from '@/context/onboarding-context';
-import OnboardingStep6 from './page';
+import { ReviewStep } from './review';
+import type { OnboardingNav } from '@/components/onboarding/steps/types';
 
 vi.mock('next-auth/react', () => ({
   useSession: () => ({ data: { user: { accessToken: 'tok', role: 'PATIENT' } }, status: 'authenticated' }),
@@ -9,10 +10,17 @@ vi.mock('next-auth/react', () => ({
 }));
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/onboarding/6',
+  usePathname: () => '/onboarding',
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));
+
+const nav: OnboardingNav = {
+  goNext: vi.fn(),
+  goBack: vi.fn(),
+  goTo: vi.fn(),
+  goToReview: vi.fn(),
+};
 
 const seed = {
   fullName: 'Juan Dela Cruz',
@@ -39,24 +47,23 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function renderPage() {
+function renderStep() {
   return render(
     <OnboardingProvider>
-      <OnboardingStep6 />
+      <ReviewStep nav={nav} />
     </OnboardingProvider>,
   );
 }
 
-describe('OnboardingStep6', () => {
-  it('renders the review header and digital ID card', () => {
-    renderPage();
-    expect(screen.getByText('One last check')).toBeInTheDocument();
+describe('patient ReviewStep', () => {
+  it('renders the digital ID card and submit button', () => {
+    renderStep();
     expect(screen.getByText('Digital Patient ID')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Generate ID Card/i })).toBeInTheDocument();
   });
 
   it('renders the always-present identity rows', () => {
-    renderPage();
+    renderStep();
     expect(screen.getByText('Full Name')).toBeInTheDocument();
     expect(screen.getByText('Date of Birth')).toBeInTheDocument();
     expect(screen.getByText('Contact Info')).toBeInTheDocument();
@@ -64,14 +71,14 @@ describe('OnboardingStep6', () => {
   });
 
   it('renders the location/insurance group when those fields are present', () => {
-    renderPage();
+    renderStep();
     expect(screen.getByText('Location')).toBeInTheDocument();
     expect(screen.getByText('PhilHealth ID')).toBeInTheDocument();
     expect(screen.getByText('HMO')).toBeInTheDocument();
   });
 
   it('renders the medical group when those fields are present', () => {
-    renderPage();
+    renderStep();
     expect(screen.getByText('Blood Type')).toBeInTheDocument();
     expect(screen.getByText('Smoking')).toBeInTheDocument();
     expect(screen.getByText('Allergies')).toBeInTheDocument();

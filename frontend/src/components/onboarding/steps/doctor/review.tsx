@@ -10,14 +10,14 @@ import { EditableRow, editInputClass } from '@/components/ui/editable-row';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useSpecializations } from '@/hooks/use-specializations';
 import { formatPrc, formatPtr, isValidPrc, isValidPtr } from '@/lib/format';
-import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { ReviewIdCard, ReviewErrorAlert } from '@/components/ui/review-id-card';
+import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-export default function DoctorOnboardingStep5() {
+export function ReviewStep({ nav }: { nav: OnboardingNavType }) {
   const router = useRouter();
   const { data: session } = useSession();
   const { data, update } = useDoctorOnboarding();
@@ -98,13 +98,6 @@ export default function DoctorOnboardingStep5() {
 
   return (
     <>
-      <OnboardingShell
-        step={5}
-        totalSteps={5}
-        title="Review Your Profile"
-        subtitle="Tap EDIT on any field to fix it right here."
-        card={false}
-      >
         <ReviewIdCard
           idLabel="Verified Provider"
           name={data.fullName}
@@ -165,14 +158,13 @@ export default function DoctorOnboardingStep5() {
         {serverError && <ReviewErrorAlert message={serverError} onRetry={handleSubmit} />}
 
         <OnboardingNav
-          onBack={() => router.push('/onboarding/doctor/4')}
+          onBack={() => nav.goBack()}
           submitType="button"
           onSubmit={handleSubmit}
           loading={isSubmitting}
           loadingLabel="Completing…"
           submitLabel="Complete Registration"
         />
-      </OnboardingShell>
       {toast && <Toast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />}
     </>
   );

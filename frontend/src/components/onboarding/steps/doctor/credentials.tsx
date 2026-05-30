@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -11,13 +10,12 @@ import {
 import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
 import { formatPrc, formatPtr } from '@/lib/format';
 import { FormField } from '@/components/ui/form-field';
-import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { onboardingInputClass } from '@/lib/onboarding-styles';
 import { DatePicker } from '@/components/ui/date-picker';
+import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 
-export default function DoctorOnboardingStep2() {
-  const router = useRouter();
+export function CredentialsStep({ nav }: { nav: OnboardingNavType }) {
   const { data, update } = useDoctorOnboarding();
   const today = localTodayISO();
 
@@ -47,11 +45,11 @@ export default function DoctorOnboardingStep2() {
       region: values.region ?? '',
       city: values.city ?? '',
     });
-    router.push('/onboarding/doctor/3');
+    nav.goNext();
   };
 
   return (
-    <OnboardingShell step={2} totalSteps={5} title="Credentials & Licensure" subtitle="Required for verification. Your PRC license confirms you are licensed to practice.">
+    <>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
         <FormField id="prcLicenseNo" label="PRC License Number" error={errors.prcLicenseNo?.message} required>
@@ -106,8 +104,8 @@ export default function DoctorOnboardingStep2() {
           </FormField>
         </div>
 
-        <OnboardingNav onBack={() => router.push('/onboarding/doctor/1')} submitLabel="Continue →" />
+        <OnboardingNav onBack={() => nav.goBack()} submitLabel="Continue →" />
       </form>
-    </OnboardingShell>
+    </>
   );
 }

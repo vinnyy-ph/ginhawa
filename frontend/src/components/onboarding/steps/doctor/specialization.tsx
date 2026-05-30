@@ -1,19 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
-import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { onboardingInputClass } from '@/lib/onboarding-styles';
 import { Chip } from '@/components/ui/chip';
 import { useSpecializations } from '@/hooks/use-specializations';
+import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 
 const COMMON_LANGUAGES = ['English', 'Tagalog', 'Cebuano', 'Ilocano'];
 
-export default function DoctorOnboardingStep3() {
-  const router = useRouter();
+export function SpecializationStep({ nav }: { nav: OnboardingNavType }) {
   const { data, update } = useDoctorOnboarding();
   const { specializations, loading } = useSpecializations();
 
@@ -59,11 +57,11 @@ export default function DoctorOnboardingStep3() {
       yearsOfExperience: (yearsOfExperience && !isNaN(parseInt(yearsOfExperience, 10))) ? parseInt(yearsOfExperience, 10) : null,
       languagesSpoken,
     });
-    router.push('/onboarding/doctor/4');
+    nav.goNext();
   };
 
   return (
-    <OnboardingShell step={3} totalSteps={5} title="Specialization & Experience" subtitle="Help patients understand your expertise.">
+    <>
 
       <div className="flex flex-col gap-4">
         <FormField id="specialization" label="Primary Specialization" error={errors.specialization} required>
@@ -120,7 +118,7 @@ export default function DoctorOnboardingStep3() {
         </FormField>
       </div>
 
-      <OnboardingNav onBack={() => router.push('/onboarding/doctor/2')} submitType="button" onSubmit={handleNext} submitLabel="Continue →" />
-    </OnboardingShell>
+      <OnboardingNav onBack={() => nav.goBack()} submitType="button" onSubmit={handleNext} submitLabel="Continue →" />
+    </>
   );
 }

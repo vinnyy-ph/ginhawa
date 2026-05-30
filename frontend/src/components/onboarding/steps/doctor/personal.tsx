@@ -1,22 +1,20 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
-import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { Button } from '@/components/ui/button';
 import { CameraCapture } from '@/components/ui/camera-capture';
 import { onboardingInputClass } from '@/lib/onboarding-styles';
 import { apiUpload, ApiError } from '@/lib/api-client';
+import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-export default function DoctorOnboardingStep1() {
-  const router = useRouter();
+export function PersonalStep({ nav }: { nav: OnboardingNavType }) {
   const { data: session } = useSession();
   const { data, update } = useDoctorOnboarding();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,7 +23,7 @@ export default function DoctorOnboardingStep1() {
   const [professionalTitle, setProfessionalTitle] = useState(data.professionalTitle);
   const [preview, setPreview] = useState<string | null>(data.profilePictureUrl);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -73,7 +71,7 @@ export default function DoctorOnboardingStep1() {
       try {
         const { url } = await apiUpload<{ url: string }>('/uploads/profile-picture', 'file', selectedFile, token);
         update({ fullName, professionalTitle, profilePictureUrl: url });
-        router.push('/onboarding/doctor/2');
+        nav.goNext();
       } catch (err) {
          if (err instanceof ApiError) {
           setServerError(err.message ?? 'Upload failed. Please try again.');
@@ -84,12 +82,12 @@ export default function DoctorOnboardingStep1() {
       }
     } else {
       update({ fullName, professionalTitle });
-      router.push('/onboarding/doctor/2');
+      nav.goNext();
     }
   };
 
   return (
-    <OnboardingShell step={1} totalSteps={5} title="Personal Information" subtitle="Let patients know who they are consulting with.">
+    <>
 
       <div className="flex flex-col items-center gap-5 my-4">
         <div
@@ -128,9 +126,9 @@ export default function DoctorOnboardingStep1() {
 
       <div className="flex flex-col gap-4">
         <FormField id="fullName" label="Full Name" error={errors.fullName} required>
-          <input 
-            id="fullName" 
-            value={fullName} 
+          <input
+            id="fullName"
+            value={fullName}
             onChange={e => {
               setFullName(e.target.value);
               if (errors.fullName) setErrors(prev => {
@@ -138,15 +136,15 @@ export default function DoctorOnboardingStep1() {
                 delete n.fullName;
                 return n;
               });
-            }} 
+            }}
             className={onboardingInputClass}
             placeholder="Dr. Jane Doe"
           />
         </FormField>
         <FormField id="professionalTitle" label="Professional Title" error={errors.professionalTitle} required>
-          <input 
-            id="professionalTitle" 
-            value={professionalTitle} 
+          <input
+            id="professionalTitle"
+            value={professionalTitle}
             onChange={e => {
               setProfessionalTitle(e.target.value);
               if (errors.professionalTitle) setErrors(prev => {
@@ -154,7 +152,7 @@ export default function DoctorOnboardingStep1() {
                 delete n.professionalTitle;
                 return n;
               });
-            }} 
+            }}
             className={onboardingInputClass}
             placeholder="MD, FPCP"
           />
@@ -163,6 +161,6 @@ export default function DoctorOnboardingStep1() {
 
       <OnboardingNav submitType="button" onSubmit={handleNext} loading={uploading} loadingLabel="Uploading…" submitLabel="Continue →" />
       <CameraCapture open={cameraOpen} onClose={() => setCameraOpen(false)} onCapture={acceptFile} />
-    </OnboardingShell>
+    </>
   );
 }

@@ -1,4 +1,3 @@
-// frontend/src/app/onboarding/6/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -7,13 +6,13 @@ import { useSession } from 'next-auth/react';
 import { apiRequest, apiUpload, ApiError } from '@/lib/api-client';
 import { useOnboarding } from '@/context/onboarding-context';
 import { Toast } from '@/components/ui/toast';
-import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { ReviewIdCard, ReviewErrorAlert } from '@/components/ui/review-id-card';
 import { ReviewIdentityRows } from '@/components/onboarding/review-identity-rows';
 import { ReviewLocationInsuranceRows } from '@/components/onboarding/review-location-insurance-rows';
 import { ReviewMedicalRows } from '@/components/onboarding/review-medical-rows';
 import type { CreatePatientProfileBody, UpdateMedicalHistoryBody } from '@/types/patient';
+import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -26,10 +25,10 @@ const optList = (s: string) => {
   return list.length ? list : undefined;
 };
 
-export default function OnboardingStep6() {
+export function ReviewStep({ nav }: { nav: OnboardingNavType }) {
   const router = useRouter();
   const { data: session } = useSession();
-  const { data, update, reset } = useOnboarding();
+  const { data, update } = useOnboarding();
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
@@ -122,10 +121,10 @@ export default function OnboardingStep6() {
       }
 
       setShowToast(true);
-      // Clear context only as we navigate away — resetting now would blank the
-      // ID-card fields during the 1.8s toast window.
+      // Navigate home after the toast. Do NOT reset() the context here: clearing
+      // it while this page is still mounted re-triggers the onboarding guard,
+      // which would redirect to ?step=personal and override this push.
       setTimeout(() => {
-        reset();
         router.push('/');
       }, 1800);
     } catch {
@@ -137,36 +136,28 @@ export default function OnboardingStep6() {
 
   return (
     <>
-      <OnboardingShell
-        step={6}
-        totalSteps={6}
-        title="One last check"
-        subtitle="Tap EDIT on any field to fix it right here."
-        card={false}
+      <ReviewIdCard
+        idLabel="Digital Patient ID"
+        name={data.fullName}
+        photoUrl={data.profilePictureUrl}
+        uploadingPhoto={uploadingPhoto}
+        photoError={photoError}
+        onPhotoFile={handlePhotoFile}
       >
-        <ReviewIdCard
-          idLabel="Digital Patient ID"
-          name={data.fullName}
-          photoUrl={data.profilePictureUrl}
-          uploadingPhoto={uploadingPhoto}
-          photoError={photoError}
-          onPhotoFile={handlePhotoFile}
-        >
-          <ReviewIdentityRows data={data} update={update} />
-          <ReviewLocationInsuranceRows data={data} update={update} />
-          <ReviewMedicalRows data={data} update={update} />
-        </ReviewIdCard>
+        <ReviewIdentityRows data={data} update={update} />
+        <ReviewLocationInsuranceRows data={data} update={update} />
+        <ReviewMedicalRows data={data} update={update} />
+      </ReviewIdCard>
 
-        {serverError && <ReviewErrorAlert message={serverError} onRetry={handleSubmit} />}
+      {serverError && <ReviewErrorAlert message={serverError} onRetry={handleSubmit} />}
 
-        <OnboardingNav
-          onBack={() => router.push('/onboarding/5')}
-          submitType="button"
-          onSubmit={handleSubmit}
-          loading={submitting}
-          submitLabel="Generate ID Card ✓"
-        />
-      </OnboardingShell>
+      <OnboardingNav
+        onBack={() => nav.goBack()}
+        submitType="button"
+        onSubmit={handleSubmit}
+        loading={submitting}
+        submitLabel="Generate ID Card ✓"
+      />
       {showToast && <Toast message="Profile verified! Redirecting to dashboard..." variant="success" />}
     </>
   );
