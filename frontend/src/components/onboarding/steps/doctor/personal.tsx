@@ -2,12 +2,12 @@
 
 import { useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
+import { useDoctorOnboarding } from '@/providers/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { Button } from '@/components/ui/button';
 import { CameraCapture } from '@/components/ui/camera-capture';
-import { onboardingInputClass } from '@/lib/onboarding-styles';
+import { onboardingInputClass } from '@/components/ui/onboarding-styles';
 import { apiUpload, ApiError } from '@/lib/api-client';
 import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 

@@ -1,9 +1,9 @@
 import { FormField } from "@/components/ui/form-field";
 import { Chip } from "@/components/ui/chip";
 import { useSpecializations } from "@/hooks/use-specializations";
-import { onboardingInputClass, onboardingTextareaClass } from "@/lib/onboarding-styles";
+import { onboardingInputClass, onboardingTextareaClass } from "@/components/ui/onboarding-styles";
 import { Empty, InfoRow, toItems, toggleChip } from "@/components/profile/profile-fields";
-import type { DoctorProfileForm, SetDoctorField } from "./use-doctor-profile-form";
+import type { DoctorProfileForm, SetDoctorField } from "@/hooks/use-doctor-profile-form";
 
 const COMMON_LANGUAGES = ["English", "Tagalog", "Cebuano", "Ilocano"];
 

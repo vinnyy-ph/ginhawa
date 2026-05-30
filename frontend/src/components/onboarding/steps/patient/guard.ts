@@ -1,5 +1,5 @@
 import { step1Schema } from '@/lib/schemas/onboarding.schemas';
-import type { OnboardingData } from '@/types/patient';
+import type { OnboardingData } from '@/types/patient-profile';
 
 /** First step the patient still needs to complete, or null if cleared to roam. */
 export function firstIncompletePatientSlug(data: OnboardingData): string | null {

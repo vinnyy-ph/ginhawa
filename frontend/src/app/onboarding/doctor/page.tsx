@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
+import { useDoctorOnboarding } from '@/providers/doctor-onboarding-context';
 import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { DOCTOR_STEPS, DOCTOR_BASE_PATH } from '@/components/onboarding/steps/doctor/registry';
 import { firstIncompleteDoctorSlug } from '@/components/onboarding/steps/doctor/guard';

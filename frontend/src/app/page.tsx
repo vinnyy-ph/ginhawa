@@ -11,7 +11,7 @@ import { TestimonialsSection } from "@/components/layout/testimonials-section";
 import { FAQSection } from "@/components/layout/faq-section";
 import { CTASection } from "@/components/layout/cta-section";
 import { Footer } from "@/components/layout/footer";
-import { PatientHome } from "./patient-home";
+import { PatientHome } from "@/components/patient-home";
 
 function Marketing() {
   return (

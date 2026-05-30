@@ -9,7 +9,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ChevronLeftIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { appointmentText } from "@/components/doctor-patients/patient-history-utils";
 import { PatientDetailHeader } from "@/components/doctor-patients/patient-detail-header";
-import { PatientAppointmentCard } from "@/components/doctor-patients/patient-appointment-card";
+import { PatientHistoryCard } from "@/components/doctor-patients/patient-history-card";
 import { FilterChip } from "@/components/doctor-patients/filter-chip";
 import type { DoctorPatientHistory, AppointmentStatus } from "@/types/api";
 
@@ -142,7 +142,7 @@ export default function DoctorPatientDetailPage({
             ) : (
               <div className="space-y-4">
                 {visibleAppointments.map(appt => (
-                  <PatientAppointmentCard key={appt.id} appt={appt} />
+                  <PatientHistoryCard key={appt.id} appt={appt} />
                 ))}
               </div>
             )}

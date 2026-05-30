@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { apiRequest } from '@/lib/api-client';
-import type { PatientProfile } from '@/types/patient';
+import type { PatientProfile } from '@/types/patient-profile';
 import type { Appointment, Notification } from '@/types/api';
-import { computeProfileCompletion } from './dashboard-nav';
+import { computeProfileCompletion } from '@/components/layout/dashboard-nav';
 
 /**
  * Loads the patient's sidebar identity + badge counts. No-op for doctors

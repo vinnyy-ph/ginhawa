@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { type OnboardingData, ONBOARDING_DEFAULTS } from '@/types/patient';
+import { type OnboardingData, ONBOARDING_DEFAULTS } from '@/types/patient-profile';
 
 interface OnboardingContextValue {
   data: OnboardingData;

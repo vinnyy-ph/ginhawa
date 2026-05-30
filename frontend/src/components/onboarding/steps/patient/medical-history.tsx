@@ -6,9 +6,9 @@ import {
   medicalHistorySchema,
   type MedicalHistorySchema,
 } from '@/lib/schemas/onboarding.schemas';
-import { useOnboarding } from '@/context/onboarding-context';
+import { useOnboarding } from '@/providers/onboarding-context';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
-import { onboardingInputClass, onboardingTextareaClass } from '@/lib/onboarding-styles';
+import { onboardingInputClass, onboardingTextareaClass } from '@/components/ui/onboarding-styles';
 import { FormField } from '@/components/ui/form-field';
 import { Chip } from '@/components/ui/chip';
 import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';

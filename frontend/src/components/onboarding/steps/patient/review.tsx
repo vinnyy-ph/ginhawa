@@ -4,14 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { apiRequest, apiUpload, ApiError } from '@/lib/api-client';
-import { useOnboarding } from '@/context/onboarding-context';
+import { useOnboarding } from '@/providers/onboarding-context';
 import { Toast } from '@/components/ui/toast';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { ReviewIdCard, ReviewErrorAlert } from '@/components/ui/review-id-card';
 import { ReviewIdentityRows } from '@/components/onboarding/review-identity-rows';
 import { ReviewLocationInsuranceRows } from '@/components/onboarding/review-location-insurance-rows';
 import { ReviewMedicalRows } from '@/components/onboarding/review-medical-rows';
-import type { CreatePatientProfileBody, UpdateMedicalHistoryBody } from '@/types/patient';
+import type { CreatePatientProfileBody, UpdateMedicalHistoryBody } from '@/types/patient-profile';
 import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 
 const MAX_BYTES = 5 * 1024 * 1024;

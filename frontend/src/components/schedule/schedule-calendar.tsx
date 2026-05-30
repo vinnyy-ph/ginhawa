@@ -3,8 +3,8 @@
 import { useState, useMemo } from "react"
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons"
 import { Button } from "@/components/ui/button"
-import { MonthView } from "./MonthView"
-import { WeekView } from "./WeekView"
+import { MonthView } from "./month-view"
+import { WeekView } from "./week-view"
 import type { AvailabilitySlot, SlotStatus } from "@/types/api"
 
 const MONTH_NAMES = [

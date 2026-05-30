@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useOnboarding } from '@/context/onboarding-context';
+import { useOnboarding } from '@/providers/onboarding-context';
 import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { PATIENT_STEPS, PATIENT_BASE_PATH } from '@/components/onboarding/steps/patient/registry';
 import { firstIncompletePatientSlug } from '@/components/onboarding/steps/patient/guard';

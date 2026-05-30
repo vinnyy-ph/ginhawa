@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { DoctorFilters, defaultFilters, type FilterState } from './DoctorFilters';
+import { DoctorFilters, defaultFilters, type FilterState } from './doctor-filters';
 
 function setup(overrides: Partial<FilterState> = {}) {
   const onFiltersChange = vi.fn();

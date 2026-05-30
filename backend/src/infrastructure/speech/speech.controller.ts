@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SpeechService } from './speech.service';
-import { OptionalJwt } from '../auth/decorators/optional-jwt.decorator';
+import { OptionalJwt } from '../../auth/decorators/optional-jwt.decorator';
 
 @Controller('speech')
 export class SpeechController {

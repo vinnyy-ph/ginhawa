@@ -2,12 +2,12 @@
 
 import { use } from "react";
 import { useSession } from "next-auth/react";
-import { DoctorAbout } from "@/components/doctors/DoctorAbout";
+import { DoctorAbout } from "@/components/doctors/doctor-about";
 import { DoctorDetailSkeleton } from "@/components/doctors/doctor-detail-skeleton";
 import { DoctorDetailError } from "@/components/doctors/doctor-detail-error";
 import { DoctorDetailHero } from "@/components/doctors/doctor-detail-hero";
 import { DoctorBookingCard } from "@/components/doctors/doctor-booking-card";
-import { useDoctorDetail } from "@/components/doctors/use-doctor-detail";
+import { useDoctorDetail } from "@/hooks/use-doctor-detail";
 
 export default function DoctorProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

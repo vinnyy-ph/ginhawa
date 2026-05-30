@@ -9,10 +9,10 @@ import {
 } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 
-import { DoctorCard } from "@/components/doctors/DoctorCard";
-import { DoctorFilters } from "@/components/doctors/DoctorFilters";
-import { DoctorSort } from "@/components/doctors/DoctorSort";
-import { useDoctorDiscovery } from "@/components/doctors/use-doctor-discovery";
+import { DoctorCard } from "@/components/doctors/doctor-card";
+import { DoctorFilters } from "@/components/doctors/doctor-filters";
+import { DoctorSort } from "@/components/doctors/doctor-sort";
+import { useDoctorDiscovery } from "@/hooks/use-doctor-discovery";
 
 // ─── Skeleton Card ────────────────────────────────────────────────────────────
 

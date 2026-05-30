@@ -1,4 +1,4 @@
-import { DoctorOnboardingProvider } from '@/context/doctor-onboarding-context';
+import { DoctorOnboardingProvider } from '@/providers/doctor-onboarding-context';
 
 export default function DoctorOnboardingLayout({
   children,

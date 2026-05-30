@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConsultationService } from './consultation.service';
-import { GeminiService } from '../ai/gemini.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { GeminiService } from '../infrastructure/ai/gemini.service';
+import { PrismaService } from '../infrastructure/prisma/prisma.service';
 
 const mockGenerateContent = jest.fn();
 

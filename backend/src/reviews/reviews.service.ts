@@ -6,7 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { AppointmentStatus } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 
 @Injectable()

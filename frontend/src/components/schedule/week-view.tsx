@@ -3,8 +3,8 @@
 import { useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { formatPHTime } from "@/lib/datetime"
-import { AddSlotPopover } from "./AddSlotPopover"
-import { SlotDetailPopover } from "./SlotDetailPopover"
+import { AddSlotPopover } from "./add-slot-popover"
+import { SlotDetailPopover } from "./slot-detail-popover"
 import type { AvailabilitySlot, SlotStatus } from "@/types/api"
 
 const DOW_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const

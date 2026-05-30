@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UploadsController } from './uploads.controller';
 import { UploadsService } from './uploads.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 describe('UploadsController', () => {
   let controller: UploadsController;

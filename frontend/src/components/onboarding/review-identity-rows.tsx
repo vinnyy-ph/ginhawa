@@ -1,4 +1,4 @@
-import type { OnboardingData } from "@/types/patient";
+import type { OnboardingData } from "@/types/patient-profile";
 import { EditableRow, editInputClass } from "@/components/ui/editable-row";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { DatePicker } from "@/components/ui/date-picker";

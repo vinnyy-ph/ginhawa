@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useDoctorOnboarding } from '@/context/doctor-onboarding-context';
+import { useDoctorOnboarding } from '@/providers/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
-import { onboardingInputClass, onboardingTextareaClass } from '@/lib/onboarding-styles';
+import { onboardingInputClass, onboardingTextareaClass } from '@/components/ui/onboarding-styles';
 import { cn } from '@/lib/utils';
 import { Chip } from '@/components/ui/chip';
 import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';

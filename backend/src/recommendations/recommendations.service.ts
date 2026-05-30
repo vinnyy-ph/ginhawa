@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { Type } from '@google/genai';
-import { GeminiService } from '../ai/gemini.service';
+import { GeminiService } from '../infrastructure/ai/gemini.service';
 
 const VALID_SPECIALIZATIONS = [
   'Cardiology',

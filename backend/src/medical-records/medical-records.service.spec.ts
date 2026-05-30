@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MedicalRecordsService } from './medical-records.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import {
   NotFoundException,

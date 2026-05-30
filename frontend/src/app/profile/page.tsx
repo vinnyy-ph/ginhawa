@@ -7,7 +7,7 @@ import { Alert } from "@/components/ui/alert";
 import { IdentityCard } from "@/components/profile/identity-card";
 import { LocationInsuranceCard } from "@/components/profile/location-insurance-card";
 import { MedicalHistoryCard } from "@/components/profile/medical-history-card";
-import { usePatientProfileForm } from "@/components/profile/use-patient-profile-form";
+import { usePatientProfileForm } from "@/hooks/use-patient-profile-form";
 
 export default function PatientProfilePage() {
   const { values, setField, isEditing, loading, saving, error, success, beginEdit, discard, save } =

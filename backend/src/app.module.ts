@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
+import { HealthController } from './health.controller';
+import { HealthService } from './health.service';
+import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { PatientsModule } from './patients/patients.module';
-import { UploadsModule } from './uploads/uploads.module';
+import { UploadsModule } from './infrastructure/uploads/uploads.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { DoctorsModule } from './doctors/doctors.module';
@@ -17,7 +17,7 @@ import { RecommendationsModule } from './recommendations/recommendations.module'
 import { NotificationsModule } from './notifications/notifications.module';
 import { MedicalRecordsModule } from './medical-records/medical-records.module';
 import { ConsultationModule } from './consultation/consultation.module';
-import { SpeechModule } from './speech/speech.module';
+import { SpeechModule } from './infrastructure/speech/speech.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { SpecializationsModule } from './specializations/specializations.module';
 
@@ -40,9 +40,9 @@ import { SpecializationsModule } from './specializations/specializations.module'
     ReviewsModule,
     SpecializationsModule,
   ],
-  controllers: [AppController],
+  controllers: [HealthController],
   providers: [
-    AppService,
+    HealthService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

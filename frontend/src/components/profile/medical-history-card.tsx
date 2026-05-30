@@ -1,6 +1,6 @@
 import { FormField } from "@/components/ui/form-field";
 import { Chip } from "@/components/ui/chip";
-import { onboardingInputClass, onboardingTextareaClass } from "@/lib/onboarding-styles";
+import { onboardingInputClass, onboardingTextareaClass } from "@/components/ui/onboarding-styles";
 import {
   Empty,
   PillList,
@@ -12,7 +12,7 @@ import {
   COMMON_CONDITIONS,
   COMMON_MEDICATIONS,
 } from "./profile-fields";
-import type { PatientProfileForm, SetProfileField } from "./use-patient-profile-form";
+import type { PatientProfileForm, SetProfileField } from "@/hooks/use-patient-profile-form";
 
 interface MedicalHistoryCardProps {
   isEditing: boolean;
