@@ -1,3 +1,10 @@
+/**
+ * Recommendations module.
+ *
+ * Imports AiModule (Gemini) for criteria extraction and DoctorsModule for the
+ * candidate pool + rating data. Registers DoctorRankingService as the pure
+ * scoring engine consumed by RecommendationsService.
+ */
 import { Module } from '@nestjs/common';
 import { RecommendationsService } from './recommendations.service';
 import { RecommendationsController } from './recommendations.controller';
