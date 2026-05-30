@@ -1,3 +1,10 @@
+/**
+ * Profile-picture upload endpoint.
+ *
+ * Requires authentication. The multer interceptor enforces the size/type
+ * limits (see multer.config) before the handler runs; the service then stores
+ * the file and returns its public URL.
+ */
 import {
   Controller,
   Post,
@@ -16,6 +23,7 @@ import { multerLocalConfig } from './multer.config';
 export class UploadsController {
   constructor(private readonly uploadsService: UploadsService) {}
 
+  /** Accepts a single `file` field and returns `{ url }` of the stored image. */
   @Post('profile-picture')
   @UseInterceptors(FileInterceptor('file', multerLocalConfig))
   async uploadProfilePicture(@UploadedFile() file: Express.Multer.File) {

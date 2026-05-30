@@ -1,3 +1,12 @@
+/**
+ * Root application module.
+ *
+ * Wires together every feature module and registers the two app-wide guards.
+ * The guard order matters: JwtAuthGuard runs first to authenticate the request
+ * and attach `req.user`, then RolesGuard runs to authorize based on that user's
+ * role. Both are registered as APP_GUARD so they apply to every route by
+ * default; endpoints opt out with `@Public()` or relax auth with `@OptionalJwt()`.
+ */
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
@@ -43,6 +52,8 @@ import { SpecializationsModule } from './specializations/specializations.module'
   controllers: [HealthController],
   providers: [
     HealthService,
+    // Authentication runs before authorization: JwtAuthGuard populates
+    // `req.user`, then RolesGuard checks that user against `@Roles(...)`.
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
