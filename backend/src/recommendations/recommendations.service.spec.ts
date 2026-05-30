@@ -33,6 +33,17 @@ describe('RecommendationsService', () => {
       findFirst: jest.fn(),
     },
     patientMedicalHistory: { findUnique: jest.fn() },
+    specialization: {
+      findMany: jest
+        .fn()
+        .mockResolvedValue([
+          { name: 'Cardiology' },
+          { name: 'Dermatology' },
+          { name: 'Neurology' },
+          { name: 'Dentistry' },
+          { name: 'General Practice' },
+        ]),
+    },
   };
 
   // The existing createStream tests rely on the real GeminiService backed by the

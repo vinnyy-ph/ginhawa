@@ -8,19 +8,25 @@ import { DoctorRankingService, MatchCriteria } from './doctor-ranking.service';
 import { toPublicDoctorProfile } from '../doctors/dto/public-doctor.dto';
 import { MatchResult, MatchedDoctor } from './dto/match-result.dto';
 
-const VALID_SPECIALIZATIONS = [
-  'Cardiology',
-  'Dermatology',
-  'Orthopedics',
-  'Neurology',
-  'Gastroenterology',
-  'Ophthalmology',
-  'Dentistry',
-  'Pediatrics',
-  'Gynecology',
-  'Psychiatry',
+// Routing signal for life-threatening symptoms — not a real specialization,
+// always offered alongside whatever specializations exist in the app.
+const EMERGENCY = 'EMERGENCY';
+
+// Used only if the specializations table is empty/unreachable.
+const FALLBACK_SPECIALIZATIONS = [
   'General Practice',
-  'EMERGENCY',
+  'Internal Medicine',
+  'Pediatrics',
+  'OB-GYN',
+  'Dermatology',
+  'Cardiology',
+  'Orthopedics',
+  'ENT',
+  'Psychiatry',
+  'Neurology',
+  'Ophthalmology',
+  'Surgery',
+  'Family Medicine',
 ];
 
 type PatientContext = {
@@ -47,9 +53,19 @@ export class RecommendationsService {
     private readonly ranking: DoctorRankingService,
   ) {}
 
+  private async getSpecializationNames(): Promise<string[]> {
+    const rows = await this.prisma.specialization.findMany({
+      select: { name: true },
+      orderBy: { name: 'asc' },
+    });
+    const names = rows.map((r) => r.name);
+    return names.length > 0 ? names : FALLBACK_SPECIALIZATIONS;
+  }
+
   private buildPrompt(
     symptomInput: string,
     patientContext?: PatientContext,
+    specializationNames: string[] = FALLBACK_SPECIALIZATIONS,
   ): string {
     const mh = patientContext?.medicalHistory;
     const hasHistory =
@@ -77,24 +93,32 @@ ${historyBlock}
 Return ONLY valid JSON in this exact format, no markdown:
 { "specialization": "<name>", "explanation": "<2-3 sentence reasoning>" }
 
-Specialization must be one of: Cardiology, Dermatology, Orthopedics, Neurology, Gastroenterology, Ophthalmology, Dentistry, Pediatrics, Gynecology, Psychiatry, General Practice, EMERGENCY.
+Specialization must be EXACTLY one of these (these are the only specializations available in this app — do not invent or substitute others): ${specializationNames.join(', ')}, ${EMERGENCY}.
 
-Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain, stroke, difficulty breathing, heavy bleeding, unconscious, seizure, suicide, self-harm, poisoning).`;
+Use ${EMERGENCY} only if symptoms indicate life-threatening conditions (chest pain, stroke, difficulty breathing, heavy bleeding, unconscious, seizure, suicide, self-harm, poisoning).`;
   }
 
   private getAIRecommendationStream(
     symptomInput: string,
-    patientContext?: PatientContext,
+    patientContext: PatientContext | undefined,
+    specializationNames: string[],
   ): AsyncGenerator<string, { specialization: string; explanation: string }> {
     const schema = {
       type: Type.OBJECT,
       properties: {
-        specialization: { type: Type.STRING, enum: VALID_SPECIALIZATIONS },
+        specialization: {
+          type: Type.STRING,
+          enum: [...specializationNames, EMERGENCY],
+        },
         explanation: { type: Type.STRING },
       },
       required: ['specialization', 'explanation'],
     };
-    const prompt = this.buildPrompt(symptomInput, patientContext);
+    const prompt = this.buildPrompt(
+      symptomInput,
+      patientContext,
+      specializationNames,
+    );
     return this.gemini.generateJsonStream<{
       specialization: string;
       explanation: string;
@@ -151,6 +175,7 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
         })
       : null;
 
+    const specializationNames = await this.getSpecializationNames();
     const prisma = this.prisma;
     const getAIRecommendationStream = this.getAIRecommendationStream.bind(this);
     async function* generateStream() {
@@ -173,6 +198,7 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
       const streamGenerator = getAIRecommendationStream(
         createRecommendationDto.symptomInput,
         patientContext,
+        specializationNames,
       );
 
       const parsedResult = yield* streamGenerator;
@@ -231,7 +257,8 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
 
   private buildMatchPrompt(
     symptomInput: string,
-    patientContext?: PatientContext,
+    patientContext: PatientContext | undefined,
+    specializationNames: string[],
   ): string {
     const mh = patientContext?.medicalHistory;
     const hasHistory =
@@ -262,14 +289,15 @@ This text may describe symptoms, an explicit doctor preference, or both. Do two 
 Return ONLY valid JSON, no markdown:
 { "specialization": <name or null>, "city": <string|null>, "region": <string|null>, "minYears": <number|null>, "minRating": <number|null>, "emergency": <boolean>, "explanation": "<2-3 sentence reasoning>" }
 
-specialization must be one of: Cardiology, Dermatology, Orthopedics, Neurology, Gastroenterology, Ophthalmology, Dentistry, Pediatrics, Gynecology, Psychiatry, General Practice, EMERGENCY — or null.
+specialization must be EXACTLY one of these (these are the only specializations available in this app — do not invent or substitute others): ${specializationNames.join(', ')}, ${EMERGENCY} — or null.
 
 Set emergency true ONLY for life-threatening symptoms (chest pain, stroke, difficulty breathing, heavy bleeding, unconscious, seizure, suicide, self-harm, poisoning).`;
   }
 
   private async extractCriteria(
     symptomInput: string,
-    patientContext?: PatientContext,
+    patientContext: PatientContext | undefined,
+    specializationNames: string[],
   ): Promise<RawCriteria> {
     const schema = {
       type: Type.OBJECT,
@@ -284,16 +312,23 @@ Set emergency true ONLY for life-threatening symptoms (chest pain, stroke, diffi
       },
       required: ['emergency', 'explanation'],
     };
-    const prompt = this.buildMatchPrompt(symptomInput, patientContext);
+    const prompt = this.buildMatchPrompt(
+      symptomInput,
+      patientContext,
+      specializationNames,
+    );
     return this.gemini.generateJson<RawCriteria>(prompt, { schema });
   }
 
-  private normalizeCriteria(raw: RawCriteria): MatchCriteria {
-    const known = VALID_SPECIALIZATIONS.map((s) => s.toLowerCase());
+  private normalizeCriteria(
+    raw: RawCriteria,
+    specializationNames: string[],
+  ): MatchCriteria {
+    const known = specializationNames.map((s) => s.toLowerCase());
     const spec =
       raw.specialization &&
       known.includes(raw.specialization.toLowerCase()) &&
-      raw.specialization.toUpperCase() !== 'EMERGENCY'
+      raw.specialization.toUpperCase() !== EMERGENCY
         ? raw.specialization
         : null;
     return {
@@ -312,10 +347,15 @@ Set emergency true ONLY for life-threatening symptoms (chest pain, stroke, diffi
     const { patientId, patientContext } =
       await this.resolvePatientContext(userId);
 
-    const raw = await this.extractCriteria(dto.symptomInput, patientContext);
+    const specializationNames = await this.getSpecializationNames();
+    const raw = await this.extractCriteria(
+      dto.symptomInput,
+      patientContext,
+      specializationNames,
+    );
     const emergency =
-      raw.emergency || raw.specialization?.toUpperCase() === 'EMERGENCY';
-    const criteria = this.normalizeCriteria(raw);
+      raw.emergency || raw.specialization?.toUpperCase() === EMERGENCY;
+    const criteria = this.normalizeCriteria(raw, specializationNames);
 
     try {
       await this.prisma.recommendationLog.create({

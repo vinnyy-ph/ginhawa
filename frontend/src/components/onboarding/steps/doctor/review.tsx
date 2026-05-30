@@ -19,7 +19,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export function ReviewStep({ nav }: { nav: OnboardingNavType }) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
   const { data, update } = useDoctorOnboarding();
   const { specializations } = useSpecializations();
 
@@ -84,6 +84,9 @@ export function ReviewStep({ nav }: { nav: OnboardingNavType }) {
       });
 
       if (response.profileComplete) {
+        // Refresh the auth session so the dashboard greeting shows the real
+        // name (the JWT cached at signup had no profile name yet).
+        await updateSession({ name: data.fullName });
         setToast({ message: 'Profile completed successfully!', variant: 'success' });
         setTimeout(() => {
           router.push('/doctor/dashboard');

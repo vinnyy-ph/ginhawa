@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { Button } from "@/components/ui/button";
 import { DoctorBookingPanel } from "@/components/booking/doctor-booking-panel";
 import type { AvailabilitySlot } from "@/types/api";
 
@@ -22,23 +20,14 @@ export function DoctorBookingCard({
         </h3>
       </div>
       <div className="p-6">
-        {!isAuthenticated ? (
-          <div className="text-center py-4">
-            <p className="text-on-surface-variant text-sm mb-4">
-              Sign in to a patient account to book an appointment.
-            </p>
-            <Button className="w-full" asChild>
-              <Link href="/login">Sign In to Book</Link>
-            </Button>
-          </div>
-        ) : isDoctor ? (
+        {isDoctor ? (
           <div className="text-center py-4 bg-surface rounded-lg p-4">
             <p className="text-on-surface-variant text-sm">
               You are logged in as a doctor. Switch to a patient account to book consultations.
             </p>
           </div>
         ) : (
-          <DoctorBookingPanel slots={slots} />
+          <DoctorBookingPanel slots={slots} isAuthenticated={isAuthenticated} />
         )}
       </div>
     </div>

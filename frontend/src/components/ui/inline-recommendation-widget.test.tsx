@@ -6,7 +6,6 @@ describe('InlineRecommendationWidget (idle state)', () => {
   it('renders the symptom-check entry UI with analysis disabled', () => {
     render(<InlineRecommendationWidget />);
     expect(screen.getByText('Symptom Check')).toBeInTheDocument();
-    expect(screen.getByText('Free symptom check')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /analyze symptoms/i })).toBeDisabled();
   });
 

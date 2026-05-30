@@ -130,9 +130,18 @@ export function DashboardSidebar({
       <div className="p-4 border-t border-outline-variant">
         {role === 'doctor' && userEmail && (
           <div className="flex items-center gap-3 mb-3 px-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-light to-brand flex items-center justify-center text-white text-xs font-bold shrink-0">
-              {(userName || userEmail).charAt(0).toUpperCase()}
-            </div>
+            {avatarUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={avatarUrl}
+                alt={userName || userEmail}
+                className="w-8 h-8 rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-light to-brand flex items-center justify-center text-white text-xs font-bold shrink-0">
+                {(userName || userEmail).charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className="min-w-0">
               <p className="text-xs font-semibold text-on-surface truncate">{userName || userEmail}</p>
               <p className="text-xs text-on-surface-variant capitalize">{role}</p>

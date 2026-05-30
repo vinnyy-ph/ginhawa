@@ -10,7 +10,6 @@ import {
   ActivityLogIcon,
   ExclamationTriangleIcon,
   ChevronRightIcon,
-  CheckCircledIcon,
 } from "@radix-ui/react-icons";
 
 type WidgetState = "idle" | "analyzing" | "result" | "emergency";
@@ -118,20 +117,6 @@ export function InlineRecommendationWidget() {
         <CardContent className="relative pt-0">
           {widgetState === "idle" && (
             <div className="space-y-4">
-              <div className="mb-3 flex flex-col gap-1">
-                <span className="inline-flex items-center gap-1.5 text-xs text-on-surface-variant">
-                  <CheckCircledIcon className="h-4 w-4 text-success" aria-hidden="true" />
-                  Free symptom check
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-xs text-on-surface-variant">
-                  <CheckCircledIcon className="h-4 w-4 text-success" aria-hidden="true" />
-                  No account needed
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-xs text-on-surface-variant">
-                  <CheckCircledIcon className="h-4 w-4 text-success" aria-hidden="true" />
-                  Results in seconds
-                </span>
-              </div>
               <textarea
                 className="w-full min-h-[120px] resize-none rounded-xl border border-outline-variant bg-surface-container-lowest p-4 text-on-surface outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
                 placeholder="e.g., I've had a headache for 3 days with nausea..."

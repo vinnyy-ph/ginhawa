@@ -11,12 +11,14 @@ import { CalendarIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import type { Appointment, AppointmentStatus } from "@/types/api";
 import { AppointmentCard } from "@/components/appointment-card/appointment-card";
+import { useNotifications } from "@/providers/notification-provider";
 
 type FilterTab = "All" | "Upcoming" | "Completed" | "Cancelled";
 
 export default function PatientAppointmentsPage() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
+  const { appointmentTick } = useNotifications();
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +48,12 @@ export default function PatientAppointmentsPage() {
       fetchAppointments();
     });
   }, [fetchAppointments]);
+
+  // Live refetch when an APPOINTMENT_* notification arrives.
+  useEffect(() => {
+    if (appointmentTick > 0) queueMicrotask(() => fetchAppointments(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appointmentTick]);
 
   useEffect(() => {
     if (!token) return;
