@@ -2,32 +2,17 @@ import { FormField } from "@/components/ui/form-field";
 import { ProfilePhotoField } from "@/components/ui/profile-photo-field";
 import { onboardingInputClass, onboardingTextareaClass } from "@/lib/onboarding-styles";
 import { Empty } from "@/components/profile/profile-fields";
+import type { DoctorProfileForm, SetDoctorField } from "./use-doctor-profile-form";
 
 interface DoctorIdentityCardProps {
   isEditing: boolean;
-  profilePictureUrl: string | null;
-  setProfilePictureUrl: (v: string | null) => void;
-  fullName: string;
-  setFullName: (v: string) => void;
-  professionalTitle: string;
-  setProfessionalTitle: (v: string) => void;
-  specialization: string;
-  bio: string;
-  setBio: (v: string) => void;
+  values: DoctorProfileForm;
+  setField: SetDoctorField;
 }
 
-export function DoctorIdentityCard({
-  isEditing,
-  profilePictureUrl,
-  setProfilePictureUrl,
-  fullName,
-  setFullName,
-  professionalTitle,
-  setProfessionalTitle,
-  specialization,
-  bio,
-  setBio,
-}: DoctorIdentityCardProps) {
+export function DoctorIdentityCard({ isEditing, values, setField }: DoctorIdentityCardProps) {
+  const { profilePictureUrl, fullName, professionalTitle, specialization, bio } = values;
+
   return (
     <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
       {/* Coloured accent strip */}
@@ -38,7 +23,7 @@ export function DoctorIdentityCard({
         <div className="flex items-start gap-6">
           <ProfilePhotoField
             value={profilePictureUrl}
-            onChange={setProfilePictureUrl}
+            onChange={(v) => setField("profilePictureUrl", v)}
             readOnly={!isEditing}
           />
           <div className="flex-1 flex flex-col gap-4 min-w-0">
@@ -50,7 +35,7 @@ export function DoctorIdentityCard({
                     className={onboardingInputClass}
                     placeholder="Dr. Juan dela Cruz"
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    onChange={(e) => setField("fullName", e.target.value)}
                   />
                 </FormField>
                 <FormField id="d-title" label="Professional title">
@@ -59,7 +44,7 @@ export function DoctorIdentityCard({
                     className={onboardingInputClass}
                     placeholder="MD, FPCP"
                     value={professionalTitle}
-                    onChange={(e) => setProfessionalTitle(e.target.value)}
+                    onChange={(e) => setField("professionalTitle", e.target.value)}
                   />
                 </FormField>
               </div>
@@ -90,7 +75,7 @@ export function DoctorIdentityCard({
                 className={`${onboardingTextareaClass} min-h-[100px]`}
                 placeholder="Tell patients about your background, approach to care, and what makes you unique..."
                 value={bio}
-                onChange={(e) => setBio(e.target.value)}
+                onChange={(e) => setField("bio", e.target.value)}
               />
             </FormField>
           ) : (

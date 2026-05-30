@@ -3,34 +3,17 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { onboardingInputClass } from "@/lib/onboarding-styles";
 import { formatPrc, formatPtr } from "@/lib/format";
 import { InfoRow } from "@/components/profile/profile-fields";
+import type { DoctorProfileForm, SetDoctorField } from "./use-doctor-profile-form";
 
 interface CredentialsLocationCardProps {
   isEditing: boolean;
-  prcLicenseNo: string;
-  setPrcLicenseNo: (v: string) => void;
-  prcLicenseExpiry: string;
-  setPrcLicenseExpiry: (v: string) => void;
-  ptrNo: string;
-  setPtrNo: (v: string) => void;
-  region: string;
-  setRegion: (v: string) => void;
-  city: string;
-  setCity: (v: string) => void;
+  values: DoctorProfileForm;
+  setField: SetDoctorField;
 }
 
-export function CredentialsLocationCard({
-  isEditing,
-  prcLicenseNo,
-  setPrcLicenseNo,
-  prcLicenseExpiry,
-  setPrcLicenseExpiry,
-  ptrNo,
-  setPtrNo,
-  region,
-  setRegion,
-  city,
-  setCity,
-}: CredentialsLocationCardProps) {
+export function CredentialsLocationCard({ isEditing, values, setField }: CredentialsLocationCardProps) {
+  const { prcLicenseNo, prcLicenseExpiry, ptrNo, region, city } = values;
+
   return (
     <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-6 flex flex-col gap-6">
       <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-manrope">
@@ -47,7 +30,7 @@ export function CredentialsLocationCard({
               placeholder="0123456"
               className={onboardingInputClass}
               value={prcLicenseNo}
-              onChange={(e) => setPrcLicenseNo(formatPrc(e.target.value))}
+              onChange={(e) => setField("prcLicenseNo", formatPrc(e.target.value))}
             />
           ) : (
             <InfoRow label="" value={prcLicenseNo} />
@@ -58,7 +41,7 @@ export function CredentialsLocationCard({
             <DatePicker
               id="d-prcExpiry"
               value={prcLicenseExpiry}
-              onChange={setPrcLicenseExpiry}
+              onChange={(v) => setField("prcLicenseExpiry", v)}
             />
           ) : (
             <InfoRow label="" value={prcLicenseExpiry} />
@@ -76,7 +59,7 @@ export function CredentialsLocationCard({
               placeholder="12345678"
               className={onboardingInputClass}
               value={ptrNo}
-              onChange={(e) => setPtrNo(formatPtr(e.target.value))}
+              onChange={(e) => setField("ptrNo", formatPtr(e.target.value))}
             />
           ) : (
             <InfoRow label="" value={ptrNo} />
@@ -96,7 +79,7 @@ export function CredentialsLocationCard({
               className={onboardingInputClass}
               placeholder="NCR"
               value={region}
-              onChange={(e) => setRegion(e.target.value)}
+              onChange={(e) => setField("region", e.target.value)}
             />
           ) : (
             <InfoRow label="" value={region} />
@@ -109,7 +92,7 @@ export function CredentialsLocationCard({
               className={onboardingInputClass}
               placeholder="Makati"
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onChange={(e) => setField("city", e.target.value)}
             />
           ) : (
             <InfoRow label="" value={city} />

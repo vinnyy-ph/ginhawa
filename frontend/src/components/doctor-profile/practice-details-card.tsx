@@ -3,40 +3,22 @@ import { Chip } from "@/components/ui/chip";
 import { useSpecializations } from "@/hooks/use-specializations";
 import { onboardingInputClass, onboardingTextareaClass } from "@/lib/onboarding-styles";
 import { Empty, InfoRow, toItems, toggleChip } from "@/components/profile/profile-fields";
+import type { DoctorProfileForm, SetDoctorField } from "./use-doctor-profile-form";
 
 const COMMON_LANGUAGES = ["English", "Tagalog", "Cebuano", "Ilocano"];
 
 interface PracticeDetailsCardProps {
   isEditing: boolean;
-  specialization: string;
-  setSpecialization: (v: string) => void;
-  yearsOfExperience: string;
-  setYearsOfExperience: (v: string) => void;
-  consultationFee: string;
-  setConsultationFee: (v: string) => void;
-  availabilitySummary: string;
-  setAvailabilitySummary: (v: string) => void;
-  languagesSpoken: string;
-  setLanguagesSpoken: (v: string) => void;
-  consultationFocusAreas: string;
-  setConsultationFocusAreas: (v: string) => void;
+  values: DoctorProfileForm;
+  setField: SetDoctorField;
 }
 
-export function PracticeDetailsCard({
-  isEditing,
-  specialization,
-  setSpecialization,
-  yearsOfExperience,
-  setYearsOfExperience,
-  consultationFee,
-  setConsultationFee,
-  availabilitySummary,
-  setAvailabilitySummary,
-  languagesSpoken,
-  setLanguagesSpoken,
-  consultationFocusAreas,
-  setConsultationFocusAreas,
-}: PracticeDetailsCardProps) {
+export function PracticeDetailsCard({ isEditing, values, setField }: PracticeDetailsCardProps) {
+  const {
+    specialization, yearsOfExperience, consultationFee,
+    availabilitySummary, languagesSpoken, consultationFocusAreas,
+  } = values;
+
   const { specializations, loading: specsLoading } = useSpecializations();
 
   const specOptions =
@@ -61,14 +43,14 @@ export function PracticeDetailsCard({
                 className={onboardingInputClass}
                 placeholder="e.g. Cardiology"
                 value={specialization}
-                onChange={(e) => setSpecialization(e.target.value)}
+                onChange={(e) => setField("specialization", e.target.value)}
               />
             ) : (
               <select
                 id="d-spec"
                 className={onboardingInputClass}
                 value={specialization}
-                onChange={(e) => setSpecialization(e.target.value)}
+                onChange={(e) => setField("specialization", e.target.value)}
               >
                 <option value="" disabled>
                   {specsLoading ? "Loading…" : "Select specialization"}
@@ -89,7 +71,7 @@ export function PracticeDetailsCard({
               className={onboardingInputClass}
               placeholder="0"
               value={yearsOfExperience}
-              onChange={(e) => setYearsOfExperience(e.target.value)}
+              onChange={(e) => setField("yearsOfExperience", e.target.value)}
             />
           ) : (
             <InfoRow label="" value={yearsOfExperience ? `${yearsOfExperience} ${Number(yearsOfExperience) === 1 ? "year" : "years"}` : ""} />
@@ -109,7 +91,7 @@ export function PracticeDetailsCard({
               className={onboardingInputClass}
               placeholder="500"
               value={consultationFee}
-              onChange={(e) => setConsultationFee(e.target.value)}
+              onChange={(e) => setField("consultationFee", e.target.value)}
             />
           ) : (
             <InfoRow label="" value={consultationFee ? `₱${Number(consultationFee).toLocaleString()}` : ""} />
@@ -122,7 +104,7 @@ export function PracticeDetailsCard({
               className={onboardingInputClass}
               placeholder="Weekdays 9 AM – 5 PM"
               value={availabilitySummary}
-              onChange={(e) => setAvailabilitySummary(e.target.value)}
+              onChange={(e) => setField("availabilitySummary", e.target.value)}
             />
           ) : (
             <InfoRow label="" value={availabilitySummary} />
@@ -143,7 +125,7 @@ export function PracticeDetailsCard({
                 <Chip
                   key={v}
                   selected={toItems(languagesSpoken).includes(v)}
-                  onClick={() => toggleChip(v, languagesSpoken, setLanguagesSpoken)}
+                  onClick={() => toggleChip(v, languagesSpoken, (next) => setField("languagesSpoken", next))}
                 >
                   {v}
                 </Chip>
@@ -154,7 +136,7 @@ export function PracticeDetailsCard({
               className={onboardingInputClass}
               placeholder="English, Tagalog"
               value={languagesSpoken}
-              onChange={(e) => setLanguagesSpoken(e.target.value)}
+              onChange={(e) => setField("languagesSpoken", e.target.value)}
             />
           </div>
         ) : (
@@ -182,7 +164,7 @@ export function PracticeDetailsCard({
             className={onboardingTextareaClass}
             placeholder="Hypertension management, Preventive cardiology, Cardiac rehabilitation…"
             value={consultationFocusAreas}
-            onChange={(e) => setConsultationFocusAreas(e.target.value)}
+            onChange={(e) => setField("consultationFocusAreas", e.target.value)}
           />
         ) : (
           <div className="flex flex-wrap gap-2 py-1">

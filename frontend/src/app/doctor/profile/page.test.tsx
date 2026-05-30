@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import DoctorProfilePage from './page';
+
+function patchCallFor(path: string) {
+  const calls = (globalThis.fetch as unknown as { mock: { calls: [string, RequestInit?][] } }).mock.calls;
+  return calls.find(([url, opts]) => String(url).includes(path) && opts?.method === 'PATCH');
+}
 
 vi.mock('next-auth/react', () => ({
   useSession: () => ({
@@ -80,5 +85,36 @@ describe('DoctorProfilePage', () => {
     expect(screen.getByText('Makati')).toBeInTheDocument();
     expect(screen.getByText('English')).toBeInTheDocument();
     expect(screen.getByText('Hypertension')).toBeInTheDocument(); // focus area
+  });
+
+  it('edits fields and PATCHes the doctor profile on save', async () => {
+    render(<DoctorProfilePage />);
+    await screen.findByText('Practice Details');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Profile' }));
+    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Dr. Maria Edited' } });
+    fireEvent.change(screen.getByLabelText('Consultation fee (₱)'), { target: { value: '750' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(() => expect(screen.getByText('Profile updated successfully.')).toBeInTheDocument());
+
+    const patch = patchCallFor('/doctors/profile');
+    expect(patch).toBeTruthy();
+    const body = JSON.parse(String(patch![1]!.body));
+    expect(body.fullName).toBe('Dr. Maria Edited');
+    expect(body.consultationFee).toBe(750);
+  });
+
+  it('reverts edits when Discard is clicked', async () => {
+    render(<DoctorProfilePage />);
+    await screen.findByText('Practice Details');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Profile' }));
+    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Temp Name' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Discard Changes' }));
+
+    expect(screen.queryByLabelText('Full name')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Profile' }));
+    expect(screen.getByLabelText('Full name')).toHaveValue('Dr. Maria Santos');
   });
 });
