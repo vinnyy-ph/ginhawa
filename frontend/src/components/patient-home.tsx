@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * Patient dashboard home (rendered at the authenticated patient root, `/`).
+ *
+ * Loads the patient's appointments and notifications, shows a greeting plus
+ * upcoming visits and quick-action shortcuts, all inside DashboardLayout.
+ */
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -27,6 +33,7 @@ const statusColors: Record<string, "secondary" | "success" | "destructive" | "in
   RESCHEDULED: "outline",
 };
 
+/** Patient landing dashboard: greeting, upcoming appointments, quick actions. */
 export function PatientHome() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;

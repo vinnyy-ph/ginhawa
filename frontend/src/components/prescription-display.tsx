@@ -1,6 +1,14 @@
+/**
+ * Read-only prescription renderer for record views.
+ *
+ * Prefers the structured prescription list (drug/dosage/frequency/duration);
+ * falls back to the legacy free-text `fallbackText`. Renders nothing when both
+ * are empty.
+ */
 import { HeartIcon } from "@radix-ui/react-icons";
 import type { Prescription } from "@/types/api";
 
+/** Displays prescriptions, preferring structured data over the legacy text field. */
 export function PrescriptionDisplay({
   prescriptions,
   fallbackText,
