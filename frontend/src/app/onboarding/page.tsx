@@ -31,10 +31,7 @@ function PatientOnboardingInner() {
   const idx = SLUGS.indexOf(slug);
   const step = PATIENT_STEPS[idx];
 
-  const go = React.useCallback(
-    (s: string) => router.push(`${PATIENT_BASE_PATH}?step=${s}`),
-    [router],
-  );
+  const go = (s: string) => router.push(`${PATIENT_BASE_PATH}?step=${s}`);
   const nav: OnboardingNav = {
     goNext: () => go(SLUGS[Math.min(idx + 1, SLUGS.length - 1)]),
     goBack: () => go(SLUGS[Math.max(idx - 1, 0)]),
