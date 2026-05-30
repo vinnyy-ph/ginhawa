@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, use } from "react";
+import { useEffect, useState, useRef, use } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import DailyIframe, {
@@ -8,15 +8,10 @@ import DailyIframe, {
   DailyEventObjectAppMessage,
 } from "@daily-co/daily-js";
 import { apiRequest } from "@/lib/api-client";
-import { Spinner } from "@/components/ui/spinner";
-
-interface PatientContext {
-  fullName: string;
-  medicalHistory: string | null;
-  weight: number | null;
-  height: number | null;
-  birthdate: string;
-}
+import { ConsultationLoading, ConsultationError } from "@/components/consultation/consultation-states";
+import { ConsultationDoctorSidebar } from "@/components/consultation/doctor-sidebar";
+import { DoctorDisconnectedOverlay, DeviceErrorOverlay } from "@/components/consultation/video-overlays";
+import type { PatientContext } from "@/components/consultation/patient-context-panel";
 
 export default function ConsultationPage({ params }: { params: Promise<{ appointmentId: string }> }) {
   const resolvedParams = use(params);
@@ -148,19 +143,8 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
     return () => clearTimeout(timer);
   }, [notes, token, appointmentId, isDoctor]);
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-screen bg-surface">
-        <Spinner size="lg" />
-      </div>
-    );
-
-  if (error || !roomUrl)
-    return (
-      <div className="flex items-center justify-center h-screen bg-surface">
-        <p className="text-error">{error ?? "Room not available."}</p>
-      </div>
-    );
+  if (loading) return <ConsultationLoading />;
+  if (error || !roomUrl) return <ConsultationError message={error} />;
 
   return (
     <div className="flex h-screen bg-[#0a0a0a]">
@@ -168,120 +152,27 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
       <div className={isDoctor ? "flex-1 relative" : "w-full relative"}>
         <div ref={containerRef} className="w-full h-full" />
         {!isDoctor && doctorDisconnected && (
-          <div className="absolute inset-x-0 top-0 z-20 flex justify-center p-4 pointer-events-none">
-            <div className="pointer-events-auto bg-surface-white/95 shadow-lifted rounded-xl px-5 py-4 max-w-sm text-center space-y-3">
-              <p className="text-sm font-semibold text-text-primary">
-                Doctor disconnected — reconnecting…
-              </p>
-              {showReturn && (
-                <button
-                  onClick={() => router.push('/appointments')}
-                  className="text-sm font-medium text-white bg-brand hover:bg-brand-dark rounded-md px-4 py-2 transition-colors"
-                >
-                  Return to appointments
-                </button>
-              )}
-            </div>
-          </div>
+          <DoctorDisconnectedOverlay
+            showReturn={showReturn}
+            onReturn={() => router.push('/appointments')}
+          />
         )}
         {deviceError && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#0a0a0a]/80 p-4">
-            <div className="bg-surface-white rounded-xl shadow-lifted px-6 py-5 max-w-sm text-center space-y-3">
-              <p className="text-sm font-semibold text-text-primary">Camera / microphone unavailable</p>
-              <p className="text-sm text-on-surface-variant">{deviceError}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="text-sm font-medium text-white bg-brand hover:bg-brand-dark rounded-md px-4 py-2 transition-colors"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
+          <DeviceErrorOverlay message={deviceError} onRetry={() => window.location.reload()} />
         )}
       </div>
 
       {/* Doctor Sidebar */}
       {isDoctor && (
-        <div className="w-80 bg-surface-white flex flex-col border-l border-outline-variant/30">
-          {/* Tab headers */}
-          <div className="flex border-b border-outline-variant/30">
-            <button
-              onClick={() => setActiveTab('notes')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'notes' ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
-            >
-              Live Notes
-              {isSaving && <span className="ml-1 text-xs text-on-surface-variant">(saving...)</span>}
-            </button>
-            <button
-              onClick={() => setActiveTab('patient')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'patient' ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
-            >
-              Patient
-            </button>
-          </div>
-
-          {/* Notes tab */}
-          {activeTab === 'notes' && (
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Document findings, symptoms, observations..."
-              className="flex-1 resize-none p-4 text-sm text-on-surface bg-surface-white focus:outline-none"
-            />
-          )}
-
-          {/* Patient context tab */}
-          {activeTab === 'patient' && (
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 text-sm">
-              {patientContext ? (
-                <>
-                  <div>
-                    <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1">Patient</p>
-                    <p className="text-on-surface font-medium">{patientContext.fullName}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1">Age</p>
-                    <p className="text-on-surface">
-                      {Math.floor((new Date().getTime() - new Date(patientContext.birthdate).getTime()) / (365.25 * 24 * 3600 * 1000))} years
-                    </p>
-                  </div>
-                  {patientContext.weight && (
-                    <div>
-                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1">Weight</p>
-                      <p className="text-on-surface">{patientContext.weight} kg</p>
-                    </div>
-                  )}
-                  {patientContext.height && (
-                    <div>
-                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1">Height</p>
-                      <p className="text-on-surface">{patientContext.height} cm</p>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1">Medical History</p>
-                    <p className="text-on-surface-variant whitespace-pre-line leading-relaxed">
-                      {patientContext.medicalHistory ?? 'None recorded'}
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <p className="text-on-surface-variant text-center py-8">No patient data available.</p>
-              )}
-            </div>
-          )}
-
-          <div className="p-4 border-t border-outline-variant/30 space-y-3">
-            <p className="text-xs text-on-surface-variant">
-              Notes auto-save every 1.5s. They will be used for AI summarization after the call.
-            </p>
-            <button
-              onClick={handleEndAndFinalize}
-              className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-brand hover:bg-brand-dark rounded-md transition-colors"
-            >
-              End &amp; Finalize →
-            </button>
-          </div>
-        </div>
+        <ConsultationDoctorSidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          notes={notes}
+          onNotesChange={setNotes}
+          isSaving={isSaving}
+          patientContext={patientContext}
+          onEndAndFinalize={handleEndAndFinalize}
+        />
       )}
     </div>
   );
