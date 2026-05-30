@@ -31,7 +31,7 @@ export function TimeField({ value, onChange, disabled, id, className, ...aria }:
       aria-label={aria['aria-label'] ?? 'Time'}
       value={toTime(value)}
       onChange={(t) => onChange(t ? `${pad(t.hour)}:${pad(t.minute)}` : '')}
-      hourCycle={24}
+      hourCycle={12}
       isDisabled={disabled}
       shouldForceLeadingZeros
     >

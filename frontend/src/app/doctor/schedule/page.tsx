@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { DatePicker } from "@/components/ui/date-picker";
+import { MultiDateCalendar } from "@/components/ui/multi-date-calendar";
 import { TimeField } from "@/components/ui/time-field";
 import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
 import { ClockIcon, PlusIcon, TrashIcon, CheckCircledIcon } from "@radix-ui/react-icons";
@@ -33,7 +34,7 @@ export default function DoctorSchedulePage() {
   const [error, setError] = useState<string | null>(null);
   
   const [showAddForm, setShowAddForm] = useState(false);
-  const [formDate, setFormDate] = useState("");
+  const [formDates, setFormDates] = useState<string[]>([]);
   const [formStartTime, setFormStartTime] = useState("09:00");
   const [formEndTime, setFormEndTime] = useState("10:00");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -102,45 +103,44 @@ export default function DoctorSchedulePage() {
 
   async function handleAddSlot(e: React.FormEvent) {
     e.preventDefault();
-    if (!token || !profile || !formDate || !formStartTime || !formEndTime) return;
-    
-    // Validate times
-    const startObj = new Date(`${formDate}T${formStartTime}:00`);
-    const endObj = new Date(`${formDate}T${formEndTime}:00`);
-    
+    if (!token || !profile || formDates.length === 0 || !formStartTime || !formEndTime) return;
+
+    // Validate time range against the first selected date
+    const refDate = formDates[0];
+    const startObj = new Date(`${refDate}T${formStartTime}:00`);
+    const endObj = new Date(`${refDate}T${formEndTime}:00`);
     if (endObj <= startObj) {
       setFormError("End time must be after start time");
       return;
     }
-    
+
+    const slots = formDates.map((date) => ({
+      startTime: new Date(`${date}T${formStartTime}:00`).toISOString(),
+      endTime: new Date(`${date}T${formEndTime}:00`).toISOString(),
+    }));
+
     try {
       setIsSubmitting(true);
       setFormError(null);
-      
-      const startIso = startObj.toISOString();
-      const endIso = endObj.toISOString();
-      
-      await apiRequest("/doctors/slots", {
-        method: "POST",
-        token,
-        body: {
-          startTime: startIso,
-          endTime: endIso
-        }
-      });
-      
-      setToastMessage("Slot added successfully");
+
+      const result = await apiRequest<{ created: number; skipped: number }>(
+        "/doctors/slots/bulk",
+        { method: "POST", token, body: { slots } },
+      );
+
+      const msg =
+        result.skipped > 0
+          ? `${result.created} slot${result.created !== 1 ? "s" : ""} added, ${result.skipped} skipped`
+          : `${result.created} slot${result.created !== 1 ? "s" : ""} added`;
+      setToastMessage(msg);
       setShowAddForm(false);
-      // Reset form somewhat but keep date
+      setFormDates([]);
       setFormStartTime("09:00");
       setFormEndTime("10:00");
-      
-      // Refresh slots
+
       await fetchSlots(profile.id);
-      
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to add slot";
-      setFormError(errorMessage);
+      setFormError(err instanceof Error ? err.message : "Failed to add slots");
     } finally {
       setIsSubmitting(false);
     }
@@ -322,34 +322,47 @@ export default function DoctorSchedulePage() {
               <h3 className="font-serif text-lg font-bold text-text-primary">Create New Slot</h3>
             </div>
             <div className="p-6">
-              <form onSubmit={handleAddSlot} className="flex flex-col md:flex-row gap-6 items-end">
-                <div className="w-full md:w-auto flex-1">
-                  <label className="block text-sm font-semibold text-text-primary mb-1">Date</label>
-                  <DatePicker
-                    value={formDate}
-                    onChange={setFormDate}
-                    minDate={localTodayISO()}
-                  />
+              <form onSubmit={handleAddSlot} className="flex flex-col md:flex-row gap-8">
+                {/* Calendar */}
+                <div className="w-full md:w-72 shrink-0">
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
+                    Select dates <span className="text-on-surface-variant font-normal">(tap to toggle)</span>
+                  </label>
+                  <div className="border border-outline-variant/40 rounded-xl p-3 bg-surface">
+                    <MultiDateCalendar
+                      selectedDates={formDates}
+                      onChange={setFormDates}
+                      minDate={localTodayISO()}
+                    />
+                  </div>
                 </div>
-                
-                <div className="w-full md:w-auto flex-1">
-                  <label className="block text-sm font-semibold text-text-primary mb-1">Start Time</label>
-                  <TimeField value={formStartTime} onChange={setFormStartTime} aria-label="Start time" />
+
+                {/* Time + submit */}
+                <div className="flex flex-col gap-4 justify-start flex-1">
+                  <div>
+                    <label className="block text-sm font-semibold text-text-primary mb-1">Start Time</label>
+                    <TimeField value={formStartTime} onChange={setFormStartTime} aria-label="Start time" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-text-primary mb-1">End Time</label>
+                    <TimeField value={formEndTime} onChange={setFormEndTime} aria-label="End time" />
+                  </div>
+
+                  {formError && <p className="text-error text-sm">{formError}</p>}
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || formDates.length === 0}
+                    className="mt-auto"
+                  >
+                    {isSubmitting
+                      ? "Saving..."
+                      : formDates.length === 0
+                      ? "Select dates first"
+                      : `Add ${formDates.length} slot${formDates.length !== 1 ? "s" : ""}`}
+                  </Button>
                 </div>
-                
-                <div className="w-full md:w-auto flex-1">
-                  <label className="block text-sm font-semibold text-text-primary mb-1">End Time</label>
-                  <TimeField value={formEndTime} onChange={setFormEndTime} aria-label="End time" />
-                </div>
-                
-                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto min-w-[120px]">
-                  {isSubmitting ? "Saving..." : "Add Slot"}
-                </Button>
               </form>
-              
-              {formError && (
-                <p className="text-error text-sm mt-4">{formError}</p>
-              )}
             </div>
           </div>
         )}
