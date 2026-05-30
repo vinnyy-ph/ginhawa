@@ -1,0 +1,107 @@
+"use client"
+
+import { useState } from "react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Badge } from "@/components/ui/badge"
+import { formatPHTime, formatPHDate } from "@/lib/datetime"
+import type { AvailabilitySlot, SlotStatus } from "@/types/api"
+
+interface DayDetailPopoverProps {
+  date: string // YYYY-MM-DD
+  slots: AvailabilitySlot[]
+  patientNames: Record<string, string>
+  onStatusChange: (id: string, status: SlotStatus) => void
+  onDelete: (id: string) => void
+  children: React.ReactNode
+}
+
+export function DayDetailPopover({
+  date,
+  slots,
+  patientNames,
+  onStatusChange,
+  onDelete,
+  children,
+}: DayDetailPopoverProps) {
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+
+  const dateLabel = formatPHDate(`${date}T00:00:00`, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  })
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
+      <PopoverContent className="w-72 p-4 max-h-80 overflow-y-auto" align="start">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">
+          {dateLabel}
+        </p>
+        <div className="space-y-0">
+          {slots.map((slot) => {
+            const isBooked = slot.status === "BOOKED"
+            const isAvailable = slot.status === "AVAILABLE"
+            const timeStr = `${formatPHTime(slot.startTime)} – ${formatPHTime(slot.endTime)}`
+            const isConfirming = confirmDeleteId === slot.id
+
+            return (
+              <div
+                key={slot.id}
+                className="flex items-center justify-between gap-2 py-2.5 border-b border-outline-variant/15 last:border-0"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-text-primary tabular-nums">{timeStr}</p>
+                  {isBooked && patientNames[slot.id] && (
+                    <p className="text-xs text-on-surface-variant truncate">{patientNames[slot.id]}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Badge
+                    variant={isBooked ? "info" : isAvailable ? "success" : "secondary"}
+                    className="text-[10px] px-1.5 py-0"
+                  >
+                    {slot.status}
+                  </Badge>
+                  {!isBooked && (
+                    isConfirming ? (
+                      <>
+                        <button
+                          onClick={() => { onDelete(slot.id); setConfirmDeleteId(null) }}
+                          className="text-[10px] font-bold text-error hover:underline"
+                        >
+                          Del
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="text-[10px] text-on-surface-variant hover:underline"
+                        >
+                          No
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => onStatusChange(slot.id, isAvailable ? "BLOCKED" : "AVAILABLE")}
+                          className="text-[10px] font-semibold text-primary hover:underline"
+                        >
+                          {isAvailable ? "Block" : "Unblock"}
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(slot.id)}
+                          className="text-[10px] text-on-surface-variant hover:text-error hover:underline"
+                        >
+                          Del
+                        </button>
+                      </>
+                    )
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
