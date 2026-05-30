@@ -144,11 +144,10 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`text-sm rounded-full px-3 py-1 border transition-colors ${
-        active
+      className={`text-sm rounded-full px-3 py-1 border transition-colors ${active
           ? "bg-primary text-on-primary border-primary"
           : "bg-surface-white text-on-surface-variant border-outline/40 hover:border-primary/50"
-      }`}
+        }`}
     >
       {label} <span className="font-semibold">{count}</span>
     </button>
@@ -219,7 +218,7 @@ export default function DoctorPatientDetailPage({
 
   return (
     <DashboardLayout role="doctor">
-      <div className="max-w-4xl mx-auto">
+      <div className="mx-auto">
         <Link
           href="/doctor/patients"
           className="inline-flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary mb-4"
@@ -333,11 +332,11 @@ export default function DoctorPatientDetailPage({
                             <p className="font-semibold text-text-primary">
                               {start
                                 ? formatPHDate(start, {
-                                    weekday: "short",
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                  })
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })
                                 : "Date TBD"}
                             </p>
                             {start && (
