@@ -89,4 +89,39 @@ describe('NotificationsService', () => {
       });
     });
   });
+
+  describe('stream$', () => {
+    it('emits the created notification on the stream', async () => {
+      const row = { id: 'n-1', userId: 'user-1' };
+      mockPrismaService.notification.create.mockResolvedValue(row);
+      const spy = jest.fn();
+      const sub = (service as unknown as { stream$: { subscribe: (f: (v: unknown) => void) => { unsubscribe: () => void } } })
+        .stream$.subscribe(spy);
+
+      await service.createNotification(
+        'user-1',
+        NotificationType.APPOINTMENT_CONFIRMED,
+        't',
+        'm',
+      );
+
+      expect(spy).toHaveBeenCalledWith(row);
+      sub.unsubscribe();
+    });
+  });
+
+  describe('streamForUser', () => {
+    it('emits only the target user notifications, JSON-encoded', (done) => {
+      const sub = service.streamForUser('user-1').subscribe((event) => {
+        expect(event.type).toBe('notification');
+        expect(JSON.parse(event.data as string).id).toBe('n-1');
+        sub.unsubscribe();
+        done();
+      });
+
+      const stream$ = (service as unknown as { stream$: { next: (v: unknown) => void } }).stream$;
+      stream$.next({ id: 'n-2', userId: 'user-2' }); // filtered out
+      stream$.next({ id: 'n-1', userId: 'user-1' }); // delivered
+    });
+  });
 });
