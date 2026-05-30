@@ -1,5 +1,18 @@
 "use client";
 
+/**
+ * DoctorBookingPanel — full self-contained booking flow for a doctor's detail page.
+ *
+ * Rendered inside DoctorBookingCard. Guides the patient through three steps in one panel:
+ *   1. Calendar date selection (BookingCalendar)
+ *   2. Time slot selection from the filtered slots for that day
+ *   3. Reason-for-visit form that POSTs to /appointments
+ *
+ * When `isAuthenticated` is false the "Confirm Booking" button becomes "Sign In to Book"
+ * and redirects to /login with the current path as callbackUrl — the reason field is
+ * hidden entirely in that state so unauthenticated users see a minimal CTA.
+ */
+
 import React, { useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -11,6 +24,14 @@ import { formatPHTime } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 import type { AvailabilitySlot } from "@/types/api";
 
+/**
+ * Orchestrates the patient booking flow: date → time slot → reason → confirm.
+ *
+ * @param slots - All available slots for this doctor, pre-fetched by the page.
+ * @param isAuthenticated - When false, bypasses the form and redirects to login
+ *   instead of submitting; defaults to true so the panel is fully functional for
+ *   authenticated sessions.
+ */
 export function DoctorBookingPanel({
   slots,
   isAuthenticated = true,
@@ -29,6 +50,7 @@ export function DoctorBookingPanel({
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
 
+  // Filter and sort slots for the selected day so they display chronologically.
   const slotsForDay = useMemo(() => {
     if (!selectedDateKey) return [];
     return slots

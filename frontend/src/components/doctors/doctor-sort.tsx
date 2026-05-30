@@ -1,3 +1,13 @@
+/**
+ * DoctorSort — dropdown sort control for the doctor discovery list.
+ *
+ * Renders a Radix DropdownMenu.RadioGroup with the six sort options defined by
+ * `SortOption`. The selected option is shown inline in the trigger button.
+ * Used beside DoctorFilters in the toolbar row above the doctor card grid.
+ *
+ * Also exports the `SortOption` union type for use by the parent page state.
+ */
+
 import React from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";

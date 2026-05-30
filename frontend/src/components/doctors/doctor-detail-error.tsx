@@ -1,3 +1,11 @@
+/**
+ * DoctorDetailError — full-page error state for the doctor detail route.
+ *
+ * Rendered by /doctors/[id] when the doctor cannot be found or the fetch fails.
+ * Preserves the hero gradient header for visual consistency and displays an
+ * error icon with a configurable message and a "Return to Directory" button.
+ */
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";

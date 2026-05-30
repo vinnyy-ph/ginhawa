@@ -1,3 +1,16 @@
+/**
+ * DoctorTodaySchedule — main content area of the doctor dashboard showing today's appointments.
+ *
+ * Renders the list of appointments for the current day with patient name, time,
+ * and status badge. A "Join" button appears for CONFIRMED appointments within the
+ * ±15-minute window of the slot start time, enabling the doctor to enter the
+ * consultation room at the right moment.
+ *
+ * @param appointments - Today's appointments, already filtered to the current date by the page.
+ * @param now - Current timestamp (ms) passed from the page so the join-button
+ *   window calculation stays consistent with the server render time.
+ */
+
 import Link from "next/link";
 import { CalendarIcon, ClockIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +75,7 @@ export function DoctorTodaySchedule({
                   <Badge variant={statusColors[appt.status] || "outline"}>
                     {appt.status}
                   </Badge>
+                  {/* Show "Join" only within the 15-minute lead-up to the slot and until it ends. */}
                   {appt.status === 'CONFIRMED' && appt.slot &&
                     now >= new Date(appt.slot.startTime).getTime() - 15 * 60 * 1000 &&
                     now <= new Date(appt.slot.endTime).getTime() && (

@@ -1,3 +1,11 @@
+/**
+ * HowItWorksSection — 3-step explainer on the public landing page.
+ *
+ * Walks prospective users through the core patient journey: describe symptoms,
+ * get matched, book a video consultation. Arrow separators between steps are
+ * hidden on mobile (horizontal layout) and replaced by vertical flow. Used on
+ * the public home page between the features grid and testimonials.
+ */
 import { ChatBubbleIcon, MagicWandIcon, VideoIcon, ArrowRightIcon } from "@radix-ui/react-icons";
 import { FadeIn } from "@/components/ui/fade-in";
 
@@ -22,6 +30,7 @@ const steps = [
   },
 ];
 
+/** Renders the 3-step patient journey with staggered FadeIn and arrow connectors. */
 export function HowItWorksSection() {
   return (
     <section className="py-16 bg-surface sm:py-20">

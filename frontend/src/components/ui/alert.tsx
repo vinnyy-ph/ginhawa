@@ -1,3 +1,7 @@
+/**
+ * Alert — inline status banner with error / success / warning variants.
+ * Renders the appropriate Radix icon and an optional dismiss button.
+ */
 import { cn } from "@/lib/utils";
 import {
   CheckCircledIcon,

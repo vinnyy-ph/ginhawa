@@ -1,3 +1,12 @@
+/**
+ * DoctorStatsRow — at-a-glance KPI strip at the top of the doctor dashboard.
+ *
+ * Displays three clickable stat cards: total appointments, pending requests
+ * (highlighted in warning colour), and confirmed appointments today
+ * (highlighted in primary colour). Each card links to the appointments list,
+ * pre-filtered by the relevant status via query string.
+ */
+
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { CalendarIcon, BellIcon } from "@radix-ui/react-icons";

@@ -1,5 +1,16 @@
 'use client';
 
+/**
+ * DashboardLayout — top-level shell for all authenticated dashboard pages.
+ *
+ * Composes the fixed DashboardSidebar (desktop), MobileBottomNav + MobileTopHeader
+ * (mobile), and a scrollable main content area. Reads session and notification
+ * state to compute live badge counts shown on sidebar and mobile nav links.
+ *
+ * Used by both patient pages (role="patient") and doctor pages (role="doctor");
+ * the role prop switches which nav items are rendered.
+ */
+
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { doctorNav, patientNav, patientMobileNav } from './dashboard-nav';
@@ -14,6 +25,10 @@ interface DashboardLayoutProps {
   role: 'patient' | 'doctor';
 }
 
+/**
+ * Renders the full dashboard shell: sidebar, mobile header, mobile bottom nav,
+ * skip-navigation link for accessibility, and the page content slot.
+ */
 export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -24,6 +39,8 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
     usePatientSidebarData(role);
   const { unreadCount } = useNotifications();
 
+  // Maps nav hrefs to live badge counts: upcoming appointments and unread
+  // notifications. Doctors have no badges — their getBadge always returns 0.
   const getPatientBadge = (href: string): number => {
     if (href === '/appointments') return upcomingCount;
     if (href === '/notifications') return unreadCount;

@@ -1,3 +1,8 @@
+/**
+ * Button — polymorphic button primitive with cva variants (default, destructive,
+ * outline, secondary, ghost, link) and sizes (sm, default, lg, icon).
+ * Pass `asChild` to render as any element via Radix Slot (e.g. a Next.js Link).
+ */
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";

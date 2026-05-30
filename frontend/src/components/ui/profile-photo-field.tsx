@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * ProfilePhotoField — avatar preview with an immediate-upload file picker.
+ * Validates type (JPEG/PNG/WebP) and size (≤ 5 MB) client-side, shows a local
+ * preview optimistically, then uploads via apiUpload and calls `onChange` with
+ * the returned CDN URL. Set `readOnly` to suppress the picker button.
+ */
 import { useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { apiUpload, ApiError } from '@/lib/api-client';

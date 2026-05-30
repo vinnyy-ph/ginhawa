@@ -1,5 +1,10 @@
 'use client'
 
+/**
+ * TimeField — accessible time input built on React Aria Components.
+ * Accepts and emits 24-hour "HH:mm" strings; renders in 12-hour (AM/PM)
+ * display format. Internally converts to/from @internationalized/date Time.
+ */
 import { TimeField as AriaTimeField, DateInput, DateSegment } from 'react-aria-components'
 import { parseTime, type Time } from '@internationalized/date'
 import { cn } from '@/lib/utils'

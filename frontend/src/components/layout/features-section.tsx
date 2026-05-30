@@ -1,3 +1,10 @@
+/**
+ * FeaturesSection — four-feature grid on the public landing page.
+ *
+ * Highlights the platform's core capabilities (Symptom Matching, Scheduling,
+ * Consultations, Health Records) as numbered icon cards. Used on the public
+ * home page between the hero and the how-it-works section.
+ */
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MagnifyingGlassIcon, CalendarIcon, VideoIcon, ClipboardIcon } from "@radix-ui/react-icons";
 import { FadeIn } from "@/components/ui/fade-in";
@@ -33,6 +40,7 @@ const features = [
   },
 ];
 
+/** Renders a 4-column grid of feature cards with stepped fade-in animations. */
 export function FeaturesSection() {
   return (
     <section id="features" className="py-20 bg-surface">

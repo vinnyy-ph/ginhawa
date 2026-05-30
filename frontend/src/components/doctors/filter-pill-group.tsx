@@ -1,3 +1,11 @@
+/**
+ * FilterPillGroup — reusable single-select option group used inside DoctorFilters.
+ *
+ * Renders a labelled set of toggle buttons in either pill (horizontal wrap) or
+ * grid (2-column) layout, controlled by the `shape` prop. Used for availability
+ * window, consultation fee range, and experience level filter sections.
+ */
+
 import { cn } from "@/lib/utils";
 
 interface PillOption {

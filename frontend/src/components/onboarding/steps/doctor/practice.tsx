@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * PracticeStep — doctor onboarding, step 4 of 5 ("Practice Details").
+ *
+ * Collects optional practice information: professional bio (required for this
+ * step), consultation focus areas (chip-selectable + free text), consultation
+ * fee in Philippine Pesos, and availability summary. All data is merged into
+ * the doctor onboarding context and the flow advances to the review step.
+ */
 import { useState } from 'react';
 import { useDoctorOnboarding } from '@/providers/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
@@ -11,6 +19,12 @@ import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding
 
 const COMMON_FOCUS = ['Preventive Care', 'Chronic Disease Management', 'Lifestyle & Nutrition', 'Mental Health'];
 
+/**
+ * Renders the practice details form. Bio is required; all other fields are
+ * optional and stored as-is (fee is parsed to a float or null, focus areas
+ * are stored as a comma-separated string to match the shared `DoctorOnboardingData`
+ * shape used by both this step and the review inline editor).
+ */
 export function PracticeStep({ nav }: { nav: OnboardingNavType }) {
   const { data, update } = useDoctorOnboarding();
 

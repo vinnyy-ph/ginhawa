@@ -1,6 +1,15 @@
+/**
+ * Footer — site-wide footer for public landing pages.
+ *
+ * Renders the Ginhawa brand, a product links column, a legal links column,
+ * and a copyright line. Legal pages (Privacy Policy, Terms of Service) are
+ * not yet live — they are rendered as non-linked spans. Used on the marketing
+ * home page and other public routes.
+ */
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 
+/** Renders the four-column footer with brand, links, and dynamic copyright year. */
 export function Footer() {
   return (
     <footer className="bg-background border-t border-outline-variant py-12">

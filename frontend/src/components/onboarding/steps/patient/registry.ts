@@ -1,3 +1,14 @@
+/**
+ * Patient onboarding step registry — patient flow.
+ *
+ * Single source of truth for step order, slugs, titles, and components in the
+ * patient onboarding flow. To add, remove, or reorder a step, edit this file
+ * only — the page shell reads `PATIENT_STEPS` at runtime to drive navigation,
+ * progress indicators, and the guard (`firstIncompletePatientSlug`).
+ *
+ * Steps 2–5 are all optional (skippable via `nav.goToReview()`); only step 1
+ * ("personal") is required by the guard before the patient may advance.
+ */
 import type { StepDef } from '@/components/onboarding/steps/types';
 import { PersonalStep } from './personal';
 import { LocationStep } from './location';

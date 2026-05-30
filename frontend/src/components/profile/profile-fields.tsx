@@ -1,3 +1,13 @@
+/**
+ * profile-fields — shared presentational primitives and reference data for the patient profile cards.
+ *
+ * Exports:
+ *   - Constant arrays (BLOOD_TYPES, SMOKING_OPTIONS, COMMON_ALLERGIES, etc.)
+ *     used as quick-pick chip suggestions in MedicalHistoryCard.
+ *   - Pure helpers (toItems, toggleChip) for managing comma-separated string fields.
+ *   - Micro-components (Empty, StatCell, InfoRow, PillList) reused across all
+ *     three profile cards (IdentityCard, LocationInsuranceCard, MedicalHistoryCard).
+ */
 // Shared presentational primitives + option data for the patient profile cards.
 
 export const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"];
@@ -22,6 +32,7 @@ export const toggleChip = (value: string, current: string, setter: (v: string) =
   setter(next.join(", "));
 };
 
+/** Italic placeholder rendered when a profile field has no value. */
 export function Empty() {
   return <span className="text-on-surface-variant/40 italic text-sm">Not set</span>;
 }

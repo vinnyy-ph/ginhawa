@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * BodyMetricsStep — patient onboarding, step 3 of 6 ("Body Metrics").
+ *
+ * Collects weight and height with on-the-fly unit conversion (kg ↔ lbs,
+ * cm ↔ ft). Values are always stored in SI units (kg, cm) in the onboarding
+ * context regardless of which unit the patient enters. A live BMI preview is
+ * shown when both fields are valid. The step is skippable.
+ */
 import { useState, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -49,6 +57,12 @@ function UnitToggle({
   );
 }
 
+/**
+ * Renders weight and height inputs with unit toggles and a live BMI indicator.
+ * `displayWeight`/`displayHeight` hold the user-facing converted value while
+ * react-hook-form's internal fields always hold SI values — this separation
+ * avoids cumulative float drift when the user switches units mid-entry.
+ */
 export function BodyMetricsStep({ nav }: { nav: OnboardingNavType }) {
   const { data, update } = useOnboarding();
   const [weightUnit, setWeightUnit] = useState<WeightUnit>('kg');

@@ -1,3 +1,8 @@
+/**
+ * Card — surface container primitives: Card, CardHeader, CardTitle,
+ * CardDescription, CardContent, CardFooter. All are forwardRef divs
+ * composable into any layout.
+ */
 import * as React from "react";
 import { cn } from "@/lib/utils";
 

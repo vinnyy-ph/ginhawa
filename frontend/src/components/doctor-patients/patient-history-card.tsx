@@ -1,3 +1,12 @@
+/**
+ * PatientHistoryCard — collapsible card representing a single appointment in a patient's history.
+ *
+ * Displays the appointment date, time, and status badge in the card header.
+ * Expands to show the reason for visit and full ConsultationDetails (notes,
+ * recommendations, prescriptions). Used in the list on the doctor's patient
+ * detail page.
+ */
+
 import { Badge } from "@/components/ui/badge";
 import { FileTextIcon } from "@radix-ui/react-icons";
 import { formatPHTime, formatPHDate } from "@/lib/datetime";

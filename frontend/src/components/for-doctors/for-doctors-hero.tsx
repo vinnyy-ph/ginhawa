@@ -1,3 +1,12 @@
+/**
+ * ForDoctorsHero — above-the-fold hero section of the /for-doctors marketing page.
+ *
+ * Two-column layout: left side has headline copy, primary/secondary CTAs, and a
+ * three-item feature checklist; right side is a mock "Clinic Day Snapshot" card
+ * that illustrates the dashboard experience without live data. Background uses
+ * layered radial gradients for the brand teal ambiance.
+ */
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

@@ -1,3 +1,12 @@
+/**
+ * ReviewMedicalRows — patient onboarding, review step (shared sub-component).
+ *
+ * Renders the optional medical history fields (blood type, smoking status,
+ * allergies, chronic conditions, medications, past surgeries, family history)
+ * as inline-editable rows inside the patient review card. Returns null when
+ * no medical data was entered, matching the same guard pattern used by
+ * ReviewLocationInsuranceRows.
+ */
 import type { OnboardingData } from "@/types/patient-profile";
 import { EditableRow, editInputClass } from "@/components/ui/editable-row";
 import { cn } from "@/lib/utils";
@@ -15,7 +24,13 @@ interface Props {
   update: (patch: Partial<OnboardingData>) => void;
 }
 
+/**
+ * Conditionally renders medical history rows inside the patient review card.
+ * Past surgeries and family history rows are additionally suppressed when
+ * their individual values are empty, keeping the card tidy for partial entries.
+ */
 export function ReviewMedicalRows({ data, update }: Props) {
+  // Guard: suppress the entire section when the patient skipped all medical fields.
   const hasMedical =
     !!(data.bloodType || data.allergies || data.chronicConditions || data.currentMedications ||
        data.pastSurgeries || data.familyHistory || data.smokingStatus);

@@ -1,5 +1,17 @@
 "use client";
 
+/**
+ * BookingCalendar — patient-facing date picker for selecting an appointment date.
+ *
+ * Used inside DoctorBookingPanel and RescheduleDialog. Renders a react-aria
+ * Calendar constrained to PH timezone, with only dates that have at least one
+ * available slot selectable; all other dates are marked unavailable and struck
+ * through.
+ *
+ * Also exports `phDateKey`, a shared utility for converting an ISO timestamp
+ * to a Philippine local date string (YYYY-MM-DD) used throughout the booking flow.
+ */
+
 import React, { useMemo } from "react";
 import {
   Calendar,
@@ -17,7 +29,8 @@ import { cn } from "@/lib/utils";
 import type { AvailabilitySlot } from "@/types/api";
 
 const PH_TZ = "Asia/Manila";
-// en-CA yields YYYY-MM-DD, matching CalendarDate.toString().
+// en-CA locale formats dates as YYYY-MM-DD, which matches CalendarDate.toString()
+// used by react-aria — keeps date key comparison straightforward.
 const keyFmt = new Intl.DateTimeFormat("en-CA", {
   timeZone: PH_TZ,
   year: "numeric",
@@ -36,6 +49,11 @@ interface BookingCalendarProps {
   onSelectDate: (dateKey: string) => void;
 }
 
+/**
+ * Renders a single-month calendar where only dates with available slots are
+ * clickable. Past dates are blocked via `minValue`; dates without slots are
+ * marked unavailable (struck through) by `isDateUnavailable`.
+ */
 export function BookingCalendar({
   slots,
   selectedDateKey,

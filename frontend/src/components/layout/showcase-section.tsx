@@ -1,6 +1,16 @@
+/**
+ * ShowcaseSection — design/UI pitch section on the public landing page.
+ *
+ * Two-column layout: left column lists design principles (mobile-responsive,
+ * high contrast, guided workflows, real-time updates); right column renders
+ * a CSS-only app mockup using surface tokens and placeholder shapes — no real
+ * screenshots required. Used on the public home page between the how-it-works
+ * section and testimonials.
+ */
 import { FadeIn } from "@/components/ui/fade-in";
 import { Logo } from "@/components/ui/logo";
 
+/** Renders the UX pitch with a bullet list and a CSS-only app mockup preview. */
 export function ShowcaseSection() {
   return (
     <section className="py-20 bg-background overflow-hidden">

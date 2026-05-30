@@ -1,3 +1,11 @@
+/**
+ * PatientContextPanel — read-only patient summary panel for the doctor's consultation sidebar.
+ *
+ * Exports the PatientContext shape and a component that renders name, age
+ * (calculated from birthdate), weight, height, and medical history. Shown
+ * in the "Patient" tab of ConsultationDoctorSidebar during a live video call.
+ */
+
 export interface PatientContext {
   fullName: string;
   medicalHistory: string | null;
@@ -6,6 +14,10 @@ export interface PatientContext {
   birthdate: string;
 }
 
+/**
+ * Renders basic patient demographics and medical history for the doctor to
+ * reference during a call. Age is derived on render from the stored birthdate.
+ */
 export function PatientContextPanel({ patientContext }: { patientContext: PatientContext | null }) {
   if (!patientContext) {
     return <p className="text-on-surface-variant text-center py-8">No patient data available.</p>;

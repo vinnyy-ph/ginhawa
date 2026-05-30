@@ -1,8 +1,19 @@
+/**
+ * WelcomeStep — the opening screen of the context-aware recommendation wizard.
+ *
+ * Shows a brief introduction to the symptom checker, a mandatory medical
+ * disclaimer card, and a "Start Symptom Check" CTA that advances the wizard
+ * to the SymptomsStep. Used inside the /recommendations page.
+ */
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FadeIn } from "@/components/ui/fade-in";
 import { ChatBubbleIcon, InfoCircledIcon } from "@radix-ui/react-icons";
 
+/**
+ * Renders the welcome hero, a regulatory disclaimer, and the entry CTA for the
+ * recommendation wizard. Contains no state of its own.
+ */
 export function WelcomeStep({ onStart }: { onStart: () => void }) {
   return (
     <FadeIn>

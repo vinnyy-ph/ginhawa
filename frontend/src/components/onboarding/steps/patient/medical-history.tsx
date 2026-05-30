@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * MedicalHistoryStep — patient onboarding, step 4 of 6 ("Medical History").
+ *
+ * Collects optional health context: blood type, smoking status, allergies,
+ * chronic conditions, current medications, past surgeries, and family history.
+ * List fields (allergies, conditions, medications) support quick-pick chip
+ * toggles backed by comma-separated strings in context. The step is skippable.
+ */
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -26,6 +34,11 @@ const COMMON_ALLERGIES = ['Penicillin', 'Seafood', 'Peanuts', 'Aspirin'];
 const COMMON_CONDITIONS = ['Hypertension', 'Diabetes', 'Asthma', 'High Cholesterol'];
 const COMMON_MEDICATIONS = ['Metformin', 'Amlodipine', 'Losartan', 'Salbutamol'];
 
+/**
+ * Renders the medical history form with chip-selectable list fields. Uses
+ * `useWatch` (not the subscription-based `watch()`) for chip re-render so
+ * the React Compiler can still optimise the component without bailouts.
+ */
 export function MedicalHistoryStep({ nav }: { nav: OnboardingNavType }) {
   const { data, update } = useOnboarding();
 

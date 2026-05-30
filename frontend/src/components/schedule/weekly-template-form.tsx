@@ -1,5 +1,21 @@
 "use client";
 
+/**
+ * WeeklyTemplateForm — bulk slot generator for the doctor schedule page.
+ *
+ * Allows a doctor to define a repeating weekly availability template and generate
+ * many slots at once rather than adding them one by one. Configuration covers:
+ * which days of the week, a start date, number of weeks to repeat, daily work
+ * window (start/end), slot length (30 or 60 min), and an optional daily break
+ * window that is excluded from slot generation.
+ *
+ * Slot count is previewed live via `generateSlots` (from lib/generate-slots) and
+ * capped at MAX_BULK_SLOTS (1000) to prevent accidental mass creation. The actual
+ * API call is delegated to `onGenerate` so the page holds the session token.
+ *
+ * Embedded inside ScheduleCalendar's collapsible recurring panel.
+ */
+
 import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";

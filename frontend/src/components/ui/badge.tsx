@@ -1,3 +1,7 @@
+/**
+ * Badge — small label chip with cva-driven variants (default, secondary,
+ * destructive, outline, success, info) for status and categorisation tags.
+ */
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";

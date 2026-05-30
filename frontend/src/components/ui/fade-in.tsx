@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * FadeIn — Framer Motion entrance animation wrapper. Fades in from opacity 0
+ * and slides from the specified direction; triggers once when the element
+ * scrolls into view (viewport margin −100 px).
+ */
 import { motion } from "framer-motion";
 import { ReactNode } from "react";
 

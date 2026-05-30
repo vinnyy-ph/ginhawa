@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * PersonalStep — patient onboarding, step 1 of 6 ("Personal Information").
+ *
+ * The only required step in the patient flow. Collects full name, date of
+ * birth (capped at today via `localTodayISO`), and a 10-digit Philippine
+ * mobile number (stored digits-only, displayed spaced). Zod schema validation
+ * via react-hook-form gates `nav.goNext()`. The onboarding guard also uses the
+ * same `step1Schema` to determine whether a patient may skip ahead.
+ */
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { step1Schema, type Step1Schema } from '@/lib/schemas/onboarding.schemas';
@@ -13,6 +22,12 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { formatPhone } from '@/lib/format';
 import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 
+/**
+ * Renders the personal information form (name, date of birth, contact number).
+ * The phone field stores raw digits (no leading zero, max 10) in context while
+ * `formatPhone` drives the human-readable display — separating storage format
+ * from display format without a second state variable.
+ */
 export function PersonalStep({ nav }: { nav: OnboardingNavType }) {
   const { data, update } = useOnboarding();
 

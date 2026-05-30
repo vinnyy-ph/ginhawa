@@ -1,4 +1,10 @@
 // frontend/src/components/ui/review-id-card.tsx
+/**
+ * ReviewIdCard — full-bleed "ID card" hero for onboarding review steps.
+ * Combines an inline photo uploader (file picker + CameraCapture) with a
+ * teal gradient header showing name and status, followed by a responsive grid
+ * of EditableRow children. Also exports ReviewErrorAlert for review-step errors.
+ */
 'use client';
 
 import * as React from 'react';

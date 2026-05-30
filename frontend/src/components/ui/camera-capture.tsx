@@ -1,4 +1,9 @@
 // frontend/src/components/ui/camera-capture.tsx
+/**
+ * CameraCapture — modal dialog for capturing a photo from the device camera.
+ * Manages getUserMedia lifecycle, front/rear camera toggling, and canvas-based
+ * JPEG export. Falls back gracefully when camera is unavailable or denied.
+ */
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';

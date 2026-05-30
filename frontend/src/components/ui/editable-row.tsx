@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * EditableRow — inline edit pattern for profile review grids.
+ * Displays a labelled value with an EDIT button; clicking EDIT opens an
+ * in-place editor rendered by the caller's `render` prop. SAVE runs optional
+ * `validate()` before committing; on failure the editor stays open with an
+ * error message. CANCEL discards the draft.
+ */
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 

@@ -1,7 +1,15 @@
+/**
+ * ConsultationContextCard — read-only summary header for the finalize record page.
+ *
+ * Displays the patient's name, consultation date, and reason for visit at the
+ * top of the /doctor/finalize/[id] page so the doctor has context while
+ * reviewing the AI-generated clinical draft.
+ */
 import { CalendarIcon, PersonIcon } from "@radix-ui/react-icons";
 import { formatPHDate } from "@/lib/datetime";
 import type { Appointment } from "@/types/api";
 
+/** Renders a compact identity + slot summary card at the top of the finalize page. */
 export function ConsultationContextCard({ appointment }: { appointment: Appointment }) {
   const pat = appointment.patient;
   const slot = appointment.slot;

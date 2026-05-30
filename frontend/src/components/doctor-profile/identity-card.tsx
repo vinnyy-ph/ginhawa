@@ -1,3 +1,13 @@
+/**
+ * DoctorIdentityCard — top card of the doctor profile edit page showing personal and professional identity.
+ *
+ * Renders a profile photo (via ProfilePhotoField with upload support), full name,
+ * professional title, specialization badge, and a professional bio textarea.
+ * Toggles between editable inputs and a read-only display based on `isEditing`.
+ * The coloured accent strip at the top reinforces the brand gradient used across
+ * other doctor-facing pages.
+ */
+
 import { FormField } from "@/components/ui/form-field";
 import { ProfilePhotoField } from "@/components/ui/profile-photo-field";
 import { onboardingInputClass, onboardingTextareaClass } from "@/components/ui/onboarding-styles";

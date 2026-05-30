@@ -1,3 +1,19 @@
+/**
+ * DoctorFilters — slide-in filter drawer for the doctor discovery page.
+ *
+ * Opens as a Radix Dialog panel from the right on all screen sizes. Exposes
+ * six filter dimensions: specialization, location, availability window, fee
+ * range, experience level, and languages spoken. Changes are applied in bulk
+ * when the user taps "Show Results", keeping local draft state separate from
+ * the committed FilterState so dismissing the drawer discards unsaved edits.
+ *
+ * Also exports `FilterState` and `defaultFilters` for use by the parent page.
+ *
+ * @param onFiltersChange - Called with the full FilterState when the user applies filters.
+ * @param availableSpecializations / availableLocations / availableLanguages -
+ *   Derived from the current doctor list on the page; only populated options are shown.
+ */
+
 import React, { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Checkbox from "@radix-ui/react-checkbox";
@@ -42,7 +58,8 @@ export function DoctorFilters({
   const [open, setOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState<FilterState>(filters);
 
-  // Sync local state when prop changes from outside (e.g. clear filters)
+  // Keep localFilters in sync when the parent resets filters externally
+  // (e.g. a "Clear all" button outside the drawer).
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalFilters(filters);

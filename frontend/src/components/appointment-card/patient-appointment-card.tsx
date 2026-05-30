@@ -1,3 +1,12 @@
+/**
+ * PatientAppointmentCard — collapsible appointment card rendered from the patient's perspective.
+ *
+ * Shows doctor name, specialization, and slot date/time in an always-visible
+ * header. Expanding the card reveals the booking reference, actions (Reschedule,
+ * Cancel, Join Consultation) and — for completed appointments — a link to the
+ * medical record. The "Join" button is time-gated by isWithinJoinWindow. Used
+ * on the patient appointments page (/appointments).
+ */
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +17,11 @@ import { formatPHTime, formatPHDate } from "@/lib/datetime";
 import { RescheduleDialog } from "@/components/booking/reschedule-dialog";
 import { isWithinJoinWindow, statusConfig, type AppointmentCardBodyProps } from "./appointment-card.helpers";
 
+/**
+ * Renders an expand/collapse card with the patient-facing appointment summary
+ * and contextual actions. A 30-second interval keeps join-window state current
+ * without a full data refetch.
+ */
 export function PatientAppointmentCard({
   appointment: appt,
   isExpanded = false,
@@ -138,6 +152,9 @@ export function PatientAppointmentCard({
                         </button>
                       </div>
                     )}
+                    {/* Inform the patient when the join window opens; the
+                        "Join" button only replaces this message once the
+                        window is active (checked against the live `now` tick). */}
                     {appt.status === "CONFIRMED" && !isWithinJoinWindow(appt) && slot && now < new Date(slot.startTime).getTime() && (
                       <span className="text-xs font-semibold text-on-surface-variant self-center">
                         Join opens at {formatPHTime(slot.startTime)} (PHT)

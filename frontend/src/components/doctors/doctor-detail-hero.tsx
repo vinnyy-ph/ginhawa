@@ -1,3 +1,15 @@
+/**
+ * DoctorDetailHero — full-width gradient hero banner at the top of a doctor's profile page.
+ *
+ * Displays the doctor's avatar (photo or initials), PRC verified badge, name,
+ * professional title, specialization, and location. Below the name a stats bar
+ * surfaces key metrics (average rating, experience, fee per session, next
+ * available slot) as a frosted-glass strip — items are omitted when data is absent
+ * rather than showing empty placeholders.
+ *
+ * Used as the top section of /doctors/[id] above the two-column content area.
+ */
+
 import Link from "next/link";
 import { ArrowLeftIcon, CalendarIcon } from "@radix-ui/react-icons";
 import type { DoctorProfile } from "@/types/api";
@@ -14,6 +26,8 @@ export function DoctorDetailHero({ doctor }: { doctor: DoctorProfile }) {
   const avail = getEarliestAvailability(doctor.availabilitySlots);
   const availBadge = availabilityBadge(avail);
 
+  // Build the stats bar conditionally — only include items whose underlying data
+  // exists on the doctor profile to avoid placeholder noise.
   // Stats bar items — only rendered when data is present
   const statsItems: { label: string; value: string; sub?: string }[] = [];
   if (doctor.avgRating) {

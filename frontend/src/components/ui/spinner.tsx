@@ -1,4 +1,5 @@
 // frontend/src/components/ui/spinner.tsx
+/** Spinner — animated SVG loading indicator in three sizes (sm, md, lg). */
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 

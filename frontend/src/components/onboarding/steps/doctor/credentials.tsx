@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * CredentialsStep — doctor onboarding, step 2 of 5 ("Credentials & Licensure").
+ *
+ * Collects and validates PRC license number, PRC expiry date, PTR number, and
+ * practice location (region/city). Zod schema validation via react-hook-form
+ * gates advancement — the PRC license number is a required field and is masked
+ * with `formatPrc` on input. Advancing calls `nav.goNext()` only on valid
+ * submission, and the completed data is merged into the doctor onboarding context.
+ */
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -15,6 +24,12 @@ import { onboardingInputClass } from '@/components/ui/onboarding-styles';
 import { DatePicker } from '@/components/ui/date-picker';
 import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 
+/**
+ * Renders the credentials form (PRC license number/expiry, PTR number, region,
+ * city). Uses react-hook-form with `zodResolver` so that the `doctorCredentialsSchema`
+ * is the single validation source for both this step and the `guard.ts` check
+ * — ensuring the guard and the form agree on what "complete" means.
+ */
 export function CredentialsStep({ nav }: { nav: OnboardingNavType }) {
   const { data, update } = useDoctorOnboarding();
   const today = localTodayISO();

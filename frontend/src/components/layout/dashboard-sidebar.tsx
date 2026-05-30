@@ -1,3 +1,13 @@
+/**
+ * DashboardSidebar — fixed left-rail navigation for authenticated desktop users.
+ *
+ * Renders the Ginhawa brand mark, a role-aware identity card (patient profile
+ * completion progress or doctor portal badge), the full nav link list with live
+ * badge indicators, and a user section with avatar and logout button.
+ *
+ * Hidden on mobile (lg:flex); mobile navigation is handled by MobileBottomNav
+ * and MobileTopHeader. Used exclusively by DashboardLayout.
+ */
 import Link from 'next/link';
 import { ExitIcon, PersonIcon } from '@radix-ui/react-icons';
 import { Logo } from '@/components/ui/logo';
@@ -18,6 +28,11 @@ interface DashboardSidebarProps {
   onLogout: () => void;
 }
 
+/**
+ * Renders the full sidebar with brand, identity card, nav links (with active
+ * highlight and badge pill), and logout. Profile completion bar only shows for
+ * patients with a partially filled profile (0 < completion < 100).
+ */
 export function DashboardSidebar({
   role,
   pathname,
@@ -93,6 +108,8 @@ export function DashboardSidebar({
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label="Dashboard navigation">
         {navItems.map((item) => {
+          // Exact match for root-level home paths to prevent them from
+          // highlighting on every nested route.
           const isActive =
             item.href === '/' || item.href === '/doctor/dashboard'
               ? pathname === item.href

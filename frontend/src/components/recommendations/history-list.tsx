@@ -1,8 +1,17 @@
+/**
+ * HistoryList — sidebar log of a patient's past symptom-checker sessions.
+ *
+ * Displays each RecommendationLog entry with the original symptom snippet,
+ * the AI explanation, and the matched specialization badge. Each row links
+ * to /doctors so the patient can re-browse that specialty. Rendered below
+ * the main wizard on the /recommendations page when history is available.
+ */
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { ActivityLogIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import type { RecommendationLog } from "@/types/api";
 
+/** Renders a scrollable list of past recommendation sessions for the patient. */
 export function HistoryList({ history }: { history: RecommendationLog[] }) {
   return (
     <div className="pt-8 border-t border-outline-variant/30">

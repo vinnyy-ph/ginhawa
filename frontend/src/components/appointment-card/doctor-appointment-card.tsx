@@ -1,3 +1,12 @@
+/**
+ * DoctorAppointmentCard — appointment card rendered from the doctor's perspective.
+ *
+ * Displays the patient name, slot date/time, and reason for visit. Provides
+ * inline status-management actions (Decline with optional reason, Confirm,
+ * Cancel, Reschedule) and time-gated "Join Consultation" / "Complete & Document"
+ * buttons driven by isWithinJoinWindow and hasConsultEnded. Used on the doctor
+ * appointments page (/doctor/appointments).
+ */
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +22,11 @@ import {
   type AppointmentCardBodyProps,
 } from "./appointment-card.helpers";
 
+/**
+ * Renders a compact doctor-side card with real-time join/finalize action
+ * availability. A 30-second interval forces re-evaluation of time-dependent
+ * button visibility without requiring a parent refresh.
+ */
 export function DoctorAppointmentCard({
   appointment: appt,
   isUpdating = false,

@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * PersonalStep — doctor onboarding, step 1 of 5 ("Personal Information").
+ *
+ * Collects the doctor's full name, professional title, and an optional profile
+ * photo. Photo upload is handled inline (file picker or camera capture) with
+ * client-side type/size validation before POSTing to `/uploads/profile-picture`.
+ * On success the CDN URL is persisted to the doctor onboarding context and the
+ * flow advances to the credentials step.
+ */
 import { useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useDoctorOnboarding } from '@/providers/doctor-onboarding-context';
@@ -14,6 +23,12 @@ import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+/**
+ * Renders the personal information form (name, title, photo) for step 1 of
+ * the doctor onboarding flow. Uses uncontrolled local state rather than RHF
+ * because the photo upload is async — validation and navigation are gated on
+ * the upload resolving before `nav.goNext()` is called.
+ */
 export function PersonalStep({ nav }: { nav: OnboardingNavType }) {
   const { data: session } = useSession();
   const { data, update } = useDoctorOnboarding();

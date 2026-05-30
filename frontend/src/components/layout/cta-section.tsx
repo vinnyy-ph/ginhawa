@@ -1,7 +1,15 @@
+/**
+ * CTASection — bottom-of-page call-to-action for the public landing page.
+ *
+ * Prompts unauthenticated visitors to start a symptom check or browse all
+ * doctors. The skewed background block adds visual separation from the section
+ * above. Used near the bottom of the public home page (/).
+ */
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/ui/fade-in";
 
+/** Renders the conversion CTA with symptom-checker and doctor-browse buttons. */
 export function CTASection() {
   return (
     <section className="py-20 bg-background relative overflow-hidden">

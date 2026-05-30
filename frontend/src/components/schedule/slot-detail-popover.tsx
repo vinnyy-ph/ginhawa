@@ -1,5 +1,18 @@
 "use client"
 
+/**
+ * SlotDetailPopover — per-slot action popover for the doctor schedule calendar views.
+ *
+ * Wraps any slot block element (month or week view) in a Radix Popover that shows
+ * the slot's time range, status badge, and action buttons. BOOKED slots show the
+ * patient name and a read-only notice. Non-booked slots offer Block/Unblock and
+ * Delete — delete requires a two-step confirmation within the same popover.
+ *
+ * @param patientName - Name of the booked patient, if any; shown only for BOOKED status.
+ * @param onStatusChange - Toggles the slot between AVAILABLE and BLOCKED.
+ * @param onDelete - Permanently removes the slot; called after inline confirmation.
+ */
+
 import { useState } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"

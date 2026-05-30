@@ -1,5 +1,15 @@
+/**
+ * patient-history-utils — shared helpers for the doctor patient history view.
+ *
+ * `patientAge` computes a patient's current age from their birthdate string.
+ * `appointmentText` builds a flattened, lowercased search corpus from an
+ * appointment and its medical record so the patient detail page can filter
+ * appointments client-side by free-text search without additional API calls.
+ */
+
 import type { Appointment } from "@/types/api";
 
+/** Computes the patient's age in whole years from an ISO birthdate string. Returns null if the date is absent or unparseable. */
 export function patientAge(birthdate?: string): number | null {
   if (!birthdate) return null;
   const b = new Date(birthdate);

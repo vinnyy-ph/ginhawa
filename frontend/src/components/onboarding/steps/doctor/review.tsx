@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * ReviewStep — doctor onboarding, step 5 of 5 ("Review Your Profile").
+ *
+ * Presents a full summary of all collected doctor profile data in the
+ * ReviewIdCard, with inline-editable fields for last-minute corrections.
+ * Submitting calls `POST /doctors/profile`, then refreshes the NextAuth
+ * session (so the JWT reflects the new display name) and redirects to
+ * `/doctor/dashboard`. Profile photo can also be replaced inline on this step.
+ */
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -17,6 +26,12 @@ import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+/**
+ * Renders the doctor's full profile summary with all fields inline-editable via
+ * `EditableRow`. On final submission, POSTs all context data to `/doctors/profile`,
+ * refreshes the NextAuth session to propagate the new name into the JWT, and
+ * navigates to the dashboard after a short success-toast delay.
+ */
 export function ReviewStep({ nav }: { nav: OnboardingNavType }) {
   const router = useRouter();
   const { data: session, update: updateSession } = useSession();

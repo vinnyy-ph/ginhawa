@@ -1,4 +1,10 @@
 // frontend/src/components/ui/toast.tsx
+/**
+ * Toast — fixed-position snackbar for success and error notifications.
+ * Auto-dismisses after 4 seconds when `onDismiss` is provided.
+ * Uses role="alert" + aria-live="assertive" for errors, and role="status" +
+ * aria-live="polite" for success, following ARIA live-region best practices.
+ */
 'use client';
 
 import * as React from 'react';

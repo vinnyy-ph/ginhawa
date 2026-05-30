@@ -1,4 +1,9 @@
 // frontend/src/components/ui/form-field.tsx
+/**
+ * FormField — accessible label + input wrapper. Clones `aria-describedby`
+ * and `aria-invalid` onto the single child element so inputs stay connected
+ * to their hint/error text without requiring manual prop wiring.
+ */
 'use client';
 
 import * as React from 'react';

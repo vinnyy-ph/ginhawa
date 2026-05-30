@@ -1,3 +1,15 @@
+/**
+ * DoctorCard — horizontal card representing a single doctor in the discovery list.
+ *
+ * Renders profile photo (or initials avatar), PRC verified badge, name, specialization,
+ * star rating, availability badge, focus area chips (up to 3 + overflow count),
+ * and key metadata (experience, fee, languages). Used in the grid on /doctors.
+ *
+ * @param isPatient - When true the CTA reads "Book Appointment" with full primary
+ *   styling; when false (doctor/guest role) it reads "View Full Profile" in outline
+ *   style. Both link to /doctors/[id].
+ */
+
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -26,6 +38,8 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
 
   const languages = doctor.languagesSpoken ?? [];
 
+  // Compute the availability badge (e.g. "Available Today", "Next: Mon") from
+  // the doctor's raw slot array; logic lives in lib/availability.
   const avail = getEarliestAvailability(doctor.availabilitySlots);
   const badge = availabilityBadge(avail);
 

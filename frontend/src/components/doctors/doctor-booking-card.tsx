@@ -1,3 +1,16 @@
+/**
+ * DoctorBookingCard — sticky sidebar card wrapping the booking flow on a doctor's detail page.
+ *
+ * Guards access by role: doctors see an explanatory message and cannot book
+ * (they must use a patient account). Patients and unauthenticated visitors see
+ * DoctorBookingPanel. The card is `sticky top-24` so it stays visible while the
+ * user scrolls through DoctorAbout content in the left column.
+ *
+ * @param isAuthenticated - Passed through to DoctorBookingPanel to switch between
+ *   the full booking form and the "Sign In to Book" CTA.
+ * @param isDoctor - When true, replaces the booking panel with a role-mismatch notice.
+ */
+
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { DoctorBookingPanel } from "@/components/booking/doctor-booking-panel";
 import type { AvailabilitySlot } from "@/types/api";

@@ -1,3 +1,13 @@
+/**
+ * IdentityCard — primary patient profile card showing personal identity and body metrics.
+ *
+ * In read mode: renders profile photo, full name, birthdate, and a 4-cell stat
+ * grid (contact, date of birth, weight, height) plus a live BMI badge derived
+ * from weight/height.
+ *
+ * In edit mode: exposes FormField inputs for all fields and recalculates BMI on
+ * every keystroke via useMemo. Used on the patient profile page (/profile).
+ */
 import { useMemo } from "react";
 import { FormField } from "@/components/ui/form-field";
 import { PhoneInput } from "@/components/ui/phone-input";
@@ -15,6 +25,11 @@ interface IdentityCardProps {
   setField: SetProfileField;
 }
 
+/**
+ * Renders the identity section of the patient profile, toggling between a
+ * rich read view and an editable form layout. BMI category coloring is computed
+ * from the WHO cutoffs (underweight < 18.5, normal < 25, overweight < 30, obese).
+ */
 export function IdentityCard({ isEditing, values, setField }: IdentityCardProps) {
   const { fullName, birthdate, contactDigits, weight, height, profilePictureUrl } = values;
 

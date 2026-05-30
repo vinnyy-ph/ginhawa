@@ -1,5 +1,21 @@
 "use client"
 
+/**
+ * ScheduleCalendar — top-level calendar shell for the doctor schedule page.
+ *
+ * Owns the view mode (month / week), the current navigation date, and slot
+ * grouping by date. Provides a header with prev/next navigation, a period label,
+ * a Today shortcut, and a Month/Week toggle. A "⟳ Set recurring" button reveals
+ * the `recurringPanel` (WeeklyTemplateForm) inline below the header.
+ *
+ * Delegates actual slot rendering to MonthView and WeekView, passing through
+ * all slot mutation callbacks (`onSlotChange`, `onStatusChange`, `onDelete`) so
+ * the page remains the single source of truth for the slot list.
+ *
+ * @param recurringPanel - The WeeklyTemplateForm node, rendered as a collapsible
+ *   section inside the calendar header area.
+ */
+
 import { useState, useMemo } from "react"
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons"
 import { Button } from "@/components/ui/button"
@@ -22,6 +38,7 @@ interface ScheduleCalendarProps {
   recurringPanel: React.ReactNode
 }
 
+/** Returns the Sunday that starts the week containing `d`, normalized to midnight. */
 function getWeekStart(d: Date): Date {
   const start = new Date(d)
   start.setDate(d.getDate() - d.getDay())
