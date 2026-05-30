@@ -6,7 +6,6 @@ import {
   MagnifyingGlassIcon,
   PersonIcon,
   ResetIcon,
-  HeartIcon
 } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 
@@ -129,29 +128,24 @@ export default function DoctorsDiscoveryPage() {
     <div className="flex flex-col min-h-screen bg-surface">
       <main className="flex-grow pb-24">
         {/* ── Soft Hero Section ───────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden bg-surface-white border-b border-outline-variant/30 py-16 md:py-24">
+        <section className="relative overflow-hidden bg-surface-white border-b border-outline-variant/30 py-8 md:py-10">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-40 right-[-10%] h-[600px] w-[600px] rounded-full bg-primary/5 blur-3xl" />
-            <div className="absolute top-[20%] left-[-10%] h-[400px] w-[400px] rounded-full bg-secondary-container/10 blur-3xl" />
-            <div className="absolute inset-0 bg-[radial-gradient(1000px_circle_at_50%_0%,rgba(72,202,182,0.04),transparent_80%)]" />
+            <div className="absolute -top-40 right-[-10%] h-[400px] w-[400px] rounded-full bg-primary/5 blur-3xl" />
+            <div className="absolute inset-0 bg-[radial-gradient(800px_circle_at_50%_0%,rgba(72,202,182,0.04),transparent_80%)]" />
           </div>
 
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl text-center md:text-left">
-              <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold tracking-wide uppercase">
-                <HeartIcon className="w-4 h-4" />
-                <span>Our Medical Network</span>
-              </div>
-              <h1 className="text-4xl md:text-6xl font-bold text-text-primary leading-tight font-serif tracking-tight">
+            <div className="max-w-3xl">
+              <h1 className="text-2xl md:text-3xl font-bold text-text-primary leading-tight font-serif tracking-tight">
                 Find the right specialist for your care.
               </h1>
-              <p className="mt-6 text-on-surface-variant text-lg md:text-xl leading-relaxed max-w-2xl">
-                Browse our trusted network of board-certified doctors, read patient reviews, and book a secure teleconsultation when you&apos;re ready.
+              <p className="mt-1.5 text-on-surface-variant text-sm md:text-base max-w-2xl">
+                Board-certified doctors · patient reviews · secure teleconsultation
               </p>
             </div>
 
             {/* Search bar inside hero */}
-            <div className="relative mt-10 max-w-2xl">
+            <div className="relative mt-5 max-w-2xl">
               <div className="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none">
                 <MagnifyingGlassIcon
                   className="w-6 h-6 text-on-surface-variant/60"
