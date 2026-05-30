@@ -1,3 +1,7 @@
+/**
+ * SpecializationsModule — read-only reference data for medical specializations.
+ * Service is not exported; no other module needs to query specializations programmatically.
+ */
 import { Module } from '@nestjs/common';
 import { SpecializationsService } from './specializations.service';
 import { SpecializationsController } from './specializations.controller';
