@@ -1,26 +1,23 @@
 "use client";
 
-import React, { useEffect, useState, use } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { apiRequest } from "@/lib/api-client";
-import { formatPHDate } from '@/lib/datetime';
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import {
   ArrowLeftIcon,
-  CalendarIcon,
-  PersonIcon,
   CheckCircledIcon,
-  ChatBubbleIcon,
-  FileTextIcon,
   ExclamationTriangleIcon,
   MagicWandIcon,
 } from "@radix-ui/react-icons";
 import type { Appointment, MedicalRecord } from "@/types/api";
-import { PrescriptionDisplay } from "@/components/prescription-display";
+import { ConsultationContextCard } from "@/components/finalize/consultation-context-card";
+import { PublishedRecordView } from "@/components/finalize/published-record-view";
+import { FinalizeRecordForm, type FinalizeForm } from "@/components/finalize/finalize-record-form";
 
 interface AiSummary {
   doctorSummary: string;
@@ -28,6 +25,8 @@ interface AiSummary {
   prescriptions: string;
   followUp: string;
 }
+
+const EMPTY_FORM: FinalizeForm = { doctorSummary: '', patientSummary: '', prescriptions: '', followUp: '' };
 
 export default function FinalizeConsultationPage({ params }: { params: Promise<{ appointmentId: string }> }) {
   const resolvedParams = use(params);
@@ -46,16 +45,13 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
   const [summarizing, setSummarizing] = useState(false);
   const [summarizeError, setSummarizeError] = useState<string | null>(null);
 
-  const [doctorSummary, setDoctorSummary] = useState('');
-  const [patientSummary, setPatientSummary] = useState('');
-  const [prescriptions, setPrescriptions] = useState('');
-  const [followUp, setFollowUp] = useState('');
+  const [form, setForm] = useState<FinalizeForm>(EMPTY_FORM);
+  const setField = (field: keyof FinalizeForm, value: string) =>
+    setForm(prev => ({ ...prev, [field]: value }));
 
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
-  const [attested, setAttested] = useState(false);
-  const [confirmingPublish, setConfirmingPublish] = useState(false);
   const [amending, setAmending] = useState(false);
 
   async function runSummarize() {
@@ -67,10 +63,12 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
         method: 'POST',
         token,
       });
-      setDoctorSummary(data.doctorSummary);
-      setPatientSummary(data.patientSummary);
-      setPrescriptions(data.prescriptions);
-      setFollowUp(data.followUp);
+      setForm({
+        doctorSummary: data.doctorSummary,
+        patientSummary: data.patientSummary,
+        prescriptions: data.prescriptions,
+        followUp: data.followUp,
+      });
     } catch {
       setSummarizeError('AI summarization failed. Write the record manually below, or try again.');
     } finally {
@@ -121,12 +119,12 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
 
   function startAmend() {
     if (!existingRecord) return;
-    setDoctorSummary(existingRecord.notes ?? '');
-    setPatientSummary(existingRecord.recommendations ?? '');
-    setPrescriptions(existingRecord.prescription ?? '');
-    setFollowUp(existingRecord.followUpAdvice ?? '');
-    setAttested(false);
-    setConfirmingPublish(false);
+    setForm({
+      doctorSummary: existingRecord.notes ?? '',
+      patientSummary: existingRecord.recommendations ?? '',
+      prescriptions: existingRecord.prescription ?? '',
+      followUp: existingRecord.followUpAdvice ?? '',
+    });
     setPublishError(null);
     setAmending(true);
   }
@@ -141,10 +139,10 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
           method: 'PATCH',
           token,
           body: {
-            notes: doctorSummary.trim() || undefined,
-            prescription: prescriptions.trim() || undefined,
-            recommendations: patientSummary.trim() || undefined,
-            followUpAdvice: followUp.trim() || undefined,
+            notes: form.doctorSummary.trim() || undefined,
+            prescription: form.prescriptions.trim() || undefined,
+            recommendations: form.patientSummary.trim() || undefined,
+            followUpAdvice: form.followUp.trim() || undefined,
           },
         });
         setPublishSuccess(true);
@@ -156,10 +154,10 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
         token,
         body: {
           appointmentId,
-          notes: doctorSummary.trim() || undefined,
-          prescription: prescriptions.trim() || undefined,
-          recommendations: patientSummary.trim() || undefined,
-          followUpAdvice: followUp.trim() || undefined,
+          notes: form.doctorSummary.trim() || undefined,
+          prescription: form.prescriptions.trim() || undefined,
+          recommendations: form.patientSummary.trim() || undefined,
+          followUpAdvice: form.followUp.trim() || undefined,
         },
       });
       await apiRequest(`/appointments/${appointmentId}/status`, {
@@ -201,11 +199,6 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
   }
 
   const isReadOnly = !!existingRecord;
-  const pat = appointment.patient;
-  const slot = appointment.slot;
-  const dateStr = slot
-    ? formatPHDate(slot.startTime, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-    : 'Unknown Date';
 
   return (
     <DashboardLayout role="doctor">
@@ -237,202 +230,28 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
           )}
         </div>
 
-        {/* Context header */}
-        <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 p-5 mb-6 flex flex-col md:flex-row gap-5 items-start">
-          <div className="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center text-text-primary font-serif font-bold text-xl shrink-0">
-            {pat?.fullName.charAt(0) || 'P'}
-          </div>
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs font-bold text-outline uppercase tracking-wider mb-1">Patient</p>
-              <h3 className="font-bold text-text-primary flex items-center gap-2">
-                <PersonIcon className="w-4 h-4 text-on-surface-variant" />
-                {pat?.fullName || 'Unknown Patient'}
-              </h3>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-outline uppercase tracking-wider mb-1">Consultation Date</p>
-              <p className="font-medium flex items-center gap-2 text-text-primary">
-                <CalendarIcon className="w-4 h-4 text-primary" />
-                {dateStr}
-              </p>
-            </div>
-            <div className="md:col-span-2">
-              <p className="text-xs font-bold text-outline uppercase tracking-wider mb-1">Reason for Visit</p>
-              <p className="text-sm text-on-surface-variant bg-surface p-3 rounded-lg">
-                {appointment.reasonForVisit || "No reason provided."}
-              </p>
-            </div>
-          </div>
-        </div>
+        <ConsultationContextCard appointment={appointment} />
 
         {/* Body */}
         {isReadOnly && !amending ? (
-          <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
-            <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-4 border-b border-outline-variant/30 flex items-start justify-between gap-4">
-              <div>
-                <h3 className="font-serif text-lg font-bold text-text-primary">Clinical Documentation</h3>
-                <p className="text-sm text-on-surface-variant mt-1">This record is published. You can amend it if needed.</p>
-              </div>
-              <Button variant="outline" size="sm" onClick={startAmend}>Amend record</Button>
-            </div>
-            <div className="p-6 space-y-8">
-              {existingRecord!.notes && (
-                <div>
-                  <h4 className="flex items-center gap-2 font-bold font-serif text-text-primary mb-2">
-                    <ChatBubbleIcon className="w-4 h-4 text-primary" /> Consultation Notes
-                  </h4>
-                  <div className="bg-surface p-4 rounded-lg text-sm text-on-surface-variant whitespace-pre-line leading-relaxed">
-                    {existingRecord!.notes}
-                  </div>
-                </div>
-              )}
-              {(existingRecord!.prescriptions?.length || existingRecord!.prescription) && (
-                <PrescriptionDisplay prescriptions={existingRecord!.prescriptions} fallbackText={existingRecord!.prescription} />
-              )}
-              {existingRecord!.recommendations && (
-                <div>
-                  <h4 className="flex items-center gap-2 font-bold font-serif text-text-primary mb-2">
-                    <FileTextIcon className="w-4 h-4 text-info" /> Recommendations
-                  </h4>
-                  <div className="bg-surface p-4 rounded-lg text-sm text-on-surface-variant whitespace-pre-line leading-relaxed">
-                    {existingRecord!.recommendations}
-                  </div>
-                </div>
-              )}
-              {existingRecord!.followUpAdvice && (
-                <div>
-                  <h4 className="flex items-center gap-2 font-bold font-serif text-text-primary mb-2">
-                    <CheckCircledIcon className="w-4 h-4 text-primary" /> Follow-up Advice
-                  </h4>
-                  <div className="bg-primary/5 p-4 rounded-lg text-sm text-on-surface-variant whitespace-pre-line leading-relaxed border border-primary/10">
-                    {existingRecord!.followUpAdvice}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <PublishedRecordView record={existingRecord!} onAmend={startAmend} />
         ) : summarizing ? (
           <div className="bg-surface-white rounded-xl shadow-soft p-12 text-center">
             <Spinner size="lg" />
             <p className="mt-4 text-on-surface-variant">Generating AI summaries...</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {summarizeError && (
-              <div className="bg-yellow-50 text-yellow-800 p-4 rounded-lg text-sm border border-yellow-200 flex items-center justify-between gap-3">
-                <span>{summarizeError}</span>
-                <Button onClick={runSummarize} variant="outline" size="sm">Try Again</Button>
-              </div>
-            )}
-
-            {publishError && (
-              <div className="bg-red-50 text-error p-3 rounded-lg text-sm border border-red-100">
-                {publishError}
-              </div>
-            )}
-
-            {!amending && (
-              <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg text-sm">
-                <ExclamationTriangleIcon className="w-5 h-5 shrink-0 mt-0.5" />
-                <p>
-                  <strong>AI-generated draft.</strong> Review and verify every field — especially the
-                  prescription — before publishing. Publishing signs this into the patient&apos;s
-                  permanent medical record.
-                </p>
-              </div>
-            )}
-
-            <div className="bg-surface-white rounded-xl shadow-soft border border-outline-variant/30 overflow-hidden">
-              <div className="bg-gradient-to-r from-brand-light/10 to-brand/10 px-6 py-4 border-b border-outline-variant/30">
-                <h3 className="font-serif text-lg font-bold text-text-primary">Clinical Documentation</h3>
-                <p className="text-xs text-on-surface-variant mt-1">Edit as needed before publishing to the patient record.</p>
-              </div>
-
-              <div className="p-6 space-y-6">
-                <div>
-                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Consultation Notes</label>
-                  <textarea
-                    value={doctorSummary}
-                    onChange={e => setDoctorSummary(e.target.value)}
-                    rows={5}
-                    className="w-full rounded-md border border-outline-variant px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary bg-surface resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Recommendations (plain language for the patient)</label>
-                  <textarea
-                    value={patientSummary}
-                    onChange={e => setPatientSummary(e.target.value)}
-                    rows={4}
-                    className="w-full rounded-md border border-outline-variant px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary bg-surface resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Prescription</label>
-                  <textarea
-                    value={prescriptions}
-                    onChange={e => setPrescriptions(e.target.value)}
-                    rows={3}
-                    className="w-full rounded-md border border-outline-variant px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary bg-surface resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold font-serif text-text-primary mb-2">Follow-up Advice</label>
-                  <textarea
-                    value={followUp}
-                    onChange={e => setFollowUp(e.target.value)}
-                    rows={3}
-                    className="w-full rounded-md border border-outline-variant px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary bg-surface resize-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4 pb-8">
-              <label className="flex items-start gap-3 text-sm text-on-surface cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={attested}
-                  onChange={e => { setAttested(e.target.checked); setConfirmingPublish(false); }}
-                  className="mt-0.5 h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary"
-                />
-                <span>I have reviewed the above and verified its clinical accuracy, including any prescription.</span>
-              </label>
-
-              <div className="flex justify-end gap-3 items-center flex-wrap">
-                <Button variant="outline" asChild>
-                  <Link href="/doctor/appointments">Cancel</Link>
-                </Button>
-                {!confirmingPublish ? (
-                  <Button
-                    onClick={() => setConfirmingPublish(true)}
-                    disabled={!attested || isPublishing || publishSuccess}
-                    className="min-w-[160px] bg-brand text-white hover:bg-brand-dark"
-                  >
-                    {amending ? 'Save amendment' : 'Publish to Patient Record'}
-                  </Button>
-                ) : (
-                  <>
-                    <span className="text-sm text-on-surface-variant">{amending ? 'Save changes to this record?' : "Publish to the patient's permanent record?"}</span>
-                    <Button variant="outline" onClick={() => setConfirmingPublish(false)} disabled={isPublishing}>
-                      Back
-                    </Button>
-                    <Button
-                      onClick={handlePublish}
-                      disabled={isPublishing || publishSuccess}
-                      className="bg-brand text-white hover:bg-brand-dark"
-                    >
-                      {isPublishing ? (amending ? 'Saving...' : 'Publishing...') : (amending ? 'Confirm amend' : 'Confirm publish')}
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+          <FinalizeRecordForm
+            values={form}
+            setField={setField}
+            amending={amending}
+            isPublishing={isPublishing}
+            publishSuccess={publishSuccess}
+            summarizeError={summarizeError}
+            onSummarizeRetry={runSummarize}
+            publishError={publishError}
+            onPublish={handlePublish}
+          />
         )}
       </div>
     </DashboardLayout>
