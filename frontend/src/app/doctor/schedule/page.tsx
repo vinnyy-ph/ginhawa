@@ -1,5 +1,15 @@
 "use client";
 
+/**
+ * Route: /doctor/schedule — doctor availability management
+ *
+ * Lets the authenticated doctor create, view, and manage their availability
+ * slots. Supports single-slot creation via the calendar, bulk generation via
+ * the weekly-template form, per-slot status updates (AVAILABLE / BLOCKED),
+ * and slot deletion. If the doctor has no profile, redirects to onboarding.
+ * Accessible to DOCTOR role only.
+ */
+
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -12,6 +22,12 @@ import { ScheduleToast } from "@/components/schedule/schedule-toast";
 import type { GeneratedSlot } from "@/lib/generate-slots";
 import type { AvailabilitySlot, DoctorProfile, SlotStatus, Appointment } from "@/types/api";
 
+/**
+ * Loads the doctor's profile and availability slots on mount, then builds a
+ * slotId → patientName lookup from active appointments so booked slots can
+ * display the patient name in the calendar. A 404 on the profile endpoint
+ * indicates an incomplete onboarding and triggers a redirect.
+ */
 export default function DoctorSchedulePage() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
@@ -34,7 +50,8 @@ export default function DoctorSchedulePage() {
         if (profileData?.id) {
           await fetchSlots(profileData.id);
         }
-        // Fetch appointments to build slotId → patientName map
+        // Build a slotId → patientName index so the calendar can label booked
+        // slots without an extra per-slot API call.
         try {
           const appts = await apiRequest<Appointment[]>("/appointments/doctor", { token });
           const names: Record<string, string> = {};
@@ -45,7 +62,7 @@ export default function DoctorSchedulePage() {
           }
           setPatientNames(names);
         } catch {
-          // Graceful degradation: patient names won't show in booked slots
+          // Non-fatal: calendar renders without patient labels if this fails.
         }
       } catch (err) {
         console.error(err);

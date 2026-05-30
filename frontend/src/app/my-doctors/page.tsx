@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * Route: /my-doctors — patient's personal doctor roster (authenticated patients only).
+ *
+ * Fetches the list of doctors the patient has had at least one appointment with
+ * from GET /appointments/patient/doctors. Supports client-side search by name
+ * or specialization. Each card shows visit history, upcoming appointment count,
+ * and quick-access links to view the doctor's profile or book again.
+ */
+
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -11,6 +20,10 @@ import { Badge } from "@/components/ui/badge";
 import { MagnifyingGlassIcon, PersonIcon } from "@radix-ui/react-icons";
 import type { PatientDoctorSummary } from "@/types/api";
 
+/**
+ * Renders the "My Doctors" dashboard view. Waits for the session to resolve
+ * before fetching so the API call always carries a valid bearer token.
+ */
 export default function MyDoctorsPage() {
   const { data: session, status } = useSession();
   const token = session?.user?.accessToken;

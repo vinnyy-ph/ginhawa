@@ -1,5 +1,18 @@
 "use client";
 
+/**
+ * Route: /records — patient medical records timeline
+ *
+ * Displays the authenticated patient's complete consultation history
+ * (doctor notes, prescriptions, recommendations, follow-up advice) as a
+ * chronological timeline. Supports deep-linking to a specific record via
+ * the `?appointment=<id>` query parameter, which scrolls and highlights
+ * the matching card after the list loads.
+ *
+ * Wrapped in Suspense because useSearchParams() requires a client boundary
+ * and is read inside the inner RecordsContent component.
+ */
+
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -47,6 +60,9 @@ function RecordsContent() {
     fetchRecords();
   }, [token]);
 
+  // Scroll the highlighted record into view after the list has rendered.
+  // The DOM id uses `record-${appointmentId}` so the appointment query param
+  // resolves directly to the correct card without an extra API lookup.
   useEffect(() => {
     if (!highlightId || records.length === 0) return;
     const el = document.getElementById(`record-${highlightId}`);
@@ -198,6 +214,10 @@ function RecordsContent() {
   );
 }
 
+/**
+ * Shell component — wraps RecordsContent in Suspense so that useSearchParams
+ * (used for the highlight query param) does not block the outer render tree.
+ */
 export default function PatientRecordsPage() {
   return (
     <Suspense fallback={null}>

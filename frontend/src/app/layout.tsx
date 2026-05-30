@@ -1,3 +1,12 @@
+/**
+ * Root layout — wraps every page in the application.
+ *
+ * Loads two Google Fonts (Plus Jakarta Sans and Manrope) as CSS variables so
+ * Tailwind utility classes (`font-manrope`, `font-plus-jakarta`) resolve at
+ * runtime. Sets the default site-wide `<title>` and `<meta description>`.
+ * All children are wrapped in `<AuthProvider>` (SessionProvider) so that any
+ * page or component can call `useSession()` or `getServerSession()`.
+ */
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Manrope } from "next/font/google";
 import "./globals.css";
@@ -21,6 +30,7 @@ export const metadata: Metadata = {
   },
 };
 
+/** Root HTML shell. Applies font variables on `<html>` and renders children inside `<AuthProvider>`. */
 export default function RootLayout({
   children,
 }: Readonly<{

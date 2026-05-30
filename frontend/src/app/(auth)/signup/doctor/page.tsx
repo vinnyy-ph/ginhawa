@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * Route: /signup/doctor — healthcare provider self-registration page.
+ *
+ * Creates a new DOCTOR account via POST /auth/signup (role: DOCTOR), then
+ * immediately signs the user in and redirects to /onboarding/doctor to collect
+ * professional details (specialization, schedule, credentials).
+ */
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -14,6 +22,10 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 
+/**
+ * Renders the doctor sign-up form. Mirrors the patient flow but sets role to
+ * DOCTOR and routes to the doctor-specific onboarding on success.
+ */
 export default function DoctorSignupPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);

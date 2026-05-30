@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * Route: /doctor/patients — doctor's patient roster
+ *
+ * Lists every unique patient who has ever booked an appointment with the
+ * authenticated doctor. Supports full-text client-side search across patient
+ * names and a pre-indexed `searchText` field (consultation keywords) returned
+ * by the API. Matched keywords are highlighted with a contextual snippet.
+ */
+
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -13,6 +22,11 @@ import type { DoctorPatientSummary } from "@/types/api";
 
 const SNIPPET_PAD = 30;
 
+/**
+ * Extracts a short text snippet from searchText centred on the first
+ * occurrence of query, padded by SNIPPET_PAD characters on each side.
+ * Returns null when the query is not found.
+ */
 function matchSnippet(
   searchText: string,
   query: string,
@@ -28,6 +42,12 @@ function matchSnippet(
   };
 }
 
+/**
+ * Renders the doctor's patient grid. Each card shows the patient name,
+ * visit count, last visit date, and upcoming appointment badge. When a
+ * search term matches consultation keywords rather than the name, a
+ * highlighted text snippet from searchText is shown below the card.
+ */
 export default function DoctorPatientsPage() {
   const { data: session, status } = useSession();
   const token = session?.user?.accessToken;

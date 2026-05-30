@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * Route: /appointments — patient appointment management
+ *
+ * Lists all appointments belonging to the authenticated patient. Supports
+ * status-based filtering (Upcoming / Completed / Cancelled / All), inline
+ * status updates (e.g. cancel), and live refresh via SSE-driven
+ * appointmentTick and a 30-second polling fallback.
+ */
+
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -15,6 +24,12 @@ import { useNotifications } from "@/providers/notification-provider";
 
 type FilterTab = "All" | "Upcoming" | "Completed" | "Cancelled";
 
+/**
+ * Renders the patient's appointment list with filter tabs and inline
+ * cancel/reschedule actions. Accessible to authenticated patients only.
+ * Loads from GET /appointments/patient and re-fetches on appointmentTick
+ * (SSE notification) or the 30-second polling interval.
+ */
 export default function PatientAppointmentsPage() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
@@ -49,7 +64,9 @@ export default function PatientAppointmentsPage() {
     });
   }, [fetchAppointments]);
 
-  // Live refetch when an APPOINTMENT_* notification arrives.
+  // appointmentTick increments each time a real-time APPOINTMENT_* SSE
+  // notification arrives; using it as a dependency triggers a background
+  // re-fetch without a full loading spinner (silent=true).
   useEffect(() => {
     if (appointmentTick > 0) queueMicrotask(() => fetchAppointments(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps

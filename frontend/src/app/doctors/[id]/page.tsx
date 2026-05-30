@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * Route: /doctors/[id] — individual doctor profile page.
+ *
+ * Displays a doctor's full profile including bio, specialization, reviews, and
+ * available appointment slots. The booking card is rendered for all visitors
+ * but booking actions require authentication (non-doctor). Doctor accounts see
+ * the profile in read-only mode. Data is fetched client-side via `useDoctorDetail`.
+ */
+
 import { use } from "react";
 import { useSession } from "next-auth/react";
 import { DoctorAbout } from "@/components/doctors/doctor-about";
@@ -9,10 +18,16 @@ import { DoctorDetailHero } from "@/components/doctors/doctor-detail-hero";
 import { DoctorBookingCard } from "@/components/doctors/doctor-booking-card";
 import { useDoctorDetail } from "@/hooks/use-doctor-detail";
 
+/**
+ * Renders the doctor profile page for the given `id`. Suspends via `use(params)`
+ * to unwrap the async route params; delegates loading/error UI to dedicated
+ * skeleton and error components while `useDoctorDetail` resolves.
+ */
 export default function DoctorProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 
   const { data: session } = useSession();
+  // Doctors viewing another doctor's profile should not see booking controls.
   const isDoctor = session?.user?.role === "DOCTOR";
   const isAuthenticated = !!session;
 

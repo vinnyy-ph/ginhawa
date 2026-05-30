@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * Route: /doctor/profile — doctor professional profile management
+ *
+ * Allows the authenticated doctor to view and edit their professional
+ * information (identity, practice details, credentials, and location).
+ * Changes here are visible to patients on the doctors discovery page.
+ * All form state and API interactions are encapsulated in useDoctorProfileForm.
+ */
+
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -9,6 +18,11 @@ import { PracticeDetailsCard } from "@/components/doctor-profile/practice-detail
 import { CredentialsLocationCard } from "@/components/doctor-profile/credentials-location-card";
 import { useDoctorProfileForm } from "@/hooks/use-doctor-profile-form";
 
+/**
+ * Renders the doctor profile form split across three cards (identity,
+ * practice details, credentials/location). Delegates all load/save logic
+ * to useDoctorProfileForm; the header buttons toggle edit mode in that hook.
+ */
 export default function DoctorProfilePage() {
   const { values, setField, isEditing, loading, saving, error, success, beginEdit, discard, save } =
     useDoctorProfileForm();

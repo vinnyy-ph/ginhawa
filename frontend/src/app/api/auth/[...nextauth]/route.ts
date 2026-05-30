@@ -1,3 +1,18 @@
+/**
+ * Route: /api/auth/[...nextauth] — NextAuth.js catch-all API route.
+ *
+ * Auth strategy: JWT sessions (no database adapter). The single provider is
+ * CredentialsProvider, which forwards credentials to the NestJS backend
+ * (POST /auth/login) and returns the JWT access token + user role on success.
+ *
+ * Callbacks:
+ *   - jwt:     Persists `id`, `role`, and `accessToken` into the JWT on first
+ *              login; handles `trigger === 'update'` so the onboarding step can
+ *              refresh the cached display name without a full re-login.
+ *   - session: Projects token claims onto `session.user` for client-side access.
+ *
+ * Custom pages: sign-in redirects to /login instead of the default NextAuth UI.
+ */
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { apiRequest, ApiError } from '@/lib/api-client';

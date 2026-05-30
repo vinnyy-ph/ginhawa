@@ -1,5 +1,15 @@
 'use client';
 
+/**
+ * Route: /onboarding/doctor — multi-step doctor profile onboarding flow.
+ *
+ * Mirrors the patient onboarding architecture: step navigation via `?step=<slug>`,
+ * guard enforcement via `firstIncompleteDoctorSlug` (users cannot skip steps),
+ * and automatic URL correction when the requested slug is invalid or blocked.
+ * Collects professional information such as specialization, license, schedule,
+ * and consultation fees before the doctor account becomes active.
+ */
+
 import * as React from 'react';
 import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -52,6 +62,10 @@ function DoctorOnboardingInner() {
   );
 }
 
+/**
+ * Doctor onboarding page. Suspense boundary is required because
+ * `DoctorOnboardingInner` reads URL search params via `useSearchParams`.
+ */
 export default function DoctorOnboardingPage() {
   return (
     <Suspense fallback={null}>

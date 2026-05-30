@@ -1,5 +1,15 @@
 "use client";
 
+/**
+ * Route: /doctor/finalize/[appointmentId] — post-consultation record creation
+ *
+ * Allows the authenticated doctor to review, edit, and publish the medical
+ * record for a completed consultation. On first visit (no existing record)
+ * the page fetches an AI-generated summary via POST /consultation/:id/summarize
+ * and pre-fills the form. If a record already exists, the page renders a
+ * read-only view with an "Amend" option. Accessible to DOCTOR role only.
+ */
+
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -28,6 +38,12 @@ interface AiSummary {
 
 const EMPTY_FORM: FinalizeForm = { doctorSummary: '', patientSummary: '', prescriptions: '', followUp: '' };
 
+/**
+ * Resolves the [appointmentId] segment, loads the appointment and any
+ * existing medical record in sequence, then conditionally triggers AI
+ * prefill. Publishing creates the medical record and marks the appointment
+ * COMPLETED in one atomic sequence; amending PATCHes the existing record.
+ */
 export default function FinalizeConsultationPage({ params }: { params: Promise<{ appointmentId: string }> }) {
   const resolvedParams = use(params);
   const appointmentId = resolvedParams.appointmentId;
@@ -92,7 +108,8 @@ export default function FinalizeConsultationPage({ params }: { params: Promise<{
         return;
       }
 
-      // 2. Existing-record guard — runs BEFORE any AI call
+      // 2. Existing-record guard — checked before triggering AI so we never
+      //    overwrite a record that was already published for this appointment.
       let record: MedicalRecord | undefined;
       try {
         const records = await apiRequest<MedicalRecord[]>("/medical-records/doctor", { token });

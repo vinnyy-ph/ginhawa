@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * Route: /login — patient and doctor authentication page.
+ *
+ * Wraps the login form in <Suspense> so that useSearchParams() (needed to read
+ * `callbackUrl`) does not block the initial render.
+ */
+
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -28,6 +35,12 @@ function LoginForm() {
     mode: 'onBlur',
   });
 
+  /**
+   * Submit handler: calls NextAuth `signIn` with the credentials provider,
+   * then reads the resolved session to determine the post-login destination.
+   * Doctors land on their dashboard; patients land on the home page (or the
+   * original `callbackUrl` if the session was interrupted by an auth guard).
+   */
   const onSubmit = async (values: LoginSchema) => {
     setServerError(null);
 
@@ -100,6 +113,10 @@ function LoginForm() {
   );
 }
 
+/**
+ * Renders the login page. Suspense boundary is required because the inner
+ * `LoginForm` reads URL search params via `useSearchParams`.
+ */
 export default function LoginPage() {
   return (
     <Suspense fallback={null}>

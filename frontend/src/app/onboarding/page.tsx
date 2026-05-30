@@ -1,5 +1,15 @@
 'use client';
 
+/**
+ * Route: /onboarding — multi-step patient profile onboarding flow.
+ *
+ * Step navigation is driven by the `?step=<slug>` URL search param so that
+ * each step is deep-linkable and browser back/forward works naturally.
+ * `firstIncompletePatientSlug` enforces step ordering — users cannot skip
+ * ahead to a step whose prerequisite data is missing. The URL is automatically
+ * corrected (via `router.replace`) when the requested step is invalid or blocked.
+ */
+
 import * as React from 'react';
 import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -53,6 +63,10 @@ function PatientOnboardingInner() {
   );
 }
 
+/**
+ * Patient onboarding page. Suspense boundary is required because
+ * `PatientOnboardingInner` reads URL search params via `useSearchParams`.
+ */
 export default function PatientOnboardingPage() {
   return (
     <Suspense fallback={null}>
