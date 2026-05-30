@@ -1,3 +1,15 @@
+/**
+ * Route: / — application entry point (server component).
+ *
+ * Renders different content based on auth state and role:
+ *   - Unauthenticated → public marketing page.
+ *   - DOCTOR → immediate server-side redirect to /doctor/dashboard.
+ *   - PATIENT (profile exists) → authenticated patient home dashboard.
+ *   - PATIENT (no profile / 404) → redirect to /onboarding to create profile.
+ *
+ * Network errors from the profile check are intentionally swallowed so a
+ * transient backend outage never traps patients in an onboarding loop.
+ */
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -31,6 +43,10 @@ function Marketing() {
   );
 }
 
+/**
+ * Home page component. Resolves the correct view on the server before the
+ * initial HTML is sent to the client — no client-side redirect flicker.
+ */
 export default async function Home() {
   const session = await getServerSession(authOptions);
   if (!session) return <Marketing />;

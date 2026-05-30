@@ -1,5 +1,15 @@
 "use client";
 
+/**
+ * Route: /doctor/patients/[id] — individual patient history view
+ *
+ * Shows the full appointment history for a single patient identified by the
+ * [id] dynamic segment. Loads data from GET /appointments/doctor/patients/:id,
+ * which is scoped to the authenticated doctor so patients from other doctors
+ * are inaccessible. Supports status filtering and keyword search across
+ * appointment text. Accessible to DOCTOR role only.
+ */
+
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -13,6 +23,12 @@ import { PatientHistoryCard } from "@/components/doctor-patients/patient-history
 import { FilterChip } from "@/components/doctor-patients/filter-chip";
 import type { DoctorPatientHistory, AppointmentStatus } from "@/types/api";
 
+/**
+ * Resolves the [id] segment and fetches DoctorPatientHistory (patient
+ * demographics + all appointments). Re-fetches whenever the id or auth
+ * token changes (e.g. doctor navigates between different patients).
+ * Filters are applied client-side against the already-fetched list.
+ */
 export default function DoctorPatientDetailPage({
   params,
 }: {
@@ -52,6 +68,7 @@ export default function DoctorPatientDetailPage({
       setLoading(false);
       return;
     }
+    // Reset filters on patient change so stale selections don't carry over.
     setStatusFilter("ALL");
     setSearch("");
     fetchHistory();

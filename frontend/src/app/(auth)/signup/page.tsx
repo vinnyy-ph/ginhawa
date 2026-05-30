@@ -1,6 +1,13 @@
 // frontend/src/app/signup/page.tsx
 'use client';
 
+/**
+ * Route: /signup — patient self-registration page.
+ *
+ * Creates a new PATIENT account via POST /auth/signup, then immediately signs
+ * the user in and redirects to /onboarding to complete their health profile.
+ */
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -15,6 +22,10 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 
+/**
+ * Renders the patient sign-up form. On success the user is auto-signed in and
+ * sent straight to onboarding; a 409 response means the email is already taken.
+ */
 export default function SignupPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);

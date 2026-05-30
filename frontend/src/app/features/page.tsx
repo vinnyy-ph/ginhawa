@@ -1,3 +1,10 @@
+/**
+ * Route: /features — public product features showcase page.
+ *
+ * A static marketing page that walks visitors through the four-step Ginhawa
+ * care journey: AI symptom matching → scheduling → video consultation →
+ * digital health records. Accessible to all users; no auth required.
+ */
 import React from "react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -15,6 +22,7 @@ export const metadata = {
   description: "Discover how Ginhawa simplifies your healthcare journey.",
 };
 
+/** Renders the full-page features narrative with a hero, four product steps, and a CTA. */
 export default function FeaturesPage() {
   return (
     <div className="flex flex-col min-h-screen bg-surface">

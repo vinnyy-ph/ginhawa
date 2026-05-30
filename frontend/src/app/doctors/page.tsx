@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * Route: /doctors — public doctor discovery and search page.
+ *
+ * Renders a searchable, filterable directory of all verified doctors. Data
+ * and filter state are managed by the `useDoctorDiscovery` hook. Accessible
+ * to all visitors; authenticated patients see booking CTAs on each card while
+ * doctors and unauthenticated users see a profile-only view.
+ */
+
 import React from "react";
 import { useSession } from "next-auth/react";
 import {
@@ -104,8 +113,15 @@ function ErrorState({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+/**
+ * Renders the doctor discovery page with a search bar, filter/sort controls,
+ * and a list of `DoctorCard` items. Shows skeleton loaders while data is
+ * fetching, an error state with a retry action on failure, and an empty state
+ * with a filter-reset action when no results match.
+ */
 export default function DoctorsDiscoveryPage() {
   const { data: session } = useSession();
+  // Booking actions are only surfaced to authenticated patients.
   const isPatient = session?.user?.role === "PATIENT";
 
   const {

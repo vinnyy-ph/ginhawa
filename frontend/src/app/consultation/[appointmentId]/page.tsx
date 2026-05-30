@@ -1,5 +1,15 @@
 "use client";
 
+/**
+ * Route: /consultation/[appointmentId] — live video consultation room
+ *
+ * Embeds a Daily.co iframe for the active appointment. Renders differently
+ * by role: doctors see a sidebar with notes (auto-saved via debounce) and
+ * patient context; patients see full-screen video with overlay states.
+ * Accessible to both DOCTOR and PATIENT roles — role is inferred from the
+ * session at runtime.
+ */
+
 import { useEffect, useState, useRef, use } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -13,6 +23,12 @@ import { ConsultationDoctorSidebar } from "@/components/consultation/doctor-side
 import { DoctorDisconnectedOverlay, DeviceErrorOverlay } from "@/components/consultation/video-overlays";
 import type { PatientContext } from "@/components/consultation/patient-context-panel";
 
+/**
+ * Resolves the dynamic [appointmentId] segment, fetches the Daily room URL
+ * and optional patient context from GET /consultation/:id/room, then mounts
+ * the call frame. Handles camera/microphone permission errors and the
+ * doctor-disconnected grace period (60 s before showing a "return" prompt).
+ */
 export default function ConsultationPage({ params }: { params: Promise<{ appointmentId: string }> }) {
   const resolvedParams = use(params);
   const appointmentId = resolvedParams.appointmentId;
@@ -80,8 +96,10 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
       }
     };
     const handleParticipantLeft = () => {
-      // Doctor dropped — could be a transient network blip. Show reconnecting
-      // UI instead of ejecting; only an explicit 'call-ended' leaves the call.
+      // Doctor dropped — could be a transient network blip. Show a
+      // "reconnecting" overlay instead of ejecting the patient immediately.
+      // A 60-second timer then exposes a "Return to appointments" prompt.
+      // Only an explicit 'call-ended' app-message actually navigates away.
       setDoctorDisconnected(true);
       setShowReturn(false);
       if (returnTimerRef.current) clearTimeout(returnTimerRef.current);
@@ -139,7 +157,7 @@ export default function ConsultationPage({ params }: { params: Promise<{ appoint
       } finally {
         setIsSaving(false);
       }
-    }, 1500);
+    }, 1500); // 1500 ms debounce — waits for the doctor to pause typing before persisting
     return () => clearTimeout(timer);
   }, [notes, token, appointmentId, isDoctor]);
 

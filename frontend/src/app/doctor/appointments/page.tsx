@@ -1,5 +1,18 @@
 "use client";
 
+/**
+ * Route: /doctor/appointments — doctor appointment queue
+ *
+ * Lists all appointments owned by the authenticated doctor, allowing them
+ * to confirm, cancel, or navigate into active consultations. Supports
+ * status-based filter tabs (All / Pending / Confirmed / Completed /
+ * Cancelled), optimistic status updates, and live re-fetch driven by
+ * appointmentTick (SSE) plus a 30-second polling fallback.
+ *
+ * The initial active tab can be pre-selected via a `?status=` query param
+ * (e.g. linked from the dashboard's pending-request widget).
+ */
+
 import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -16,6 +29,11 @@ import { useNotifications } from "@/providers/notification-provider";
 
 type FilterTab = "All" | "Pending" | "Confirmed" | "Completed" | "Cancelled";
 
+/**
+ * Inner client component that reads the `?status` search param to initialise
+ * the active filter tab — must live inside a Suspense boundary because
+ * useSearchParams() is a suspending hook in the App Router.
+ */
 function DoctorAppointmentsContent() {
   const { data: session, status } = useSession();
   const token = session?.user?.accessToken;
@@ -230,6 +248,10 @@ function DoctorAppointmentsContent() {
   );
 }
 
+/**
+ * Public-facing export — wraps DoctorAppointmentsContent in Suspense so
+ * useSearchParams does not block the outer render tree.
+ */
 export default function DoctorAppointmentsPage() {
   return (
     <React.Suspense fallback={null}>

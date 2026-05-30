@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * Route: /profile — patient profile management
+ *
+ * Allows the authenticated patient to view and edit their personal details,
+ * location, insurance information, and medical history. All form state and
+ * API interactions are encapsulated in the usePatientProfileForm hook.
+ */
+
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -9,6 +17,11 @@ import { LocationInsuranceCard } from "@/components/profile/location-insurance-c
 import { MedicalHistoryCard } from "@/components/profile/medical-history-card";
 import { usePatientProfileForm } from "@/hooks/use-patient-profile-form";
 
+/**
+ * Renders the patient profile form split across three cards (identity,
+ * location/insurance, medical history). Delegates all load/save logic to
+ * usePatientProfileForm; the header buttons toggle edit mode in that hook.
+ */
 export default function PatientProfilePage() {
   const { values, setField, isEditing, loading, saving, error, success, beginEdit, discard, save } =
     usePatientProfileForm();

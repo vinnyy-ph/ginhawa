@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * Route: /notifications — patient notification inbox
+ *
+ * Displays all in-app notifications for the authenticated patient, sourced
+ * from the global NotificationProvider (SSE stream). Supports bulk
+ * "mark all as read" and per-item deep-linking via notificationHref.
+ */
+
 import React from "react";
 import { useRouter } from "next/navigation";
 import { notificationHref } from "@/lib/notification-links";
@@ -10,6 +18,11 @@ import { cn } from "@/lib/utils";
 import { formatRelativeTime } from '@/lib/datetime';
 import { useNotifications } from "@/providers/notification-provider";
 
+/**
+ * Renders the patient's notification feed. Notification state is managed by
+ * the NotificationProvider; this page only reads and marks items as read.
+ * Clicking a notification marks it read and navigates to the relevant route.
+ */
 export default function PatientNotificationsPage() {
   const router = useRouter();
   const { notifications, markAsRead } = useNotifications();
