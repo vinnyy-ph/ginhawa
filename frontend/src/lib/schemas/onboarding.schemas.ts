@@ -1,7 +1,18 @@
 // frontend/src/lib/schemas/onboarding.schemas.ts
+
+/**
+ * Zod validation schemas for the multi-step patient and doctor onboarding flows.
+ *
+ * Patient flow: step1Schema → step2Schema → locationInsuranceSchema → medicalHistorySchema.
+ * Doctor flow: doctorCredentialsSchema (credentials step).
+ * Identifier field validators are delegated to `@/lib/format` helpers which
+ * enforce PH-specific formats (PhilHealth 12-digit, PRC 7-digit, etc.).
+ */
+
 import { z } from 'zod';
 import { isValidPhilHealth, isValidHmoCard, isValidPrc, isValidPtr } from '@/lib/format';
 
+/** Step 1 — Personal information: name, birthdate (must be a past date), and 10-digit contact number. */
 export const step1Schema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   birthdate: z
@@ -14,6 +25,7 @@ export const step1Schema = z.object({
   contactDetails: z.string().length(10, 'Contact number must be exactly 10 digits'),
 });
 
+/** Step 2 — Body metrics: positive weight (kg) and height (cm). */
 export const step2Schema = z.object({
   weightKg: z
     .number({ message: 'Weight is required' })
@@ -23,6 +35,11 @@ export const step2Schema = z.object({
     .positive('Height must be a positive number'),
 });
 
+/**
+ * Step 3 — Location and insurance details (all fields optional).
+ * PhilHealth ID and HMO card number are validated via `isValidPhilHealth` /
+ * `isValidHmoCard`, which accept empty strings (the fields are truly optional).
+ */
 export const locationInsuranceSchema = z.object({
   address: z.string().optional(),
   city: z.string().optional(),
@@ -38,6 +55,7 @@ export const locationInsuranceSchema = z.object({
     .refine((v) => isValidHmoCard(v ?? ''), 'Enter the full 12-character HMO card number'),
 });
 
+/** Step 4 — Medical history: all fields are free-text strings and optional. */
 export const medicalHistorySchema = z.object({
   bloodType: z.string().optional(),
   allergies: z.string().optional(),
@@ -64,6 +82,12 @@ export function localTodayISO(): string {
   ].join('-');
 }
 
+/**
+ * Doctor onboarding — credentials step.
+ * PRC license number must be exactly 7 digits and its expiry date must be
+ * today or a future date (lexical `YYYY-MM-DD` comparison is safe here).
+ * PTR number is optional but, if provided, must be 7 or 8 digits.
+ */
 export const doctorCredentialsSchema = z.object({
   prcLicenseNo: z
     .string()

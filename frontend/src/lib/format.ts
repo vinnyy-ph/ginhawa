@@ -1,4 +1,13 @@
 // frontend/src/lib/format.ts
+
+/**
+ * Formatting and validation helpers for structured identifier fields used
+ * during patient and doctor onboarding (phone, PhilHealth, HMO, PRC, PTR).
+ *
+ * All formatters are idempotent: they strip their own separator characters
+ * before re-grouping digits, so calling a formatter on an already-formatted
+ * value produces the same result without duplication.
+ */
 // Display formatters for onboarding identifier fields. Each is idempotent:
 // it strips its own separators before re-grouping, so re-running on an already
 // formatted value is safe.

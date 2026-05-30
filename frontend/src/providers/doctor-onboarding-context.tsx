@@ -1,5 +1,15 @@
 'use client';
 
+/**
+ * Context and provider for multi-step doctor onboarding state. Persists the
+ * in-progress form data to `sessionStorage` under the key
+ * `ginhawa.onboarding.doctor` so the wizard survives page navigations within
+ * the same tab. Storage failures (private mode, quota exceeded) are silently
+ * swallowed — data remains available in-memory for the current render tree.
+ * Initial values are merged on top of `DOCTOR_ONBOARDING_DEFAULTS` so that
+ * newly added fields always have a safe fallback even when an older session
+ * value is present.
+ */
 import * as React from 'react';
 import { type DoctorOnboardingData, DOCTOR_ONBOARDING_DEFAULTS } from '@/types/doctor-onboarding';
 
@@ -24,6 +34,11 @@ function loadInitial(): DoctorOnboardingData {
   }
 }
 
+/**
+ * Provides `DoctorOnboardingContext` to its subtree and syncs state to
+ * sessionStorage on every change. Renders children directly — no loading
+ * state is needed because the initial read from storage is synchronous.
+ */
 export function DoctorOnboardingProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = React.useState<DoctorOnboardingData>(loadInitial);
 
@@ -56,6 +71,13 @@ export function DoctorOnboardingProvider({ children }: { children: React.ReactNo
   );
 }
 
+/**
+ * Consumes the doctor onboarding context. Must be called within a
+ * `DoctorOnboardingProvider`; throws if used outside one.
+ *
+ * @returns `data`, `update(patch)` (shallow-merges a partial update), and
+ *   `reset()` (restores defaults and clears sessionStorage).
+ */
 export function useDoctorOnboarding(): DoctorOnboardingContextValue {
   const ctx = React.useContext(DoctorOnboardingContext);
   if (!ctx) {

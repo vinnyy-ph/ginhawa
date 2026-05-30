@@ -1,6 +1,12 @@
 // frontend/src/lib/schemas/auth.schemas.ts
+
+/**
+ * Zod validation schemas for the authentication forms (login and sign-up).
+ */
+
 import { z } from 'zod';
 
+/** Validates the login form: requires a valid email and a non-empty password. */
 export const loginSchema = z.object({
   email: z
     .string()
@@ -9,6 +15,11 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+/**
+ * Validates the sign-up form.
+ * Password must be at least 8 characters and contain at least one digit.
+ * A cross-field refinement enforces that `password` and `confirmPassword` match.
+ */
 export const signupSchema = z
   .object({
     email: z

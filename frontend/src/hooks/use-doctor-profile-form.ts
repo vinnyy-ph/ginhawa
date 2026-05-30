@@ -1,3 +1,13 @@
+/**
+ * Hook for the doctor profile edit form. Thin wrapper around
+ * `useEditableResource` that supplies the doctor-specific load/save functions
+ * and the form shape. Validation (PRC licence, PTR number) is enforced inside
+ * `saveProfile` so errors propagate as user-visible messages via the generic
+ * controller. Numeric API fields (yearsOfExperience, consultationFee) are
+ * stored as strings in the form to keep all inputs uniform, and converted on
+ * save. `languagesSpoken` is handled as a comma-separated string and split
+ * into an array before sending to the API.
+ */
 import { apiRequest } from "@/lib/api-client";
 import { isValidPrc, isValidPtr } from "@/lib/format";
 import { useEditableResource } from "@/hooks/use-editable-resource";
@@ -98,6 +108,14 @@ async function saveProfile(values: DoctorProfileForm, token: string): Promise<vo
   }
 }
 
+/**
+ * Loads and manages editable state for the authenticated doctor's profile.
+ * Exposes the same shape as `useEditableResource` but renames `submit` to
+ * `save` for semantic clarity at the call site.
+ *
+ * @returns Form values, `setField`, edit lifecycle controls (`beginEdit`,
+ *   `discard`, `save`), and `loading` / `saving` / `error` / `success` flags.
+ */
 export function useDoctorProfileForm() {
   const { submit, ...rest } = useEditableResource<DoctorProfileForm>({
     emptyValues: EMPTY_FORM,

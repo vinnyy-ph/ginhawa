@@ -1,3 +1,10 @@
+/**
+ * Hook that supplies display data for the dashboard sidebar: the current
+ * user's name, avatar, profile-completion percentage, and upcoming-appointment
+ * count. Behaviour branches on the authenticated user's role — doctors only
+ * need name + avatar (badges stay at zero), while patients additionally fetch
+ * appointments to compute badge counts and profile completion.
+ */
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { apiRequest } from '@/lib/api-client';
@@ -10,6 +17,11 @@ type DoctorSidebarProfile = { fullName?: string | null; profilePictureUrl?: stri
 /**
  * Loads the sidebar identity + badge counts. Patients get full profile +
  * badges; doctors get name + avatar only (badges stay zeroed).
+ *
+ * @param role - The authenticated user's role. Determines which API calls are
+ *   made and whether badge counts are populated.
+ * @returns `patientName`, `avatarUrl`, `profileCompletion` (0–100, patient
+ *   only), and `upcomingCount` (PENDING + CONFIRMED appointments, patient only).
  */
 export function usePatientSidebarData(role: 'patient' | 'doctor') {
   const { data: session } = useSession();

@@ -1,3 +1,14 @@
+/**
+ * Hook for the patient profile edit form. Thin wrapper around
+ * `useEditableResource` with patient-specific load/save logic. Profile data
+ * and medical history are stored in separate API resources (`/patients/profile`
+ * and `/patients/medical-history`) and are saved in sequence — a distinct
+ * error is raised if only the medical-history write fails so the user knows
+ * their core details were still persisted. PhilHealth ID and HMO card number
+ * are validated before any network call is attempted. Array-valued fields
+ * (allergies, chronicConditions, currentMedications) are kept as
+ * comma-separated strings in the form and converted via `toItems` on save.
+ */
 import { apiRequest } from "@/lib/api-client";
 import { isValidPhilHealth, isValidHmoCard } from "@/lib/format";
 import { toItems } from "@/components/profile/profile-fields";
@@ -102,6 +113,14 @@ async function saveProfile(values: PatientProfileForm, token: string): Promise<v
   }
 }
 
+/**
+ * Loads and manages editable state for the authenticated patient's profile
+ * and medical history. Exposes the same shape as `useEditableResource` but
+ * renames `submit` to `save` for semantic clarity at the call site.
+ *
+ * @returns Form values, `setField`, edit lifecycle controls (`beginEdit`,
+ *   `discard`, `save`), and `loading` / `saving` / `error` / `success` flags.
+ */
 export function usePatientProfileForm() {
   const { submit, ...rest } = useEditableResource<PatientProfileForm>({
     emptyValues: EMPTY_FORM,

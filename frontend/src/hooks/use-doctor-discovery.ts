@@ -1,9 +1,28 @@
+/**
+ * Hook that drives the doctor discovery/search page. Fetches all doctors once
+ * from the API, then performs all filtering and sorting entirely in-memory so
+ * subsequent filter/sort changes feel instantaneous. Search input is debounced
+ * (300 ms) to avoid excessive re-computations while the user types. A
+ * ?specialization= query-string param is read on mount to allow deep-linked
+ * pre-filtering (e.g. from the home page specialization cards).
+ */
 import { useState, useMemo, useEffect, useCallback } from "react";
 import type { DoctorProfile } from "@/types/api";
 import { FilterState, defaultFilters } from "@/components/doctors/doctor-filters";
 import { SortOption } from "@/components/doctors/doctor-sort";
 import { apiRequest } from "@/lib/api-client";
 
+/**
+ * Encapsulates the full state for the doctor discovery experience: data
+ * fetching, search-term debouncing, multi-dimensional filtering, and sorting.
+ * All derived lists (`availableSpecializations`, `availableLocations`,
+ * `availableLanguages`) are computed from the loaded dataset so filter
+ * dropdowns show only values that actually exist.
+ *
+ * @returns Raw `doctors` list, `filteredDoctors` (post-filter + sort),
+ *   search/filter/sort state setters, facet lists, `loading`, `error`, and
+ *   `clearFilters` / `fetchDoctors` helpers.
+ */
 export function useDoctorDiscovery() {
   const [doctors, setDoctors] = useState<DoctorProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +33,7 @@ export function useDoctorDiscovery() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [sort, setSort] = useState<SortOption>("relevance");
 
+  // Pre-populate the specialization filter from the URL query string on mount.
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);

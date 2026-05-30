@@ -1,5 +1,15 @@
 // frontend/src/types/patient.ts
 
+/**
+ * Types and default values for the patient onboarding multi-step form state
+ * and the patient profile API shapes (GET/POST/PATCH /patients/profile).
+ */
+
+/**
+ * Complete form state for the patient onboarding wizard.
+ * Collected across five steps; note that list fields (allergies, conditions, etc.)
+ * are stored as comma-separated strings locally and split into arrays on submit.
+ */
 export interface OnboardingData {
   // Step 1 — Personal
   fullName: string;
@@ -27,6 +37,7 @@ export interface OnboardingData {
   profilePictureUrl: string | null;
 }
 
+/** Blank initial state for the patient onboarding form. */
 export const ONBOARDING_DEFAULTS: OnboardingData = {
   fullName: '',
   birthdate: '',

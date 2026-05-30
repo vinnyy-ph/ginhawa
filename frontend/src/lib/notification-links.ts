@@ -1,3 +1,11 @@
+/**
+ * Maps notification types to their in-app destination routes.
+ *
+ * Used by the notification UI to make each notification item a clickable link
+ * to the relevant page (appointments list, medical records, etc.). The mapping
+ * is role-sensitive because doctors and patients navigate different route trees.
+ */
+
 const APPOINTMENT_TYPES = new Set([
   'APPOINTMENT_BOOKED',
   'APPOINTMENT_CONFIRMED',
