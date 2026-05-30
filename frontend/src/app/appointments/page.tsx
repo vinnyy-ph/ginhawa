@@ -41,13 +41,19 @@ export default function PatientAppointmentsPage() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [token, appointmentTick]);
+  }, [token]);
 
   useEffect(() => {
     queueMicrotask(() => {
       fetchAppointments();
     });
   }, [fetchAppointments]);
+
+  // Live refetch when an APPOINTMENT_* notification arrives.
+  useEffect(() => {
+    if (appointmentTick > 0) queueMicrotask(() => fetchAppointments(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appointmentTick]);
 
   useEffect(() => {
     if (!token) return;
