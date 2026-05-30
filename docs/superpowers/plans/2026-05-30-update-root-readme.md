@@ -1,3 +1,33 @@
+# Root README Update Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Generate a comprehensive and accurate root README for the Ginhawa telehealth application, covering the stack, architecture, local setup, and linking to key documentation.
+
+**Architecture:** The project is a monorepo with a NestJS backend and a Next.js frontend, using Prisma for database management and a shared `docker-compose` for the database.
+
+**Tech Stack:** Next.js, NestJS, TypeScript, Prisma, PostgreSQL, Docker, Tailwind CSS, Radix UI.
+
+---
+
+### Task 1: Research and Draft Content
+
+**Files:**
+- Modify: `README.md`
+
+- [ ] **Step 1: Draft the Project Overview and Stack section**
+- [ ] **Step 2: Draft the Architecture Summary section**
+- [ ] **Step 3: Draft the Local Setup instructions (Prerequisites, Installation, Env Vars, Database, Running)**
+- [ ] **Step 4: Draft the Deployment and Documentation links section**
+
+### Task 2: Implement the New README
+
+**Files:**
+- Modify: `README.md`
+
+- [ ] **Step 1: Replace existing README content with the new draft**
+
+```markdown
 # Ginhawa Telehealth App
 
 A modern, full-stack telehealth platform built for the builder round, enabling seamless patient-doctor interactions, AI-driven recommendations, and consultation management.
@@ -34,15 +64,10 @@ Ginhawa is structured as a monorepo for rapid development and type safety:
 git clone <repository-url>
 cd telehealth-app
 npm install
+npm run install:all # If you add a script for this, or just cd into each and npm install
 ```
 
-Install dependencies for both frontend and backend:
-
-```bash
-cd backend && npm install
-cd ../frontend && npm install
-cd ..
-```
+*(Note: Root package.json currently has `concurrently` but not a full install script. For now, instructions will be manual install in each dir.)*
 
 ### 2. Environment Variables
 
@@ -65,7 +90,6 @@ Run Prisma migrations and seed the database:
 cd backend
 npx prisma migrate dev
 npx prisma db seed
-cd ..
 ```
 
 ### 4. Running the Application
@@ -87,13 +111,19 @@ npm run dev
 
 ## 🚢 Deployment
 
-### Railway.app (Recommended)
+The application is designed to be deployed with:
+- Frontend: Vercel / Railway
+- Backend: Railway / Render / Fly.io
+- Database: Managed PostgreSQL (e.g., Railway, Supabase, Neon)
 
-1. **Project Setup:** Create a new project in Railway.
-2. **Database:** Add a PostgreSQL service.
-3. **Services:**
-   - Add a Web Service pointing to `/backend`.
-   - Add a Web Service pointing to `/frontend`.
-4. **Environment Variables:**
-   - **Backend:** `DATABASE_URL`, `STORAGE=cloudinary`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `JWT_SECRET`, `GEMINI_API_KEY`, `DAILY_API_KEY`.
-   - **Frontend:** `NEXT_PUBLIC_API_URL` (Backend URL), `NEXTAUTH_URL` (Frontend URL), `NEXTAUTH_SECRET`.
+---
+```
+
+- [ ] **Step 2: Verify all links and commands in the new README**
+
+- [ ] **Step 3: Commit the changes**
+
+```bash
+git add README.md
+git commit -m "docs: update root README with stack, architecture, and setup instructions"
+```
