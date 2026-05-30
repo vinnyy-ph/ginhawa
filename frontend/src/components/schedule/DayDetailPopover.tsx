@@ -67,14 +67,18 @@ export function DayDetailPopover({
                     isConfirming ? (
                       <>
                         <button
+                          type="button"
                           onClick={() => { onDelete(slot.id); setConfirmDeleteId(null) }}
-                          className="text-[10px] font-bold text-error hover:underline"
+                          className="text-[10px] font-bold text-error hover:underline focus-visible:ring-2 focus-visible:ring-primary"
+                          aria-label="Confirm delete"
                         >
                           Del
                         </button>
                         <button
+                          type="button"
                           onClick={() => setConfirmDeleteId(null)}
-                          className="text-[10px] text-on-surface-variant hover:underline"
+                          className="text-[10px] text-on-surface-variant hover:underline focus-visible:ring-2 focus-visible:ring-primary"
+                          aria-label="Cancel delete"
                         >
                           No
                         </button>
@@ -82,14 +86,18 @@ export function DayDetailPopover({
                     ) : (
                       <>
                         <button
+                          type="button"
                           onClick={() => onStatusChange(slot.id, isAvailable ? "BLOCKED" : "AVAILABLE")}
-                          className="text-[10px] font-semibold text-primary hover:underline"
+                          className="text-[10px] font-semibold text-primary hover:underline focus-visible:ring-2 focus-visible:ring-primary"
+                          aria-label={isAvailable ? "Block slot" : "Unblock slot"}
                         >
                           {isAvailable ? "Block" : "Unblock"}
                         </button>
                         <button
+                          type="button"
                           onClick={() => setConfirmDeleteId(slot.id)}
-                          className="text-[10px] text-on-surface-variant hover:text-error hover:underline"
+                          className="text-[10px] text-on-surface-variant hover:text-error hover:underline focus-visible:ring-2 focus-visible:ring-primary"
+                          aria-label="Delete slot"
                         >
                           Del
                         </button>
