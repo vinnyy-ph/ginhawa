@@ -1,5 +1,19 @@
 "use client";
 
+/**
+ * Header — sticky top navigation bar for public-facing and landing pages.
+ *
+ * Renders different nav and action areas based on the user's session role:
+ *   - Unauthenticated: marketing links (Features, Find a Doctor, For Doctors)
+ *     + Log in / Sign up buttons + mobile hamburger menu.
+ *   - PATIENT: Find a Doctor + AI Symptom Checker links, notifications bell,
+ *     and a dropdown account menu with avatar.
+ *   - DOCTOR: minimal "Go to Dashboard" and "Log out" buttons.
+ *
+ * Fetches the patient's profile picture on mount for the avatar. Used on the
+ * home page and all non-dashboard routes.
+ */
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
@@ -10,6 +24,10 @@ import { Logo } from "@/components/ui/logo";
 import { apiRequest } from "@/lib/api-client";
 import type { PatientProfile } from "@/types/patient-profile";
 
+/**
+ * Renders a circular avatar from a URL, falling back to an initial-letter
+ * placeholder when the image fails to load or no URL is provided.
+ */
 function Avatar({ name, src }: { name: string; src?: string | null }) {
   const [failed, setFailed] = useState(false);
   const [prevSrc, setPrevSrc] = useState(src);
@@ -30,12 +48,14 @@ function Avatar({ name, src }: { name: string; src?: string | null }) {
   );
 }
 
+/** Renders the site-wide sticky header with role-conditional navigation and actions. */
 export function Header() {
   const { data: session, status } = useSession();
   const role = session?.user?.role;
   const name = session?.user?.name || session?.user?.email || "User";
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
+  // Only fetch the profile picture for patients; doctors don't use the avatar here.
   useEffect(() => {
     const token = session?.user?.accessToken;
     if (role !== "PATIENT" || !token) return;

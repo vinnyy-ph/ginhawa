@@ -1,3 +1,11 @@
+/**
+ * MobileTopHeader — sticky top app bar shown on mobile/tablet for authenticated users.
+ *
+ * Provides the Ginhawa logo (links to the role-appropriate home), a notifications
+ * bell (active-tinted when on the notifications page), and a logout button.
+ * Hidden on desktop (lg:hidden) where the sidebar renders instead. Used by
+ * DashboardLayout.
+ */
 import Link from 'next/link';
 import { BellIcon, ExitIcon } from '@radix-ui/react-icons';
 import { Logo } from '@/components/ui/logo';
@@ -10,6 +18,7 @@ interface MobileTopHeaderProps {
   onLogout: () => void;
 }
 
+/** Renders the mobile sticky header with brand link, notifications icon, and logout. */
 export function MobileTopHeader({ homePath, notificationsPath, pathname, onLogout }: MobileTopHeaderProps) {
   return (
     <header className="lg:hidden sticky top-0 z-20 flex items-center justify-between bg-surface-white border-b border-outline-variant px-4 py-3">

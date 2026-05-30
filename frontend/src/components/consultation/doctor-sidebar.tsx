@@ -1,3 +1,14 @@
+/**
+ * ConsultationDoctorSidebar — fixed side panel displayed to the doctor during a video consultation.
+ *
+ * Contains two tabs:
+ *   - "Live Notes": a freeform textarea that auto-saves every 1.5 s; content
+ *     is later fed to the AI summarizer when the doctor finalizes the record.
+ *   - "Patient": renders PatientContextPanel with medical history, vitals, etc.
+ *
+ * An "End & Finalize" button in the footer routes the doctor to the finalize
+ * page after the call. Used inside /consultation/[id].
+ */
 import { PatientContextPanel, type PatientContext } from "./patient-context-panel";
 
 interface DoctorSidebarProps {
@@ -10,6 +21,11 @@ interface DoctorSidebarProps {
   onEndAndFinalize: () => void;
 }
 
+/**
+ * Renders the doctor's side panel with tabbed live-notes and patient-context
+ * views, plus the "End & Finalize" action. All state (notes, active tab) is
+ * lifted to the parent consultation page.
+ */
 export function ConsultationDoctorSidebar({
   activeTab,
   onTabChange,

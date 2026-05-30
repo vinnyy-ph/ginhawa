@@ -1,3 +1,11 @@
+/**
+ * PatientDetailHeader — top section of the doctor's patient detail view.
+ *
+ * Renders the patient's avatar initial, full name, computed age, phone number,
+ * and city/region. If the patient has a stored medical history string it is shown
+ * below in a dedicated card. Used at the top of the /doctor/patients/:id page.
+ */
+
 import type { DoctorPatientHistory } from "@/types/api";
 import { patientAge } from "./patient-history-utils";
 

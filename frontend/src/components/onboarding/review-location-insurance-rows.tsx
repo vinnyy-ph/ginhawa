@@ -1,3 +1,11 @@
+/**
+ * ReviewLocationInsuranceRows — patient onboarding, review step (shared sub-component).
+ *
+ * Renders the optional location and insurance fields (address, PhilHealth ID,
+ * HMO) as inline-editable rows inside the patient review card. Returns null
+ * when the patient skipped the location/insurance step entirely, so the card
+ * stays clean for users who did not fill these fields.
+ */
 import type { OnboardingData } from "@/types/patient-profile";
 import { EditableRow, editInputClass } from "@/components/ui/editable-row";
 import { formatPhilHealth, formatHmoCard, isValidPhilHealth, isValidHmoCard } from "@/lib/format";
@@ -7,7 +15,15 @@ interface Props {
   update: (patch: Partial<OnboardingData>) => void;
 }
 
+/**
+ * Conditionally renders location and insurance rows (Address, PhilHealth ID,
+ * HMO Provider/Card) inside the patient review card. Returns null when no
+ * location/insurance data was entered, avoiding an empty section in the card.
+ * Inline validation prevents saving malformed PhilHealth (12-digit) and HMO
+ * (12-character) identifiers.
+ */
 export function ReviewLocationInsuranceRows({ data, update }: Props) {
+  // Guard: suppress the entire section when the patient skipped these optional fields.
   const hasLocationInsurance =
     !!(data.address || data.city || data.region || data.philhealthId || data.hmoProvider || data.hmoCardNo);
   if (!hasLocationInsurance) return null;

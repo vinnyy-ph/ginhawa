@@ -1,4 +1,9 @@
 // frontend/src/components/ui/progress-indicator.tsx
+/**
+ * ProgressIndicator — step progress bar for multi-step onboarding flows.
+ * Renders a segmented track and a "Step N of M" label with accessible
+ * progressbar ARIA attributes.
+ */
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 

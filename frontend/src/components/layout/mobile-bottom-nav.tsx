@@ -1,3 +1,11 @@
+/**
+ * MobileBottomNav — fixed bottom navigation bar for mobile/tablet viewports.
+ *
+ * Renders the condensed nav item set (patientMobileNav or the first 5 doctor
+ * items) as icon + label links with badge indicators. Visible only below the
+ * lg breakpoint; the desktop sidebar takes over on larger screens. Used by
+ * DashboardLayout.
+ */
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import type { NavItem } from './dashboard-nav';
@@ -9,6 +17,10 @@ interface MobileBottomNavProps {
   getBadge: (href: string) => number;
 }
 
+/**
+ * Renders a fixed bottom bar with icon-and-label nav links and notification
+ * badge dots. Active state uses the same exact-match logic as the desktop sidebar.
+ */
 export function MobileBottomNav({ role, pathname, navItems, getBadge }: MobileBottomNavProps) {
   return (
     <nav

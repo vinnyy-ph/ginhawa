@@ -1,3 +1,11 @@
+/**
+ * SymptomsStep — step 2 of the context-aware recommendation wizard.
+ *
+ * Presents a free-text textarea for symptom description plus an optional
+ * voice-input toggle that delegates mic state to the parent via callbacks.
+ * Validates that at least 10 characters are entered before enabling "Find My
+ * Specialist". Used inside the /recommendations page.
+ */
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FadeIn } from "@/components/ui/fade-in";
@@ -17,6 +25,11 @@ interface SymptomsStepProps {
   onMicClick: () => void;
 }
 
+/**
+ * Renders the symptom-input card with voice recording controls and inline
+ * validation feedback. All mic/recording state is owned by the parent; this
+ * component is purely presentational.
+ */
 export function SymptomsStep({
   symptoms,
   setSymptoms,
@@ -46,6 +59,8 @@ export function SymptomsStep({
               <label htmlFor="symptoms" className="block text-sm font-semibold text-text-primary uppercase tracking-wide">
                 Your Symptoms
               </label>
+              {/* Voice button only appears when the browser supports the Web
+                  Speech API (isSupported from the parent hook). */}
               {isSupported && (
                 <button
                   type="button"

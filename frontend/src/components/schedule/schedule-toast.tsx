@@ -1,3 +1,12 @@
+/**
+ * ScheduleToast — transient success notification for schedule mutations.
+ *
+ * Fixed to the top-centre of the viewport with a slide-in animation. Displayed
+ * by the doctor schedule page after slot creation, bulk generation, status
+ * changes, or deletions succeed. The parent is responsible for unmounting it
+ * after an appropriate delay.
+ */
+
 import { CheckCircledIcon } from "@radix-ui/react-icons";
 
 export function ScheduleToast({ message }: { message: string }) {

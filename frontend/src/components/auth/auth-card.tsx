@@ -1,4 +1,9 @@
 // frontend/src/components/auth/auth-card.tsx
+/**
+ * AuthCard — full-page authentication layout with a branded left panel and a
+ * centered form panel on the right. The left panel copy, icon badge, and
+ * feature list adapt to the `type` prop (login | signup-patient | signup-doctor).
+ */
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/ui/logo';

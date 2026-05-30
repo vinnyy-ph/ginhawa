@@ -1,3 +1,10 @@
+/**
+ * FAQSection — frequently asked questions accordion for the public landing page.
+ *
+ * Renders a centred single-column accordion covering platform basics (symptom
+ * matching, data security, joining consultations, scheduling, and post-visit
+ * records). Used on the public home page (/) between the features grid and CTA.
+ */
 import {
   Accordion,
   AccordionContent,
@@ -29,6 +36,7 @@ const faqs = [
   },
 ];
 
+/** Renders a staggered-fade accordion of the most common patient/doctor questions. */
 export function FAQSection() {
   return (
     <section className="py-20 bg-background">

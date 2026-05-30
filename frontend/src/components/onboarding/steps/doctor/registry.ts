@@ -1,3 +1,11 @@
+/**
+ * Doctor onboarding step registry — doctor flow.
+ *
+ * Single source of truth for step order, slugs, titles, and components in the
+ * doctor onboarding flow. To add, remove, or reorder a step, edit this file
+ * only — the page shell reads `DOCTOR_STEPS` at runtime to drive navigation,
+ * progress indicators, and the guard (`firstIncompleteDoctorSlug`).
+ */
 import type { StepDef } from '@/components/onboarding/steps/types';
 import { PersonalStep } from './personal';
 import { CredentialsStep } from './credentials';

@@ -1,6 +1,12 @@
 // frontend/src/components/ui/onboarding-shell.tsx
 'use client';
 
+/**
+ * OnboardingShell — page chrome for all onboarding steps (patient + doctor).
+ * Renders a branded header, a progress indicator, and a content area that is
+ * either wrapped in a card (default) or rendered flat (`card={false}`) for
+ * steps that already contain their own card (e.g. ReviewIdCard).
+ */
 import * as React from 'react';
 import { Logo } from './logo';
 import { FadeIn } from './fade-in';

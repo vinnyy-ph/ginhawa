@@ -1,3 +1,15 @@
+/**
+ * DoctorAbout — main content column of the doctor detail page.
+ *
+ * Composed of four sections rendered in order:
+ *   1. CredentialsCard (PRC license, location, languages) — trust signals first
+ *   2. About — doctor's bio paragraphs
+ *   3. Specializations & Focus Areas — primary/secondary specialization badges and parsed focus-area chips
+ *   4. Patient Reviews — average star rating and review list
+ *
+ * Used alongside DoctorBookingCard in the two-column layout of /doctors/[id].
+ */
+
 import React from "react";
 import type { DoctorProfile, DoctorReview } from "@/types/api";
 import { StarRating } from "@/components/ui/star-rating";
@@ -87,6 +99,8 @@ export function DoctorAbout({
   reviews: DoctorReview[];
 }) {
   const specializations = doctor.specializations ?? [];
+  // consultationFocusAreas is stored as a comma-separated string; split into
+  // individual chips for the read-only display.
   const focusAreas = doctor.consultationFocusAreas
     ? doctor.consultationFocusAreas.split(",").map((s) => s.trim()).filter(Boolean)
     : [];

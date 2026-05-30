@@ -1,3 +1,10 @@
+/**
+ * ReviewIdentityRows — patient onboarding, review step (shared sub-component).
+ *
+ * Renders the core identity fields (name, date of birth, contact number, body
+ * metrics) as inline-editable rows inside the patient review card. Always
+ * rendered — these fields are the minimum required for profile creation.
+ */
 import type { OnboardingData } from "@/types/patient-profile";
 import { EditableRow, editInputClass } from "@/components/ui/editable-row";
 import { PhoneInput } from "@/components/ui/phone-input";
@@ -10,6 +17,12 @@ interface Props {
   update: (patch: Partial<OnboardingData>) => void;
 }
 
+/**
+ * Renders editable identity rows (Full Name, Date of Birth, Contact Info,
+ * Weight/Height) inside the patient review card. Each row delegates to
+ * `EditableRow`, which manages its own local edit state and calls `update`
+ * on save — keeping the parent context in sync without a full form re-submit.
+ */
 export function ReviewIdentityRows({ data, update }: Props) {
   return (
     <>

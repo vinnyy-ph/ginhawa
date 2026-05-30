@@ -1,3 +1,14 @@
+/**
+ * Doctor onboarding guard — doctor flow.
+ *
+ * Determines the first step the doctor must complete before being allowed to
+ * advance. The page shell passes the result to `resolveStepSlug` as the
+ * `blockSlug`, which then enforces it as a redirect ceiling — the doctor
+ * cannot deep-link or navigate past an incomplete required step.
+ *
+ * Only the three required steps (personal → credentials → specialization) are
+ * checked; optional steps (practice, review) are not gated.
+ */
 import { doctorCredentialsSchema } from '@/lib/schemas/onboarding.schemas';
 import type { DoctorOnboardingData } from '@/types/doctor-onboarding';
 

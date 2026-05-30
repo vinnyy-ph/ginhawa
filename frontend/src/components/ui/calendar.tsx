@@ -1,5 +1,11 @@
 'use client'
 
+/**
+ * PickerCalendar — React Aria Components calendar for use inside DatePicker.
+ * Value, min, and max are supplied via RAC context; the focused month/year is
+ * managed locally so year-jump buttons can skip forward/backward without
+ * affecting the controlled date value.
+ */
 import { useState } from 'react'
 import {
   Calendar,

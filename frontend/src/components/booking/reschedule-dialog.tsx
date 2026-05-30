@@ -1,5 +1,17 @@
 "use client";
 
+/**
+ * RescheduleDialog — modal that lets a patient pick a new slot for an existing appointment.
+ *
+ * Used on the patient appointments page. Opens a Radix Dialog, fetches fresh
+ * AVAILABLE slots for the same doctor on mount, then reuses BookingCalendar +
+ * the time-slot grid from the main booking flow.
+ *
+ * On confirm it POSTs to /appointments/:id/reschedule. The appointment returns to
+ * a pending state for the doctor to re-confirm. `onRescheduled` is called on
+ * success so the parent can refetch the appointments list.
+ */
+
 import React, { useMemo, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
@@ -15,9 +27,15 @@ interface RescheduleDialogProps {
   appointment: Appointment;
   token?: string;
   onRescheduled: () => void;
+  /** The element that opens the dialog (passed as Radix Dialog.Trigger child). */
   trigger: React.ReactNode;
 }
 
+/**
+ * Modal reschedule flow. Accepts an existing appointment and renders a
+ * date+time slot picker for the same doctor. Calls `onRescheduled` after
+ * the API call succeeds so the parent list can refresh.
+ */
 export function RescheduleDialog({
   appointment,
   token,
@@ -50,6 +68,8 @@ export function RescheduleDialog({
         `/doctors/${appointment.doctorId}/slots`,
       );
       const now = Date.now();
+      // Only offer future AVAILABLE slots — exclude BOOKED/BLOCKED and any
+      // slots whose start time has already passed.
       setSlots(
         data
           .filter(

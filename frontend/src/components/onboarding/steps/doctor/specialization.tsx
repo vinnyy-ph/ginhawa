@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * SpecializationStep — doctor onboarding, step 3 of 5 ("Specialization & Experience").
+ *
+ * Collects the doctor's primary specialization (required), years of experience
+ * (optional), and languages spoken (optional, chip-selectable). The specialization
+ * list is fetched from the API via `useSpecializations`; when the fetch fails or
+ * returns empty, the component degrades to a free-text input so the doctor is
+ * never hard-blocked on a required field.
+ */
 import { useState } from 'react';
 import { useDoctorOnboarding } from '@/providers/doctor-onboarding-context';
 import { FormField } from '@/components/ui/form-field';
@@ -11,6 +20,11 @@ import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding
 
 const COMMON_LANGUAGES = ['English', 'Tagalog', 'Cebuano', 'Ilocano'];
 
+/**
+ * Renders the specialization form (primary specialization dropdown/text,
+ * years of experience, languages spoken with chip shortcuts). Validates that
+ * a specialization is selected before calling `nav.goNext()`.
+ */
 export function SpecializationStep({ nav }: { nav: OnboardingNavType }) {
   const { data, update } = useDoctorOnboarding();
   const { specializations, loading } = useSpecializations();

@@ -1,5 +1,21 @@
 "use client"
 
+/**
+ * WeekView — time-grid weekly calendar view for the doctor schedule page.
+ *
+ * Renders a 7-day column grid with a fixed pixel-per-hour scale (HOUR_HEIGHT = 48 px/hr)
+ * from 7 AM to 8 PM. Each hour row is wrapped in AddSlotPopover so clicking any
+ * empty cell opens the slot creator pre-filled with that day and hour.
+ *
+ * Slot blocks are positioned absolutely using pixel offsets computed from the slot's
+ * PH-local start time (slotTopPx) and duration (slotHeightPx). Slots outside the
+ * displayed hour range are silently skipped to prevent overflow.
+ *
+ * Booked slots display the patient's first name in the block. Past days are non-interactive.
+ *
+ * @param weekStart - The Sunday (midnight) that begins the displayed 7-day range.
+ */
+
 import { useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { formatPHTime } from "@/lib/datetime"
@@ -27,6 +43,10 @@ function dateToISO(d: Date) {
   return d.toISOString().slice(0, 10)
 }
 
+/**
+ * Converts an ISO timestamp to a pixel offset from the top of the time grid.
+ * Must read the local PH time (not UTC) so slots land on the correct hour row.
+ */
 function slotTopPx(startTime: string): number {
   const d = new Date(startTime)
   const phStr = d.toLocaleTimeString("en-PH", {
@@ -39,6 +59,7 @@ function slotTopPx(startTime: string): number {
   return ((h - HOUR_START) + m / 60) * HOUR_HEIGHT
 }
 
+/** Converts slot duration to pixel height, with a 20 px minimum so very short slots remain visible. */
 function slotHeightPx(startTime: string, endTime: string): number {
   const ms = new Date(endTime).getTime() - new Date(startTime).getTime()
   return Math.max((ms / 3600000) * HOUR_HEIGHT, 20)

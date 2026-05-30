@@ -1,3 +1,8 @@
+/**
+ * StarRating — displays a 5-star rating with numeric score and review count.
+ * Renders a "No reviews yet" fallback when count is 0. The star icons are
+ * aria-hidden; an aria-label on the wrapper conveys the full rating to screen readers.
+ */
 import { StarFilledIcon, StarIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 

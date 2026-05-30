@@ -1,5 +1,18 @@
 "use client"
 
+/**
+ * MonthView — monthly calendar grid for the doctor schedule page.
+ *
+ * Builds a 7-column grid of day cells for the given month, including leading/trailing
+ * days from adjacent months to fill complete week rows. Each cell:
+ *   - Is non-interactive for past dates and dates outside the current month.
+ *   - Wraps with AddSlotPopover so clicking an empty future-day cell opens the slot creator.
+ *   - Renders up to SLOT_LIMIT (3) slot blocks via SlotDetailPopover for block/unblock/delete.
+ *   - Shows a DayDetailPopover "+N more" link when there are more slots than SLOT_LIMIT.
+ *
+ * Slot colour coding: green for AVAILABLE, blue-ish for BOOKED, red for BLOCKED.
+ */
+
 import { useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { formatPHTime } from "@/lib/datetime"
@@ -50,6 +63,8 @@ export function MonthView({
     const prevMonthDays = new Date(year, month, 0).getDate()
     const result: { iso: string; isCurrentMonth: boolean }[] = []
 
+    // Pad the grid start with trailing days from the previous month so
+    // the first row always begins on Sunday regardless of what day the month starts on.
     // Trailing days from prev month
     for (let i = firstDay - 1; i >= 0; i--) {
       const d = prevMonthDays - i

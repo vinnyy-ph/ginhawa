@@ -1,9 +1,19 @@
+/**
+ * HeroSection — above-the-fold landing page hero.
+ *
+ * Two-column layout: left column has the headline, value prop, and a "Browse
+ * doctors" escape link; right column embeds InlineRecommendationWidget so
+ * visitors can start a symptom check without navigating away. Decorative radial
+ * gradients and blurred blobs provide depth without images. Used as the first
+ * section of the public home page (/).
+ */
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { FadeIn } from "@/components/ui/fade-in";
 import { InlineRecommendationWidget } from "@/components/ui/inline-recommendation-widget";
 import { MagicWandIcon } from "@radix-ui/react-icons";
 
+/** Renders the two-column hero with headline copy and the inline recommendation widget. */
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32">

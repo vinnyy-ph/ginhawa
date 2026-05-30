@@ -1,3 +1,11 @@
+/**
+ * dashboard-nav — nav item definitions and profile-completion helper for the dashboard shell.
+ *
+ * Exports static NavItem arrays (doctorNav, patientNav, patientMobileNav) consumed
+ * by DashboardSidebar and MobileBottomNav, and computeProfileCompletion which
+ * drives the sidebar progress bar. Keeping nav config here avoids circular
+ * dependencies between layout components.
+ */
 import {
   HomeIcon,
   CalendarIcon,
@@ -46,6 +54,10 @@ export const patientMobileNav: NavItem[] = [
   { href: '/profile', label: 'Profile', icon: <PersonIcon className="w-4 h-4" /> },
 ];
 
+/**
+ * Calculates what percentage of key patient profile fields are filled in.
+ * Used to drive the sidebar profile-completion progress bar.
+ */
 export function computeProfileCompletion(profile: PatientProfile): number {
   const fields = [
     profile.fullName,

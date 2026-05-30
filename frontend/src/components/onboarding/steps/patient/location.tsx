@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * LocationStep — patient onboarding, step 2 of 6 ("Location & Insurance").
+ *
+ * Collects optional address, PhilHealth ID, and HMO details. All fields are
+ * skippable via the "Skip" affordance in `OnboardingNav` (`nav.goToReview()`).
+ * PhilHealth and HMO card numbers are masked with format helpers on change and
+ * validated by the `locationInsuranceSchema` before context update.
+ */
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -13,6 +21,11 @@ import { FormField } from '@/components/ui/form-field';
 import { formatPhilHealth, formatHmoCard } from '@/lib/format';
 import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding/steps/types';
 
+/**
+ * Renders the location and insurance form. Empty optional fields are
+ * normalised to empty strings before being merged into context, so downstream
+ * code does not need to handle undefined for these nullable fields.
+ */
 export function LocationStep({ nav }: { nav: OnboardingNavType }) {
   const { data, update } = useOnboarding();
 

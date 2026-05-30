@@ -1,3 +1,14 @@
+/**
+ * FinalizeRecordForm — editable clinical documentation form for the post-consultation finalize flow.
+ *
+ * Wraps four textarea fields (consultation notes, patient recommendations,
+ * prescription, follow-up advice) that are pre-populated by an AI summary from
+ * the doctor's live notes. The doctor must check an attestation checkbox and
+ * pass a two-step publish confirmation before the record is written permanently.
+ *
+ * The `amending` flag switches copy and actions between "initial publish" and
+ * "amendment" modes. Used on /doctor/finalize/[id].
+ */
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -22,6 +33,11 @@ interface FinalizeRecordFormProps {
   onPublish: () => void;
 }
 
+/**
+ * Renders the editable clinical documentation card with a two-step publish
+ * guard: an attestation checkbox must be checked before the publish button
+ * becomes active, and a confirmation prompt appears before the API call fires.
+ */
 export function FinalizeRecordForm({
   values,
   setField,
@@ -51,6 +67,8 @@ export function FinalizeRecordForm({
         </div>
       )}
 
+      {/* Warn the doctor that the AI draft must be verified before publishing;
+          this banner is suppressed when the doctor is amending an existing record. */}
       {!amending && (
         <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg text-sm">
           <ExclamationTriangleIcon className="w-5 h-5 shrink-0 mt-0.5" />

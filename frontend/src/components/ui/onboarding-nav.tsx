@@ -1,6 +1,10 @@
 // frontend/src/components/ui/onboarding-nav.tsx
 'use client';
 
+/**
+ * OnboardingNav — Back/Continue footer bar shared by all onboarding steps.
+ * Supports an optional Skip link and a loading state with a spinner.
+ */
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';

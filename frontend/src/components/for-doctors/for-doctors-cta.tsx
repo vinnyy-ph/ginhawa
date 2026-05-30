@@ -1,3 +1,11 @@
+/**
+ * ForDoctorsCta — bottom call-to-action banner on the "For Doctors" marketing page.
+ *
+ * Renders a radial-gradient card with two actions: "Join as a Doctor" (links to
+ * /signup/doctor) and "Request a demo" (mailto). Placed at the bottom of the
+ * /for-doctors page after WorkflowSection.
+ */
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { FadeIn } from '@/components/ui/fade-in';

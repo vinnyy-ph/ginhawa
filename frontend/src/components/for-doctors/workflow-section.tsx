@@ -1,3 +1,12 @@
+/**
+ * WorkflowSection — numbered four-step workflow explainer on the /for-doctors marketing page.
+ *
+ * Renders a two-column layout: left side has the section heading and doctor login/signup
+ * CTAs; right side shows a 2-column grid of the four workflow steps (profile → availability
+ * → consult → document). Anchored with `id="workflow"` for the "See how it works" link
+ * in ForDoctorsHero to scroll-jump to.
+ */
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

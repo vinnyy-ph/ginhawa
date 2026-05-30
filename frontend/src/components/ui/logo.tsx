@@ -1,3 +1,9 @@
+/**
+ * Logo — inline SVG brand mark for Ginhawa. Rendered inline (not via next/image)
+ * so that multi-stop linear gradient fills work across all rendering contexts.
+ * Each instance generates a unique ID prefix via useId to prevent gradient
+ * collisions when multiple logos appear on the same page.
+ */
 import * as React from "react";
 
 interface LogoProps {

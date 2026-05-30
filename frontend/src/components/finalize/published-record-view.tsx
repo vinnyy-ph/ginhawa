@@ -1,8 +1,20 @@
+/**
+ * PublishedRecordView — read-only display of a finalized medical record.
+ *
+ * Shows consultation notes, prescriptions (via PrescriptionDisplay), patient
+ * recommendations, and follow-up advice for a completed appointment. Renders
+ * an "Amend record" button that switches the finalize page back to editing
+ * mode. Used on /doctor/finalize/[id] when a record already exists.
+ */
 import { Button } from "@/components/ui/button";
 import { ChatBubbleIcon, FileTextIcon, CheckCircledIcon } from "@radix-ui/react-icons";
 import { PrescriptionDisplay } from "@/components/prescription-display";
 import type { MedicalRecord } from "@/types/api";
 
+/**
+ * Renders the four sections of a published medical record in read-only format.
+ * Sections are conditionally rendered so fields the doctor left blank are omitted.
+ */
 export function PublishedRecordView({
   record,
   onAmend,

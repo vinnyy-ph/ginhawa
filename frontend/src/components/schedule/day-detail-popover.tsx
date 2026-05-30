@@ -1,5 +1,21 @@
 "use client"
 
+/**
+ * DayDetailPopover — scrollable slot list popover for a calendar day with more than SLOT_LIMIT slots.
+ *
+ * Triggered by the "+N more" overflow link in MonthView. Renders all slots for
+ * the day with time, status badge, and inline Block/Unblock/Delete actions.
+ * Booked slots show the patient's name and cannot be edited.
+ *
+ * Delete requires a two-step confirmation to prevent accidental removal: clicking
+ * "Del" first sets a pending confirm state; a second click commits the deletion.
+ *
+ * @param patientNames - Map of slot ID → patient full name; populated by the page
+ *   for BOOKED slots so the doctor can see who is booked without a separate fetch.
+ * @param onStatusChange - Lifts slot status changes (AVAILABLE ↔ BLOCKED) to the page.
+ * @param onDelete - Lifts slot deletion to the page.
+ */
+
 import { useState } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"

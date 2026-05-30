@@ -1,3 +1,10 @@
+/**
+ * DoctorDetailSkeleton — full-page animated loading placeholder for /doctors/[id].
+ *
+ * Mirrors the layout of the doctor detail page (gradient hero + two-column body)
+ * using `animate-pulse` shimmer blocks. Shown while the doctor profile data is
+ * being fetched server-side or on client navigation.
+ */
 export function DoctorDetailSkeleton() {
   return (
     <div className="min-h-screen bg-surface">

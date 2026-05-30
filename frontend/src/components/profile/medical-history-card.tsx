@@ -1,3 +1,13 @@
+/**
+ * MedicalHistoryCard — patient profile card for clinical background data.
+ *
+ * Covers blood type, smoking status, allergies, chronic conditions, current
+ * medications, past surgeries, and family history. In edit mode, chip suggestion
+ * buttons let the patient toggle common values quickly, while a free-text input
+ * captures custom entries as a comma-separated string. In read mode, PillList
+ * renders each comma-separated list as color-coded tags. Used on the patient
+ * profile page (/profile).
+ */
 import { FormField } from "@/components/ui/form-field";
 import { Chip } from "@/components/ui/chip";
 import { onboardingInputClass, onboardingTextareaClass } from "@/components/ui/onboarding-styles";
@@ -20,6 +30,10 @@ interface MedicalHistoryCardProps {
   setField: SetProfileField;
 }
 
+/**
+ * Renders the medical history section in a compact card that switches between
+ * chip-and-input edit mode and pill-badge read mode for list fields.
+ */
 export function MedicalHistoryCard({ isEditing, values, setField }: MedicalHistoryCardProps) {
   const {
     bloodType, smokingStatus, allergies, chronicConditions,

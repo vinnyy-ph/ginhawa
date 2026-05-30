@@ -1,5 +1,16 @@
 'use client';
 
+/**
+ * ReviewStep — patient onboarding, step 6 of 6 ("One last check").
+ *
+ * Presents all collected patient data in the ReviewIdCard with inline-editable
+ * fields (via the three Review*Rows components). On submit, it:
+ * 1. POSTs (or PATCHes on 409 conflict) the base profile to `/patients/profile`.
+ * 2. PATCHes `/patients/medical-history` only when medical fields were entered
+ *    (avoids a no-op API call for patients who skipped the medical step).
+ * 3. Refreshes the NextAuth session to propagate the display name into the JWT.
+ * 4. Redirects home after a short success-toast delay.
+ */
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -25,6 +36,12 @@ const optList = (s: string) => {
   return list.length ? list : undefined;
 };
 
+/**
+ * Renders the patient profile summary card with three grouped row sections
+ * (identity, location/insurance, medical). Delegates inline edit state
+ * entirely to the `EditableRow` children — the submit handler only reads from
+ * the onboarding context, which the rows update via the `update` callback.
+ */
 export function ReviewStep({ nav }: { nav: OnboardingNavType }) {
   const router = useRouter();
   const { data: session, update: updateSession } = useSession();

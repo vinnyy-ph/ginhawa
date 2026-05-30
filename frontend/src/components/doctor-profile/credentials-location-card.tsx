@@ -1,3 +1,13 @@
+/**
+ * CredentialsLocationCard — editable card for a doctor's regulatory credentials and practice location.
+ *
+ * Part of the doctor profile edit page. Covers PRC license number with expiry
+ * date (via DatePicker), PTR number, and region/city fields. Switches between a
+ * read-only InfoRow display and live input fields based on the `isEditing` prop.
+ * Input formatting is delegated to `formatPrc` / `formatPtr` to enforce the
+ * expected numeric patterns.
+ */
+
 import { FormField } from "@/components/ui/form-field";
 import { DatePicker } from "@/components/ui/date-picker";
 import { onboardingInputClass } from "@/components/ui/onboarding-styles";
@@ -8,9 +18,14 @@ import type { DoctorProfileForm, SetDoctorField } from "@/hooks/use-doctor-profi
 interface CredentialsLocationCardProps {
   isEditing: boolean;
   values: DoctorProfileForm;
+  /** Typed field setter from `useDoctorProfileForm`; updates a single form key. */
   setField: SetDoctorField;
 }
 
+/**
+ * Renders credential and location fields in either read-only or editable mode.
+ * When not editing, fields are shown as plain InfoRow text with no form elements.
+ */
 export function CredentialsLocationCard({ isEditing, values, setField }: CredentialsLocationCardProps) {
   const { prcLicenseNo, prcLicenseExpiry, ptrNo, region, city } = values;
 

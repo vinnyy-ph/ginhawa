@@ -1,5 +1,10 @@
 "use client"
 
+/**
+ * Popover — Radix UI popover primitives (Root, Trigger, Content) with app
+ * design system styling and enter/exit animations. Content renders into a
+ * portal to avoid z-index and overflow clipping issues.
+ */
 import * as React from "react"
 import * as PopoverPrimitive from "@radix-ui/react-popover"
 import { cn } from "@/lib/utils"

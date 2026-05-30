@@ -1,4 +1,9 @@
 // frontend/src/components/ui/phone-input.tsx
+/**
+ * PhoneInput — tel input with a fixed "+63" country-code prefix for Philippine
+ * numbers. The prefix is purely presentational (pointer-events-none); the raw
+ * number value is managed by the parent.
+ */
 'use client';
 
 import * as React from 'react';

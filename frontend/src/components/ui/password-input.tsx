@@ -1,4 +1,9 @@
 // frontend/src/components/ui/password-input.tsx
+/**
+ * PasswordInput — text input with a toggleable show/hide button.
+ * Drops the `type` prop from the forwarded attributes; visibility is
+ * managed internally and switches between "password" and "text".
+ */
 'use client';
 
 import * as React from 'react';

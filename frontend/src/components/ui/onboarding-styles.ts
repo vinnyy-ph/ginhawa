@@ -1,4 +1,8 @@
-// frontend/src/lib/onboarding-styles.ts
+// frontend/src/components/ui/onboarding-styles.ts
+/**
+ * onboarding-styles — shared Tailwind class strings for onboarding form inputs.
+ * Single source of truth; import instead of duplicating across step components.
+ */
 // Single source of truth for onboarding text-input styling.
 // Mirrors DESIGN.md: rounded-md (0.75rem) idle border, primary focus ring,
 // Manrope body, error border via aria-invalid.

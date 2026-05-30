@@ -1,3 +1,13 @@
+/**
+ * PracticeDetailsCard — editable card for a doctor's clinical and availability information.
+ *
+ * Part of the doctor profile edit page. Covers specialization (dropdown from API
+ * or plain text fallback if fetch failed), years of experience, consultation fee,
+ * availability summary text, languages spoken (quick-select chips + free text),
+ * and consultation focus areas (free-text textarea rendered as tag chips in
+ * read-only mode). Toggles between edit and read-only display via `isEditing`.
+ */
+
 import { FormField } from "@/components/ui/form-field";
 import { Chip } from "@/components/ui/chip";
 import { useSpecializations } from "@/hooks/use-specializations";
@@ -21,10 +31,13 @@ export function PracticeDetailsCard({ isEditing, values, setField }: PracticeDet
 
   const { specializations, loading: specsLoading } = useSpecializations();
 
+  // If the doctor has a saved specialization not in the fetched list, prepend it
+  // so it remains selectable without clearing the existing value on save.
   const specOptions =
     specialization && !specializations.includes(specialization)
       ? [specialization, ...specializations]
       : specializations;
+  // Fall back to a plain text input when the specializations API returns nothing.
   const specFetchFailed = !specsLoading && specializations.length === 0;
 
   return (

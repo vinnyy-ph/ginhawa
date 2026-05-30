@@ -1,3 +1,17 @@
+/**
+ * video-overlays — floating UI panels layered over the video feed during a consultation.
+ *
+ * Provides two overlays:
+ *   - DoctorDisconnectedOverlay: notifies the patient that the doctor dropped
+ *     and offers a "Return to appointments" escape hatch after a timeout.
+ *   - DeviceErrorOverlay: shown when the browser cannot access camera/mic,
+ *     with a Retry action so the user can grant permissions without a reload.
+ *
+ * Both are positioned absolutely relative to the video container and rendered
+ * conditionally by the consultation page (/consultation/[id]).
+ */
+
+/** Notification banner shown to the patient when the doctor's connection drops. */
 export function DoctorDisconnectedOverlay({
   showReturn,
   onReturn,
@@ -24,6 +38,7 @@ export function DoctorDisconnectedOverlay({
   );
 }
 
+/** Full-screen blocker rendered when camera or microphone access fails. */
 export function DeviceErrorOverlay({
   message,
   onRetry,

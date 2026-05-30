@@ -1,5 +1,10 @@
 'use client'
 
+/**
+ * DatePicker — accessible date picker built on React Aria Components.
+ * Accepts and emits ISO date strings ("YYYY-MM-DD"); internally converts
+ * to/from @internationalized/date CalendarDate for the RAC layer.
+ */
 import {
   DatePicker as AriaDatePicker,
   Group,

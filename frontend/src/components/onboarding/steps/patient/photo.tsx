@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * PhotoStep — patient onboarding, step 5 of 6 ("Profile Picture").
+ *
+ * Lets the patient upload a profile photo via file picker or camera capture.
+ * The photo is uploaded to `/uploads/profile-picture` before advancing; if no
+ * file is selected, the step skips the upload and jumps straight to the review
+ * step via `nav.goToReview()`. The step is fully skippable.
+ */
 import { useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { apiUpload, ApiError } from '@/lib/api-client';
@@ -12,6 +20,12 @@ import type { OnboardingNav as OnboardingNavType } from '@/components/onboarding
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+/**
+ * Renders the photo upload UI (file picker + camera capture button). When a
+ * file has been selected, "Continue" triggers an upload first; when no file is
+ * selected, both "Continue" and "Skip" go directly to the review step — the
+ * photo upload is the one step where `goNext` and `goToReview` converge.
+ */
 export function PhotoStep({ nav }: { nav: OnboardingNavType }) {
   const { data: session } = useSession();
   const { data, update } = useOnboarding();

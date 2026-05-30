@@ -1,3 +1,10 @@
+/**
+ * LocationInsuranceCard — patient profile card for address and insurance details.
+ *
+ * Covers address, city, region, PhilHealth ID (auto-formatted), HMO provider,
+ * and HMO card number (auto-formatted). Toggles between an editable form and a
+ * read-only InfoRow layout. Used on the patient profile page (/profile).
+ */
 import { FormField } from "@/components/ui/form-field";
 import { onboardingInputClass } from "@/components/ui/onboarding-styles";
 import { formatPhilHealth, formatHmoCard } from "@/lib/format";
@@ -10,6 +17,11 @@ interface LocationInsuranceCardProps {
   setField: SetProfileField;
 }
 
+/**
+ * Renders the location and insurance section of the patient profile, switching
+ * between editable inputs (with auto-formatting for PhilHealth and HMO card)
+ * and read-only InfoRow display.
+ */
 export function LocationInsuranceCard({ isEditing, values, setField }: LocationInsuranceCardProps) {
   const { address, city, region, philhealthId, hmoProvider, hmoCardNo } = values;
 

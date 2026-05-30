@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * InlineRecommendationWidget — AI-powered symptom triage card for the patient
+ * home screen. Streams a JSON response from POST /recommendations, progressively
+ * rendering the specialization and explanation as chunks arrive. Surfaces an
+ * emergency call-to-action when the API returns specialization "EMERGENCY".
+ */
 import { useState } from "react";
 import Link from "next/link";
 import { parse } from "partial-json";

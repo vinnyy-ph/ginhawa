@@ -1,3 +1,13 @@
+/**
+ * ResultsStep — final step of the context-aware recommendation flow.
+ *
+ * Renders one of three states based on the MatchResult returned by the AI:
+ *   1. Loading skeleton while analysis is in-flight.
+ *   2. Emergency screen if the AI flags a life-threatening situation.
+ *   3. Ranked DoctorCard list with per-card "Why this match" reason chips.
+ *
+ * Used exclusively inside the /recommendations page wizard.
+ */
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +22,10 @@ interface ResultsStepProps {
   isAnalyzing: boolean;
 }
 
+/**
+ * Renders the recommendation results, including a loading state, an emergency
+ * alert branch, and the ranked list of matched doctors with match-reason chips.
+ */
 export function ResultsStep({ result, onRestart, isAnalyzing }: ResultsStepProps) {
   if (!result && !isAnalyzing) return null;
 
@@ -33,6 +47,8 @@ export function ResultsStep({ result, onRestart, isAnalyzing }: ResultsStepProps
 
   if (!result) return null;
 
+  // Emergency branch: the AI set result.emergency = true when symptoms indicate
+  // immediate danger. This renders a hard stop — no doctor booking, only a 911 CTA.
   if (result.emergency) {
     return (
       <FadeIn>
@@ -107,6 +123,8 @@ export function ResultsStep({ result, onRestart, isAnalyzing }: ResultsStepProps
             {result.doctors.map((doctor) => (
               <div key={doctor.id} className="space-y-2">
                 <DoctorCard doctor={doctor} isPatient={true} />
+                {/* matchReason is the per-doctor explanation injected by the AI
+                    ranking step — shown as a soft chip beneath each DoctorCard. */}
                 {doctor.matchReason && (
                   <div className="flex items-center gap-2 px-2">
                     <span className="inline-flex items-center rounded-full bg-secondary-container/40 px-3 py-1 text-xs font-semibold text-on-secondary-container">

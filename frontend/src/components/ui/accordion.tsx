@@ -1,3 +1,7 @@
+/**
+ * Accordion — thin Radix UI accordion wrappers (Root, Item, Trigger, Content)
+ * styled with the app design system. Delegates all open/close state to Radix.
+ */
 import * as React from "react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDownIcon } from "@radix-ui/react-icons";

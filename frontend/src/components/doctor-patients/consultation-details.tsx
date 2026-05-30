@@ -1,3 +1,14 @@
+/**
+ * ConsultationDetails — renders the medical record attached to a completed appointment.
+ *
+ * Used inside PatientHistoryCard. Displays the doctor's notes, recommendations,
+ * follow-up advice, free-text prescription, and any structured prescriptions with
+ * drug name, dosage, frequency, and duration. Shows a placeholder when the
+ * appointment has no record yet (pending/confirmed states).
+ *
+ * Also exports the generic `Field` label-value pair used by PatientHistoryCard.
+ */
+
 import type { Appointment } from "@/types/api";
 
 export function Field({ label, value }: { label: string; value: string }) {

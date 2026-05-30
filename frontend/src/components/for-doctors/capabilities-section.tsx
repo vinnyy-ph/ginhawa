@@ -1,3 +1,11 @@
+/**
+ * CapabilitiesSection — feature highlights grid on the "For Doctors" marketing page.
+ *
+ * Renders four capability cards (schedule management, patient context, notes/prescriptions,
+ * privacy) in a responsive 1→2→4 column grid with FadeIn scroll animations.
+ * Placed between ForDoctorsHero and WorkflowSection on the /for-doctors page.
+ */
+
 import { Card, CardContent } from '@/components/ui/card';
 import { FadeIn } from '@/components/ui/fade-in';
 import {

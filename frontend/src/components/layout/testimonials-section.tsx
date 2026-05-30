@@ -1,3 +1,10 @@
+/**
+ * TestimonialsSection — social-proof section on the public landing page.
+ *
+ * Displays three fictional testimonials (patient + patient + doctor) as quote
+ * cards in a 3-column grid. Used between the showcase section and the FAQ on
+ * the public home page.
+ */
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { FadeIn } from "@/components/ui/fade-in";
 import { QuoteIcon } from "@radix-ui/react-icons";
@@ -20,6 +27,7 @@ const testimonials = [
   },
 ];
 
+/** Renders a 3-column grid of testimonial quote cards with staggered fade-in. */
 export function TestimonialsSection() {
   return (
     <section className="py-20 bg-surface">

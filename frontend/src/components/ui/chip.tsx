@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Chip — toggleable pill button for filter/tag selection. Visual state
+ * (selected vs. unselected) is fully controlled by the parent via `selected`.
+ */
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 

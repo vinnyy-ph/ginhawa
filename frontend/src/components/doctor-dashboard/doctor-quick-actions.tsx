@@ -1,3 +1,11 @@
+/**
+ * DoctorQuickActions — sidebar widget on the doctor dashboard with navigation shortcuts.
+ *
+ * Renders four clickable cards linking to My Schedule, All Appointments,
+ * Notifications, and Patients. Placed in the right column of the dashboard
+ * layout alongside DoctorTodaySchedule.
+ */
+
 import Link from "next/link";
 import { CalendarIcon, BellIcon, ClockIcon } from "@radix-ui/react-icons";
 
