@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { apiRequest } from '@/lib/api-client';
 import type { PatientProfile } from '@/types/patient-profile';
-import type { Appointment, Notification } from '@/types/api';
+import type { Appointment } from '@/types/api';
 import { computeProfileCompletion } from '@/components/layout/dashboard-nav';
 
 type DoctorSidebarProfile = { fullName?: string | null; profilePictureUrl?: string | null };
@@ -18,7 +18,6 @@ export function usePatientSidebarData(role: 'patient' | 'doctor') {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [upcomingCount, setUpcomingCount] = useState(0);
-  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const token = session?.user?.accessToken;
@@ -39,17 +38,15 @@ export function usePatientSidebarData(role: 'patient' | 'doctor') {
     Promise.all([
       apiRequest<PatientProfile>('/patients/profile', { token }),
       apiRequest<Appointment[]>('/appointments/patient', { token }),
-      apiRequest<Notification[]>('/notifications', { token }),
-    ]).then(([profile, appointments, notifications]) => {
+    ]).then(([profile, appointments]) => {
       setPatientName(profile.fullName ?? session?.user?.name ?? session?.user?.email?.split('@')?.[0] ?? 'Patient');
       setAvatarUrl(profile.profilePictureUrl ?? null);
       setProfileCompletion(computeProfileCompletion(profile));
       setUpcomingCount(appointments.filter(a => a.status === 'PENDING' || a.status === 'CONFIRMED').length);
-      setUnreadCount(notifications.filter(n => !n.readAt).length);
     }).catch(() => {
       setPatientName(session?.user?.name ?? session?.user?.email?.split('@')?.[0] ?? 'Patient');
     });
   }, [role, session?.user?.accessToken, session?.user?.name, session?.user?.email]);
 
-  return { patientName, avatarUrl, profileCompletion, upcomingCount, unreadCount };
+  return { patientName, avatarUrl, profileCompletion, upcomingCount };
 }

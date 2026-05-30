@@ -2,11 +2,13 @@
 
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
+import { Toaster } from 'sonner';
 import { doctorNav, patientNav, patientMobileNav } from './dashboard-nav';
 import { usePatientSidebarData } from '@/hooks/use-patient-sidebar-data';
 import { DashboardSidebar } from './dashboard-sidebar';
 import { MobileBottomNav } from './mobile-bottom-nav';
 import { MobileTopHeader } from './mobile-top-header';
+import { NotificationRoot, useNotifications } from '@/providers/notification-provider';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -14,13 +16,23 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, role }: DashboardLayoutProps) {
+  return (
+    <NotificationRoot>
+      <DashboardLayoutInner role={role}>{children}</DashboardLayoutInner>
+      <Toaster richColors position="top-right" />
+    </NotificationRoot>
+  );
+}
+
+function DashboardLayoutInner({ children, role }: DashboardLayoutProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const navItems = role === 'patient' ? patientNav : doctorNav;
   const mobileNavItems = role === 'patient' ? patientMobileNav : navItems.slice(0, 5);
 
-  const { patientName, avatarUrl, profileCompletion, upcomingCount, unreadCount } =
+  const { patientName, avatarUrl, profileCompletion, upcomingCount } =
     usePatientSidebarData(role);
+  const { unreadCount } = useNotifications();
 
   const getPatientBadge = (href: string): number => {
     if (href === '/appointments') return upcomingCount;
