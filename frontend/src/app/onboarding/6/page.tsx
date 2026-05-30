@@ -7,24 +7,13 @@ import { useSession } from 'next-auth/react';
 import { apiRequest, apiUpload, ApiError } from '@/lib/api-client';
 import { useOnboarding } from '@/context/onboarding-context';
 import { Toast } from '@/components/ui/toast';
-import { PhoneInput } from '@/components/ui/phone-input';
-import { cn } from '@/lib/utils';
-import { formatPhone, formatPhilHealth, formatHmoCard, isValidPhilHealth, isValidHmoCard } from '@/lib/format';
-import { EditableRow, editInputClass } from '@/components/ui/editable-row';
-import { DatePicker } from '@/components/ui/date-picker';
-import { localTodayISO } from '@/lib/schemas/onboarding.schemas';
 import { OnboardingShell } from '@/components/ui/onboarding-shell';
 import { OnboardingNav } from '@/components/ui/onboarding-nav';
 import { ReviewIdCard, ReviewErrorAlert } from '@/components/ui/review-id-card';
+import { ReviewIdentityRows } from '@/components/onboarding/review-identity-rows';
+import { ReviewLocationInsuranceRows } from '@/components/onboarding/review-location-insurance-rows';
+import { ReviewMedicalRows } from '@/components/onboarding/review-medical-rows';
 import type { CreatePatientProfileBody, UpdateMedicalHistoryBody } from '@/types/patient';
-
-const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
-const SMOKING_OPTIONS = [
-  { value: '', label: 'Prefer not to say' },
-  { value: 'Never', label: 'Never' },
-  { value: 'Former', label: 'Former' },
-  { value: 'Current', label: 'Current' },
-];
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -73,8 +62,6 @@ export default function OnboardingStep6() {
     }
   };
 
-  const hasLocationInsurance =
-    !!(data.address || data.city || data.region || data.philhealthId || data.hmoProvider || data.hmoCardNo);
   const hasMedical =
     !!(data.bloodType || data.allergies || data.chronicConditions || data.currentMedications ||
        data.pastSurgeries || data.familyHistory || data.smokingStatus);
@@ -165,179 +152,9 @@ export default function OnboardingStep6() {
           photoError={photoError}
           onPhotoFile={handlePhotoFile}
         >
-          <EditableRow
-            label="Full Name"
-            display={data.fullName}
-            initial={{ fullName: data.fullName }}
-            onSave={update}
-            render={(d, set) => (
-              <input className={editInputClass} value={d.fullName} onChange={(e) => set('fullName', e.target.value)} />
-            )}
-          />
-          <EditableRow
-            label="Date of Birth"
-            display={data.birthdate}
-            initial={{ birthdate: data.birthdate }}
-            onSave={update}
-            render={(d, set) => (
-              <DatePicker value={d.birthdate} onChange={(v) => set('birthdate', v)} maxDate={localTodayISO()} />
-            )}
-          />
-          <EditableRow
-            label="Contact Info"
-            display={formatPhone(data.contactDetails)}
-            initial={{ contactDetails: data.contactDetails }}
-            onSave={update}
-            render={(d, set) => (
-              <PhoneInput
-                value={formatPhone(d.contactDetails)}
-                onChange={(e) => set('contactDetails', e.target.value.replace(/\D/g, '').replace(/^0/, '').slice(0, 10))}
-              />
-            )}
-          />
-          <EditableRow
-            label="Metrics"
-            display={`${data.weightKg ? data.weightKg + 'kg' : '—'} / ${data.heightCm ? data.heightCm + 'cm' : '—'}`}
-            initial={{ weightKg: data.weightKg, heightCm: data.heightCm }}
-            onSave={update}
-            render={(d, set) => (
-              <div className="flex gap-2">
-                <input type="number" min="0" step="0.1" placeholder="kg" className={editInputClass}
-                  value={d.weightKg ?? ''} onChange={(e) => set('weightKg', e.target.value === '' ? null : parseFloat(e.target.value))} />
-                <input type="number" min="0" step="0.1" placeholder="cm" className={editInputClass}
-                  value={d.heightCm ?? ''} onChange={(e) => set('heightCm', e.target.value === '' ? null : parseFloat(e.target.value))} />
-              </div>
-            )}
-          />
-
-          {hasLocationInsurance && (
-            <>
-              <div className="col-span-full h-px bg-outline-variant/30" />
-              <EditableRow
-                fullWidth
-                label="Location"
-                display={[data.address, data.city, data.region].filter(Boolean).join(', ')}
-                initial={{ address: data.address, city: data.city, region: data.region }}
-                onSave={update}
-                render={(d, set) => (
-                  <div className="flex flex-col gap-2">
-                    <input className={editInputClass} placeholder="Address" value={d.address} onChange={(e) => set('address', e.target.value)} />
-                    <div className="flex gap-2">
-                      <input className={editInputClass} placeholder="City" value={d.city} onChange={(e) => set('city', e.target.value)} />
-                      <input className={editInputClass} placeholder="Region" value={d.region} onChange={(e) => set('region', e.target.value)} />
-                    </div>
-                  </div>
-                )}
-              />
-              <EditableRow
-                label="PhilHealth ID"
-                display={data.philhealthId}
-                initial={{ philhealthId: data.philhealthId }}
-                onSave={update}
-                validate={(d) => (isValidPhilHealth(d.philhealthId ?? '') ? null : "Can't save — enter the full 12-digit PhilHealth ID")}
-                render={(d, set) => (
-                  <input className={editInputClass} inputMode="numeric" value={d.philhealthId}
-                    onChange={(e) => set('philhealthId', formatPhilHealth(e.target.value))} />
-                )}
-              />
-              <EditableRow
-                label="HMO"
-                display={[data.hmoProvider, data.hmoCardNo].filter(Boolean).join(' · ')}
-                initial={{ hmoProvider: data.hmoProvider, hmoCardNo: data.hmoCardNo }}
-                onSave={update}
-                validate={(d) => (isValidHmoCard(d.hmoCardNo ?? '') ? null : "Can't save — enter the full 12-character HMO card number")}
-                render={(d, set) => (
-                  <div className="flex gap-2">
-                    <input className={editInputClass} placeholder="Provider" value={d.hmoProvider} onChange={(e) => set('hmoProvider', e.target.value)} />
-                    <input className={editInputClass} placeholder="Card no." value={d.hmoCardNo} onChange={(e) => set('hmoCardNo', formatHmoCard(e.target.value))} />
-                  </div>
-                )}
-              />
-            </>
-          )}
-
-          {hasMedical && (
-            <>
-              <div className="col-span-full h-px bg-outline-variant/30" />
-              <EditableRow
-                label="Blood Type"
-                display={data.bloodType}
-                initial={{ bloodType: data.bloodType }}
-                onSave={update}
-                render={(d, set) => (
-                  <select className={editInputClass} value={d.bloodType} onChange={(e) => set('bloodType', e.target.value)}>
-                    <option value="">Select…</option>
-                    {BLOOD_TYPES.map((bt) => <option key={bt} value={bt}>{bt}</option>)}
-                  </select>
-                )}
-              />
-              <EditableRow
-                label="Smoking"
-                display={data.smokingStatus}
-                initial={{ smokingStatus: data.smokingStatus }}
-                onSave={update}
-                render={(d, set) => (
-                  <select className={editInputClass} value={d.smokingStatus} onChange={(e) => set('smokingStatus', e.target.value)}>
-                    {SMOKING_OPTIONS.map((o) => <option key={o.label} value={o.value}>{o.label}</option>)}
-                  </select>
-                )}
-              />
-              <EditableRow
-                fullWidth
-                label="Allergies"
-                display={data.allergies}
-                initial={{ allergies: data.allergies }}
-                onSave={update}
-                render={(d, set) => (
-                  <input className={editInputClass} placeholder="Comma-separated" value={d.allergies} onChange={(e) => set('allergies', e.target.value)} />
-                )}
-              />
-              <EditableRow
-                fullWidth
-                label="Chronic Conditions"
-                display={data.chronicConditions}
-                initial={{ chronicConditions: data.chronicConditions }}
-                onSave={update}
-                render={(d, set) => (
-                  <input className={editInputClass} placeholder="Comma-separated" value={d.chronicConditions} onChange={(e) => set('chronicConditions', e.target.value)} />
-                )}
-              />
-              <EditableRow
-                fullWidth
-                label="Current Medications"
-                display={data.currentMedications}
-                initial={{ currentMedications: data.currentMedications }}
-                onSave={update}
-                render={(d, set) => (
-                  <input className={editInputClass} placeholder="Comma-separated" value={d.currentMedications} onChange={(e) => set('currentMedications', e.target.value)} />
-                )}
-              />
-              {data.pastSurgeries && (
-                <EditableRow
-                  fullWidth
-                  label="Past Surgeries"
-                  display={data.pastSurgeries}
-                  initial={{ pastSurgeries: data.pastSurgeries }}
-                  onSave={update}
-                  render={(d, set) => (
-                    <textarea className={cn(editInputClass, 'resize-y min-h-[60px]')} value={d.pastSurgeries} onChange={(e) => set('pastSurgeries', e.target.value)} />
-                  )}
-                />
-              )}
-              {data.familyHistory && (
-                <EditableRow
-                  fullWidth
-                  label="Family History"
-                  display={data.familyHistory}
-                  initial={{ familyHistory: data.familyHistory }}
-                  onSave={update}
-                  render={(d, set) => (
-                    <textarea className={cn(editInputClass, 'resize-y min-h-[60px]')} value={d.familyHistory} onChange={(e) => set('familyHistory', e.target.value)} />
-                  )}
-                />
-              )}
-            </>
-          )}
+          <ReviewIdentityRows data={data} update={update} />
+          <ReviewLocationInsuranceRows data={data} update={update} />
+          <ReviewMedicalRows data={data} update={update} />
         </ReviewIdCard>
 
         {serverError && <ReviewErrorAlert message={serverError} onRetry={handleSubmit} />}
