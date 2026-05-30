@@ -13,6 +13,19 @@ const FALLBACK_MODELS = [
 
 type GenerateOpts = { schema?: object };
 
+/**
+ * Thin wrapper around the Google Gemini SDK that returns structured JSON.
+ *
+ * Two design choices drive this service:
+ *  - **Model fallback:** flash models intermittently return 429/503. Each call
+ *    walks FALLBACK_MODELS in order, retrying on those transient codes and
+ *    failing fast on anything else (bad model, auth, 400).
+ *  - **JSON-only output:** callers pass a response schema; output is parsed and
+ *    typed, with a markdown-fence cleanup fallback for stray ```json wrappers.
+ *
+ * Offers both a buffered (`generateJson`) and a streaming (`generateJsonStream`)
+ * variant.
+ */
 @Injectable()
 export class GeminiService {
   private readonly ai: GoogleGenAI;
@@ -71,6 +84,10 @@ export class GeminiService {
     }
   }
 
+  /**
+   * Generates a complete JSON response, returning the parsed object.
+   * @throws 503 (via `exhausted`) if every fallback model is unavailable.
+   */
   async generateJson<T>(prompt: string, opts?: GenerateOpts): Promise<T> {
     const config = this.buildConfig(opts);
     for (let mi = 0; mi < FALLBACK_MODELS.length; mi++) {
@@ -95,6 +112,12 @@ export class GeminiService {
     this.exhausted();
   }
 
+  /**
+   * Streams the response text chunk-by-chunk (yielded), then returns the fully
+   * parsed object once the stream completes. Lets callers show progressive
+   * output while still getting a typed result at the end.
+   * @throws 503 (via `exhausted`) if every fallback model is unavailable.
+   */
   async *generateJsonStream<T>(
     prompt: string,
     opts?: GenerateOpts,

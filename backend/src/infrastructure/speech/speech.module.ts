@@ -1,3 +1,4 @@
+/** Speech-to-text module exposing the audio transcription endpoint. */
 import { Module } from '@nestjs/common';
 import { SpeechController } from './speech.controller';
 import { SpeechService } from './speech.service';

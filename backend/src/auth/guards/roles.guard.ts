@@ -1,3 +1,10 @@
+/**
+ * Role-based authorization guard (registered as APP_GUARD, runs after
+ * JwtAuthGuard).
+ *
+ * Routes declare their requirement with `@Roles(Role.DOCTOR, ...)`. Routes
+ * with no `@Roles(...)` are allowed for any authenticated user.
+ */
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@prisma/client';
@@ -12,10 +19,12 @@ export class RolesGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
+    // No @Roles() on the route → no role restriction.
     if (!requiredRoles) {
       return true;
     }
 
+    // req.user was attached by JwtAuthGuard / JwtStrategy.validate.
     const request = context
       .switchToHttp()
       .getRequest<{ user?: { role?: Role } }>();
@@ -25,6 +34,7 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
+    // Allow if the user holds any one of the required roles.
     return requiredRoles.some((role) => userRole === role);
   }
 }
