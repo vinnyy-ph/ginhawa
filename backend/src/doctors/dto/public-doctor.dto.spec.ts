@@ -27,7 +27,7 @@ describe('toPublicDoctorProfile', () => {
   };
 
   it('omits sensitive and internal fields', () => {
-    const result = toPublicDoctorProfile({ ...base } as never);
+    const result = toPublicDoctorProfile({ ...base });
     expect(result).not.toHaveProperty('userId');
     expect(result).not.toHaveProperty('createdAt');
     expect(result).not.toHaveProperty('updatedAt');
@@ -41,7 +41,7 @@ describe('toPublicDoctorProfile', () => {
     const specializations = [
       { isPrimary: true, specialization: { id: 's1', name: 'Cardiology' } },
     ];
-    const result = toPublicDoctorProfile({ ...base, specializations } as never);
+    const result = toPublicDoctorProfile({ ...base, specializations });
     expect(result.prcLicenseNo).toBe('0012345');
     expect(result.isVerified).toBe(true);
     expect(result.city).toBe('Makati');

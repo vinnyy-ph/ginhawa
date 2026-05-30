@@ -66,9 +66,9 @@ export function AppointmentCard({
   const config = statusConfig[appt.status] || { variant: "outline", border: "border-l-outline" };
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
-  const [, setTick] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
   }, []);
 
@@ -185,7 +185,7 @@ export function AppointmentCard({
                           </button>
                         </div>
                       )}
-                      {appt.status === "CONFIRMED" && !isWithinJoinWindow(appt) && slot && Date.now() < new Date(slot.startTime).getTime() && (
+                      {appt.status === "CONFIRMED" && !isWithinJoinWindow(appt) && slot && now < new Date(slot.startTime).getTime() && (
                         <span className="text-xs font-semibold text-on-surface-variant self-center">
                           Join opens at {formatPHTime(slot.startTime)} (PHT)
                         </span>

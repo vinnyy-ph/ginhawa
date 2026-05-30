@@ -189,7 +189,11 @@ describe('PatientsService', () => {
   describe('update', () => {
     it('should update a profile', async () => {
       const userId = 'user123';
-      const profile = { id: 'profile123', userId } as PatientProfile;
+      const profile = {
+        id: 'profile123',
+        userId,
+        medicalHistoryRecord: null,
+      } as PatientProfile & { medicalHistoryRecord: null };
       const dto = { fullName: 'Jane Doe' };
       const expectedResult = { ...profile, ...dto };
 

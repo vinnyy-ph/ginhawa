@@ -169,20 +169,7 @@ export default function DoctorPatientDetailPage({
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "ALL">("ALL");
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (!token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLoading(false);
-      return;
-    }
-    setStatusFilter("ALL");
-    setSearch("");
-    fetchHistory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, status, id]);
-
-  async function fetchHistory() {
+  const fetchHistory = React.useCallback(async () => {
     if (!token) return;
     try {
       setLoading(true);
@@ -197,7 +184,19 @@ export default function DoctorPatientDetailPage({
     } finally {
       setLoading(false);
     }
-  }
+  }, [token, id]);
+
+  useEffect(() => {
+    if (status === "loading") return;
+    if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoading(false);
+      return;
+    }
+    setStatusFilter("ALL");
+    setSearch("");
+    fetchHistory();
+  }, [token, status, id, fetchHistory]);
 
   const patient = data?.patient;
   const age = patientAge(patient?.birthdate);

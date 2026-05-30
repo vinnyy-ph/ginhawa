@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -37,18 +37,7 @@ export default function DoctorPatientsPage() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (!token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLoading(false);
-      return;
-    }
-    fetchPatients();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, status]);
-
-  async function fetchPatients() {
+  const fetchPatients = useCallback(async () => {
     if (!token) return;
     try {
       setLoading(true);
@@ -62,7 +51,17 @@ export default function DoctorPatientsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [token]);
+
+  useEffect(() => {
+    if (status === "loading") return;
+    if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoading(false);
+      return;
+    }
+    fetchPatients();
+  }, [token, status, fetchPatients]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

@@ -54,8 +54,15 @@ export function DoctorDashboardClient() {
   }, [token]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [fetchData]);
+
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Today's date string for comparison
   const todayStr = new Date().toDateString();
@@ -251,8 +258,8 @@ export function DoctorDashboardClient() {
                           {appt.status}
                         </Badge>
                         {appt.status === 'CONFIRMED' && appt.slot &&
-                          Date.now() >= new Date(appt.slot.startTime).getTime() - 15 * 60 * 1000 &&
-                          Date.now() <= new Date(appt.slot.endTime).getTime() && (
+                          now >= new Date(appt.slot.startTime).getTime() - 15 * 60 * 1000 &&
+                          now <= new Date(appt.slot.endTime).getTime() && (
                             <Button asChild size="sm" className="bg-brand text-white hover:bg-brand-dark">
                               <Link href={`/consultation/${appt.id}`}>Join</Link>
                             </Button>

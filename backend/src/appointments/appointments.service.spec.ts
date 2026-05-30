@@ -284,9 +284,9 @@ describe('AppointmentsService', () => {
   });
 
   describe('findDoctorsForPatient', () => {
-    const pastTime1 = new Date(Date.now() - 86400000);   // yesterday
-    const pastTime2 = new Date(Date.now() - 172800000);  // 2 days ago
-    const futureTime = new Date(Date.now() + 86400000);  // tomorrow
+    const pastTime1 = new Date(Date.now() - 86400000); // yesterday
+    const pastTime2 = new Date(Date.now() - 172800000); // 2 days ago
+    const futureTime = new Date(Date.now() + 86400000); // tomorrow
 
     function makeAppt(
       doctorId: string,
@@ -363,9 +363,9 @@ describe('AppointmentsService', () => {
     it('throws NotFoundException when patient profile not found', async () => {
       mockPrismaService.patientProfile.findUnique.mockResolvedValueOnce(null);
 
-      await expect(service.findDoctorsForPatient('no-such-user')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.findDoctorsForPatient('no-such-user'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

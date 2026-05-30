@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -20,18 +20,7 @@ export default function MyDoctorsPage() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (!token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLoading(false);
-      return;
-    }
-    fetchDoctors();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, status]);
-
-  async function fetchDoctors() {
+  const fetchDoctors = useCallback(async () => {
     if (!token) return;
     try {
       setLoading(true);
@@ -45,7 +34,17 @@ export default function MyDoctorsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [token]);
+
+  useEffect(() => {
+    if (status === "loading") return;
+    if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoading(false);
+      return;
+    }
+    fetchDoctors();
+  }, [token, status, fetchDoctors]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -119,6 +118,7 @@ export default function MyDoctorsPage() {
                 {/* Avatar */}
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
                   {doctor.profilePictureUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={doctor.profilePictureUrl}
                       alt={doctor.fullName}
