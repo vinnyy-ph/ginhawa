@@ -3,6 +3,8 @@ import { RecommendationsService } from './recommendations.service';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { GeminiService } from '../infrastructure/ai/gemini.service';
+import { DoctorsService } from '../doctors/doctors.service';
+import { DoctorRankingService } from './doctor-ranking.service';
 
 const mockGenerateContentStream = jest.fn();
 
@@ -12,7 +14,12 @@ jest.mock('@google/genai', () => ({
       generateContentStream: mockGenerateContentStream,
     },
   })),
-  Type: { STRING: 'STRING', OBJECT: 'OBJECT' },
+  Type: {
+    STRING: 'STRING',
+    OBJECT: 'OBJECT',
+    NUMBER: 'NUMBER',
+    BOOLEAN: 'BOOLEAN',
+  },
 }));
 
 describe('RecommendationsService', () => {
@@ -28,17 +35,37 @@ describe('RecommendationsService', () => {
     patientMedicalHistory: { findUnique: jest.fn() },
   };
 
+  // The existing createStream tests rely on the real GeminiService backed by the
+  // mocked @google/genai client (mockGenerateContentStream). So we keep the real
+  // GeminiService provider and expose generateJson via a spy for the match tests.
+  const mockGeminiService = {
+    generateJson: jest.fn(),
+  };
+
+  const mockDoctorsService = {
+    findRankingCandidates: jest.fn(),
+  };
+
+  const mockRankingService = {
+    rank: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RecommendationsService,
         GeminiService,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: DoctorsService, useValue: mockDoctorsService },
+        { provide: DoctorRankingService, useValue: mockRankingService },
       ],
     }).compile();
 
     service = module.get<RecommendationsService>(RecommendationsService);
     jest.clearAllMocks();
+    jest
+      .spyOn(service['gemini'], 'generateJson')
+      .mockImplementation(mockGeminiService.generateJson);
   });
 
   async function consumeStream(
@@ -278,6 +305,79 @@ describe('RecommendationsService', () => {
       await expect(service.findAllForPatient('user-1')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('match', () => {
+    it('returns ranked doctors for a non-emergency query', async () => {
+      mockGeminiService.generateJson.mockResolvedValue({
+        specialization: 'Dentistry',
+        city: 'Manila',
+        region: null,
+        minYears: 5,
+        minRating: null,
+        emergency: false,
+        explanation: 'A dentist suits your request.',
+      });
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue(null);
+      mockPrismaService.recommendationLog.create.mockResolvedValue({});
+      const candidates = [{ id: 'doc-1', avgRating: 4, reviewCount: 2 }];
+      mockDoctorsService.findRankingCandidates.mockResolvedValue(candidates);
+      mockRankingService.rank.mockReturnValue([
+        { id: 'doc-1', avgRating: 4, reviewCount: 2, matchScore: 1, matchReason: 'Dentistry' },
+      ]);
+
+      const result = await service.match(null, { symptomInput: 'dentist in Manila 5 years' });
+
+      expect(result.emergency).toBe(false);
+      expect(result.explanation).toBe('A dentist suits your request.');
+      expect(result.criteria.specialization).toBe('Dentistry');
+      expect(result.doctors).toHaveLength(1);
+      expect(result.doctors[0].matchReason).toBe('Dentistry');
+      expect(mockRankingService.rank).toHaveBeenCalledWith(
+        expect.objectContaining({ specialization: 'Dentistry', city: 'Manila', minYears: 5 }),
+        candidates,
+      );
+    });
+
+    it('short-circuits on emergency and returns no doctors', async () => {
+      mockGeminiService.generateJson.mockResolvedValue({
+        specialization: 'EMERGENCY',
+        city: null,
+        region: null,
+        minYears: null,
+        minRating: null,
+        emergency: true,
+        explanation: 'Call 911.',
+      });
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue(null);
+      mockPrismaService.recommendationLog.create.mockResolvedValue({});
+
+      const result = await service.match(null, { symptomInput: 'crushing chest pain' });
+
+      expect(result.emergency).toBe(true);
+      expect(result.doctors).toEqual([]);
+      expect(mockDoctorsService.findRankingCandidates).not.toHaveBeenCalled();
+    });
+
+    it('does not throw when the log write fails', async () => {
+      mockGeminiService.generateJson.mockResolvedValue({
+        specialization: null,
+        city: null,
+        region: null,
+        minYears: null,
+        minRating: null,
+        emergency: false,
+        explanation: 'ok',
+      });
+      mockPrismaService.patientProfile.findUnique.mockResolvedValue(null);
+      mockPrismaService.recommendationLog.create.mockRejectedValue(new Error('db down'));
+      mockDoctorsService.findRankingCandidates.mockResolvedValue([]);
+      mockRankingService.rank.mockReturnValue([]);
+
+      await expect(
+        service.match(null, { symptomInput: 'just a checkup please' }),
+      ).resolves.toBeDefined();
     });
   });
 });
