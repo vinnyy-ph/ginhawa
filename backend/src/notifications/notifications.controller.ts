@@ -3,6 +3,7 @@ import {
   Get,
   Patch,
   Param,
+  Sse,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -17,6 +18,13 @@ export class NotificationsController {
   @Get()
   findAllForUser(@Request() req: { user: { id: string } }) {
     return this.notificationsService.findAllForUser(req.user.id);
+  }
+
+  // NOTE: JwtAuthGuard runs only at connect time. A long-lived SSE connection
+  // outlives its JWT; mid-stream expiry is accepted for the MVP (no refresh).
+  @Sse('stream')
+  stream(@Request() req: { user: { id: string } }) {
+    return this.notificationsService.streamForUser(req.user.id);
   }
 
   @Patch(':id/read')
