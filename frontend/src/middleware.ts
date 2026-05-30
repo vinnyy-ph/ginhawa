@@ -9,6 +9,7 @@ export const config = {
     "/notifications/:path*",
     "/profile/:path*",
     "/doctor/:path*",
+    "/onboarding",
     "/onboarding/:path*",
     "/consultation/:path*",
   ],

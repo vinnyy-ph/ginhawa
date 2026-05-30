@@ -46,7 +46,7 @@ export default function SignupPage() {
       });
 
       if (result?.ok) {
-        router.push('/onboarding/1');
+        router.push('/onboarding');
       } else {
         router.push('/login');
       }
