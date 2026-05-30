@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TimeField } from "@/components/ui/time-field";
 import { localTodayISO } from "@/lib/schemas/onboarding.schemas";
-import { ClockIcon, CheckCircledIcon } from "@radix-ui/react-icons";
+import { CheckCircledIcon } from "@radix-ui/react-icons";
 import { Chip } from "@/components/ui/chip";
 import { generateSlots, type WeeklyTemplate } from "@/lib/generate-slots";
 import { ScheduleCalendar } from "@/components/schedule/ScheduleCalendar";
