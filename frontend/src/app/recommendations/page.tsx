@@ -13,8 +13,7 @@ import { WelcomeStep } from "@/components/recommendations/welcome-step";
 import { SymptomsStep } from "@/components/recommendations/symptoms-step";
 import { ResultsStep } from "@/components/recommendations/results-step";
 import { HistoryList } from "@/components/recommendations/history-list";
-import type { RecommendationLog } from "@/types/api";
-import { parse } from 'partial-json';
+import type { RecommendationLog, MatchResult } from "@/types/api";
 
 function RecommendationsContent() {
   const { data: session } = useSession();
@@ -23,11 +22,9 @@ function RecommendationsContent() {
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [symptoms, setSymptoms] = useState("");
-  const [result, setResult] = useState<RecommendationLog | null>(null);
+  const [result, setResult] = useState<MatchResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [streamingSpecialization, setStreamingSpecialization] = useState<string | null>(null);
-  const [streamingExplanation, setStreamingExplanation] = useState<string>("");
 
   const { isRecording, isProcessing, isSupported, error: micError, startRecording, stopRecording } = useSpeechRecognition();
 
@@ -66,58 +63,17 @@ function RecommendationsContent() {
     setError(null);
     setStep(3);
     setResult(null);
-    setStreamingSpecialization(null);
-    setStreamingExplanation("");
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recommendations`, {
+      const data = await apiRequest<MatchResult>("/recommendations/match", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        token,
         body: JSON.stringify({ symptomInput: symptoms }),
       });
-
-      if (!response.ok) throw new Error("Failed to analyze symptoms.");
-      if (!response.body) throw new Error("No response body.");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let done = false;
-      let fullText = "";
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        if (value) {
-          const chunkValue = decoder.decode(value, { stream: true });
-          if (chunkValue.includes('{"error":')) {
-            throw new Error("Stream failed midway");
-          }
-          fullText += chunkValue;
-
-          try {
-            const parsed = parse(fullText);
-            if (typeof parsed === 'object' && parsed !== null) {
-              if (parsed.explanation) setStreamingExplanation(parsed.explanation);
-              if (parsed.specialization) setStreamingSpecialization(parsed.specialization);
-            }
-          } catch {
-            // ignore
-          }
-        }
-      }
-
-      const finalParsed = parse(fullText) as { explanation?: string; specialization?: string };
-      if (!finalParsed.specialization || !finalParsed.explanation) {
-        throw new Error("Received incomplete data from the server.");
-      }
-      const completeLog = { id: 'temp-' + Date.now(), symptomInput: symptoms, createdAt: new Date().toISOString(), aiExplanation: finalParsed.explanation, matchedSpecialization: finalParsed.specialization } as RecommendationLog;
-      setResult(completeLog);
+      setResult(data);
       if (token) loadHistory();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } catch {
+      setError("Something went wrong. Please try again.");
       setStep(2);
     } finally {
       setIsAnalyzing(false);
@@ -129,8 +85,6 @@ function RecommendationsContent() {
     setSymptoms("");
     setResult(null);
     setError(null);
-    setStreamingSpecialization(null);
-    setStreamingExplanation("");
   };
 
   return (
@@ -172,8 +126,6 @@ function RecommendationsContent() {
               result={result}
               onRestart={handleRestart}
               isAnalyzing={isAnalyzing}
-              streamingSpecialization={streamingSpecialization}
-              streamingExplanation={streamingExplanation}
             />
           )}
 

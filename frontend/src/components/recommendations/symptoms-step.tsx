@@ -34,9 +34,9 @@ export function SymptomsStep({
     <FadeIn>
       <div className="space-y-8">
         <div className="text-center space-y-3">
-          <h2 className="text-3xl font-bold text-text-primary font-serif">Tell us what&apos;s happening</h2>
+          <h2 className="text-3xl font-bold text-text-primary font-serif">What are you looking for?</h2>
           <p className="text-on-surface-variant">
-            Take your time and describe what&apos;s bothering you. You can type or use your voice.
+            Describe your symptoms — or the kind of doctor you want (e.g. &quot;dentist in Manila with 5+ years&quot;). Type or use your voice.
           </p>
         </div>
 
@@ -77,7 +77,7 @@ export function SymptomsStep({
                 id="symptoms"
                 autoFocus
                 className="w-full min-h-[200px] p-5 rounded-2xl border-2 border-outline-variant/40 focus:ring-0 focus:border-primary bg-surface-container-lowest text-on-surface transition-all outline-none text-lg resize-y shadow-inner"
-                placeholder="e.g., I've had a persistent headache for 3 days, accompanied by nausea..."
+                placeholder="e.g., I've had a headache for 3 days — or: a pediatrician in Cebu with great reviews"
                 value={symptoms}
                 onChange={(e) => setSymptoms(e.target.value)}
                 aria-invalid={!!error}
