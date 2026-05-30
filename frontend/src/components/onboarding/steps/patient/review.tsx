@@ -28,7 +28,7 @@ const optList = (s: string) => {
 export function ReviewStep({ nav }: { nav: OnboardingNavType }) {
   const router = useRouter();
   const { data: session } = useSession();
-  const { data, update, reset } = useOnboarding();
+  const { data, update } = useOnboarding();
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
@@ -121,10 +121,10 @@ export function ReviewStep({ nav }: { nav: OnboardingNavType }) {
       }
 
       setShowToast(true);
-      // Clear context only as we navigate away — resetting now would blank the
-      // ID-card fields during the 1.8s toast window.
+      // Navigate home after the toast. Do NOT reset() the context here: clearing
+      // it while this page is still mounted re-triggers the onboarding guard,
+      // which would redirect to ?step=personal and override this push.
       setTimeout(() => {
-        reset();
         router.push('/');
       }, 1800);
     } catch {
