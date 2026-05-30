@@ -52,7 +52,7 @@ export function DoctorCard({ doctor, isPatient }: DoctorCardProps) {
           )}
           {doctor.isVerified && (
             <div
-              className="absolute bottom-0 right-0 w-7 h-7 bg-primary rounded-full border-2 border-white flex items-center justify-center shadow-sm"
+              className="absolute bottom-0 right-0 z-10 w-7 h-7 bg-primary rounded-full border-2 border-white flex items-center justify-center shadow-sm"
               title="PRC Verified"
             >
               <svg
