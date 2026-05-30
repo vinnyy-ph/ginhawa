@@ -68,7 +68,7 @@ function RecommendationsContent() {
       const data = await apiRequest<MatchResult>("/recommendations/match", {
         method: "POST",
         token,
-        body: JSON.stringify({ symptomInput: symptoms }),
+        body: { symptomInput: symptoms },
       });
       setResult(data);
       if (token) loadHistory();

@@ -79,7 +79,12 @@ describe("RecommendationsPage", () => {
     await waitFor(() => expect(screen.getByText(/Jane Cruz/)).toBeInTheDocument());
     expect(apiRequest).toHaveBeenCalledWith(
       "/recommendations/match",
-      expect.objectContaining({ method: "POST" }),
+      expect.objectContaining({
+        method: "POST",
+        // body must be a plain object — apiRequest stringifies it. Passing a
+        // pre-stringified string double-encodes and the backend 400s.
+        body: { symptomInput: "dentist in Manila with 5 years" },
+      }),
     );
   });
 });
