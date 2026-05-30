@@ -1,5 +1,19 @@
 'use client';
 
+/**
+ * Hook that wraps the browser MediaRecorder API for voice-to-text input.
+ * Recording is driven by `startRecording` / `stopRecording` calls rather than
+ * a toggle, giving callers explicit control over the capture lifecycle.
+ * On stop, the accumulated audio chunks are assembled into a webm Blob and
+ * uploaded to `/speech/transcribe`; the resulting text is delivered via the
+ * `onTranscript` callback rather than stored in state, so the consumer decides
+ * where it lands (e.g. appending to a textarea).
+ *
+ * Browser support is detected lazily via `queueMicrotask` to avoid a
+ * server/client hydration mismatch (`isSupported` starts false). All state
+ * updates are guarded by `isMountedRef` so async transcription callbacks
+ * cannot fire after the component has unmounted.
+ */
 import { useState, useRef, useEffect } from 'react';
 import { apiUpload } from '@/lib/api-client';
 
@@ -12,6 +26,16 @@ interface UseSpeechRecognitionReturn {
   stopRecording: (onTranscript: (text: string) => void) => void;
 }
 
+/**
+ * Manages microphone capture and server-side transcription for a single
+ * recording session. Requires the browser's `getUserMedia` API; `isSupported`
+ * reflects availability and is safe to render without a loading state.
+ *
+ * @param token - Bearer token forwarded to the transcription API. When absent,
+ *   the upload is sent without authentication.
+ * @returns `isRecording`, `isProcessing`, `isSupported`, `error`,
+ *   `startRecording`, and `stopRecording(onTranscript)`.
+ */
 export function useSpeechRecognition(token?: string): UseSpeechRecognitionReturn {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);

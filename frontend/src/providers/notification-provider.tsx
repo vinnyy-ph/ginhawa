@@ -1,5 +1,28 @@
 'use client';
 
+/**
+ * Real-time notification layer built on Server-Sent Events (SSE). Establishes
+ * a persistent `/notifications/stream` connection via `fetchEventSource` and
+ * surfaces incoming notifications as Sonner toasts. An initial REST fetch of
+ * `/notifications` seeds the list on connection so notifications created
+ * before the stream opened are not missed. The SSE connection is torn down on
+ * token change or unmount via `AbortController`.
+ *
+ * Dedup strategy: `upsert` always places incoming items at the head of the
+ * list and removes any existing entries with the same id, so a notification
+ * received over SSE that was already fetched by the REST seed (or vice-versa)
+ * appears exactly once.
+ *
+ * Silent-degrade: the entire provider is wrapped in `NotificationErrorBoundary`
+ * (`NotificationRoot`). If the provider throws during render, children are
+ * still rendered without notification functionality rather than crashing the
+ * page. Auth errors (401/403) raise a `FatalError` so fetch-event-source does
+ * not attempt to reconnect.
+ *
+ * `appointmentTick` is a monotonically incrementing counter that appointment
+ * list components can use as a dependency to refetch when an
+ * APPOINTMENT_* notification arrives over SSE.
+ */
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
@@ -25,6 +48,11 @@ const EMPTY: NotificationContextValue = {
 
 const NotificationContext = createContext<NotificationContextValue>(EMPTY);
 
+/**
+ * Returns the current notification state from the nearest
+ * `NotificationRoot`. Safe to call outside a provider — returns the empty
+ * default (no notifications, no-op `markAsRead`, `appointmentTick` = 0).
+ */
 export function useNotifications() {
   return useContext(NotificationContext);
 }
@@ -120,6 +148,13 @@ class NotificationErrorBoundary extends React.Component<
   }
 }
 
+/**
+ * Public entry point that wraps `NotificationProvider` in an error boundary.
+ * If the provider crashes (e.g. unexpected SSE parse error during render),
+ * children are still mounted and functional — they simply receive the empty
+ * default context values instead of live notifications. Use this component
+ * in the layout rather than `NotificationProvider` directly.
+ */
 export function NotificationRoot({ children }: { children: React.ReactNode }) {
   return (
     <NotificationErrorBoundary fallback={children}>

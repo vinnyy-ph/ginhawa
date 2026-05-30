@@ -1,5 +1,16 @@
 'use client';
 
+/**
+ * Generic controller hook for "view → edit → save / discard" flows on a
+ * single authenticated resource. All profile-form hooks in this app
+ * (`useDoctorProfileForm`, `usePatientProfileForm`) delegate to this hook
+ * rather than duplicating load/save/snapshot logic. The caller supplies
+ * type-safe `load` and `save` functions; validation lives in `save` and
+ * surfaces as a thrown `Error` whose message is forwarded to the UI.
+ *
+ * Client-only: reads the session access token via `useSession`, so the
+ * component tree must be wrapped in NextAuth's SessionProvider.
+ */
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useSession } from 'next-auth/react';
 
@@ -17,6 +28,15 @@ interface EditableResourceConfig<F> {
  * edit/discard snapshot, save, and loading/saving/error/success state so a
  * page only wires `values` + `setField` into presentational cards. Validation
  * lives in the caller's `save`, which throws an Error whose message is shown.
+ *
+ * Edit lifecycle: `beginEdit` captures a snapshot of current values;
+ * `discard` restores it. On successful `submit`, the snapshot is cleared and
+ * a 3-second success flag is raised. The `load`/`loadErrorMessage` references
+ * are intentionally omitted from the effect dependency array — they are
+ * expected to be stable (module-level functions); the effect re-runs only when
+ * the session access token changes.
+ *
+ * @template F - The form values type; keys map directly to `setField` calls.
  */
 export function useEditableResource<F>({
   emptyValues,

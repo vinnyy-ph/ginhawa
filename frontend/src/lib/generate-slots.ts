@@ -1,3 +1,13 @@
+/**
+ * Client-side slot generation for the doctor availability scheduler.
+ *
+ * Given a `WeeklyTemplate` describing recurring working hours, `generateSlots`
+ * expands the template into concrete ISO datetime pairs ready to be POSTed to
+ * `POST /doctors/availability/bulk`. All Date objects are constructed in local
+ * time so the resulting UTC offsets reflect the doctor's Asia/Manila clock.
+ */
+
+/** Parameters that describe a recurring weekly availability pattern. */
 export interface WeeklyTemplate {
   /** 0 = Sunday … 6 = Saturday */
   weekdays: number[];
@@ -15,6 +25,7 @@ export interface WeeklyTemplate {
   breakWindow?: { start: string; end: string } | null;
 }
 
+/** A single bookable slot with ISO start/end datetimes, ready for the bulk-create API. */
 export interface GeneratedSlot {
   startTime: string; // ISO
   endTime: string; // ISO

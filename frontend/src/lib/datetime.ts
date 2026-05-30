@@ -1,4 +1,12 @@
 // frontend/src/lib/datetime.ts
+
+/**
+ * Date/time formatting utilities for appointment and notification timestamps.
+ *
+ * All appointment and clinical times are treated as Manila-local (UTC+8). The
+ * helpers below always pass `timeZone: "Asia/Manila"` to the Intl formatter so
+ * the displayed time is correct for any viewer's system clock.
+ */
 // All appointment/clinical times are Manila-local. These helpers pin the
 // timezone so a viewer on a non-PH machine clock still sees the real PH time.
 

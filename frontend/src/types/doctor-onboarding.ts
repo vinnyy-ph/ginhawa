@@ -1,3 +1,15 @@
+/**
+ * Types and default values for the doctor onboarding multi-step form state.
+ *
+ * `DoctorOnboardingData` is the single source of truth held in form state;
+ * it is split across credential, profile, and availability steps before being
+ * POSTed to the backend.
+ */
+
+/**
+ * Complete form state for the doctor onboarding wizard.
+ * Collected across multiple steps; submitted as a single profile creation request.
+ */
 export interface DoctorOnboardingData {
   fullName: string;
   professionalTitle: string;
@@ -16,6 +28,7 @@ export interface DoctorOnboardingData {
   city: string;
 }
 
+/** Blank initial state for the doctor onboarding form. */
 export const DOCTOR_ONBOARDING_DEFAULTS: DoctorOnboardingData = {
   fullName: '',
   professionalTitle: '',

@@ -1,3 +1,11 @@
+/**
+ * Availability display helpers for the doctor discovery UI.
+ *
+ * All date comparisons are performed in the Asia/Manila timezone so that
+ * "today" and "tomorrow" labels reflect Philippine calendar days regardless of
+ * the viewer's local clock.
+ */
+
 import type { AvailabilitySlot } from "@/types/api";
 
 const PH_TZ = "Asia/Manila";

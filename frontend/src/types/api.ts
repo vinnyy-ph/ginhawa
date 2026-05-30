@@ -1,4 +1,11 @@
 // frontend/src/types/api.ts
+
+/**
+ * Shared TypeScript types that mirror the backend Prisma models and API response
+ * shapes. These types are used across the frontend for type-safe data fetching
+ * and component props. They are intentionally kept in sync with the NestJS DTOs
+ * and Prisma schema — do not add client-only fields here.
+ */
 // Shared TypeScript types matching backend Prisma models
 
 export type AppointmentStatus =
@@ -12,11 +19,13 @@ export type SlotStatus = 'AVAILABLE' | 'BOOKED' | 'BLOCKED';
 
 // ─── Doctor ─────────────────────────────────────────────────────────────────
 
+/** Join-table shape returned when a doctor's specializations are included. */
 export interface DoctorSpecializationLink {
   isPrimary: boolean;
   specialization: { id: string; name: string };
 }
 
+/** Mirrors the `DoctorProfile` Prisma model; also used as list items in search/discovery. */
 export interface DoctorProfile {
   id: string;
   userId?: string;
@@ -40,6 +49,7 @@ export interface DoctorProfile {
   reviewCount?: number;
 }
 
+/** Filters extracted by the AI recommendation engine from the patient's symptom input. */
 export interface MatchCriteria {
   specialization: string | null;
   city: string | null;
@@ -48,11 +58,13 @@ export interface MatchCriteria {
   minRating: number | null;
 }
 
+/** A `DoctorProfile` augmented with AI-generated match score and reasoning. */
 export interface MatchedDoctor extends DoctorProfile {
   matchScore: number;
   matchReason: string;
 }
 
+/** Top-level response from `POST /recommendations/match`. */
 export interface MatchResult {
   explanation: string;
   criteria: MatchCriteria;
@@ -60,6 +72,7 @@ export interface MatchResult {
   doctors: MatchedDoctor[];
 }
 
+/** A patient review on a doctor; returned by `GET /doctors/:id/reviews`. */
 export interface DoctorReview {
   id: string;
   rating: number;
@@ -82,12 +95,15 @@ export interface AvailabilitySlot {
 
 // ─── Appointment ─────────────────────────────────────────────────────────────
 
+/** Minimal patient projection included inside appointment and record responses. */
 export interface PatientSummary {
   id: string;
   fullName: string;
   profilePictureUrl?: string | null;
 }
 
+/** Mirrors the `Appointment` Prisma model; optional relations are included when
+ *  the backend query uses `include: { doctor: true, slot: true }`. */
 export interface Appointment {
   id: string;
   patientId: string;
@@ -145,6 +161,7 @@ export interface PatientDoctorSummary {
 
 // ─── Medical Record ──────────────────────────────────────────────────────────
 
+/** Individual prescription line item within a `MedicalRecord`. */
 export interface Prescription {
   id: string;
   medicalRecordId: string;
@@ -156,6 +173,7 @@ export interface Prescription {
   issuedAt: string;
 }
 
+/** Mirrors the `MedicalRecord` Prisma model; created by doctors post-consultation. */
 export interface MedicalRecord {
   id: string;
   appointmentId: string;
@@ -174,6 +192,7 @@ export interface MedicalRecord {
 
 // ─── Notification ─────────────────────────────────────────────────────────────
 
+/** Mirrors the `Notification` Prisma model; delivered via SSE and REST. */
 export interface Notification {
   id: string;
   userId: string;
@@ -186,6 +205,7 @@ export interface Notification {
 
 // ─── Recommendation ───────────────────────────────────────────────────────────
 
+/** Audit log entry for an AI recommendation request; returned by `GET /recommendations/history`. */
 export interface RecommendationLog {
   id: string;
   patientId: string | null;
