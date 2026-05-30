@@ -5,9 +5,11 @@ import type { PatientProfile } from '@/types/patient-profile';
 import type { Appointment, Notification } from '@/types/api';
 import { computeProfileCompletion } from '@/components/layout/dashboard-nav';
 
+type DoctorSidebarProfile = { fullName?: string | null; profilePictureUrl?: string | null };
+
 /**
- * Loads the patient's sidebar identity + badge counts. No-op for doctors
- * (returns zeroed defaults), so the dashboard layout can call it unconditionally.
+ * Loads the sidebar identity + badge counts. Patients get full profile +
+ * badges; doctors get name + avatar only (badges stay zeroed).
  */
 export function usePatientSidebarData(role: 'patient' | 'doctor') {
   const { data: session } = useSession();
@@ -20,7 +22,19 @@ export function usePatientSidebarData(role: 'patient' | 'doctor') {
 
   useEffect(() => {
     const token = session?.user?.accessToken;
-    if (role !== 'patient' || !token) return;
+    if (!token) return;
+
+    if (role === 'doctor') {
+      apiRequest<DoctorSidebarProfile>('/doctors/profile', { token })
+        .then((profile) => {
+          setPatientName(profile.fullName ?? session?.user?.name ?? session?.user?.email?.split('@')?.[0] ?? 'Doctor');
+          setAvatarUrl(profile.profilePictureUrl ?? null);
+        })
+        .catch(() => {
+          setPatientName(session?.user?.name ?? session?.user?.email?.split('@')?.[0] ?? 'Doctor');
+        });
+      return;
+    }
 
     Promise.all([
       apiRequest<PatientProfile>('/patients/profile', { token }),

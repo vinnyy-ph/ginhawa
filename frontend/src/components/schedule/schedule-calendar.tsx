@@ -164,7 +164,7 @@ export function ScheduleCalendar({
         {[
           { label: "Available", cls: "bg-primary/20" },
           { label: "Booked", cls: "bg-secondary-container/40" },
-          { label: "Blocked", cls: "bg-surface-container border border-outline-variant/30" },
+          { label: "Blocked", cls: "bg-error/20 border border-error/30" },
         ].map(({ label, cls }) => (
           <div key={label} className="flex items-center gap-1.5">
             <div className={`w-2.5 h-2.5 rounded-sm ${cls}`} />

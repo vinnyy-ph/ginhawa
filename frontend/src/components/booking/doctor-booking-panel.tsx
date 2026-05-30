@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,15 @@ import { formatPHTime } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 import type { AvailabilitySlot } from "@/types/api";
 
-export function DoctorBookingPanel({ slots }: { slots: AvailabilitySlot[] }) {
+export function DoctorBookingPanel({
+  slots,
+  isAuthenticated = true,
+}: {
+  slots: AvailabilitySlot[];
+  isAuthenticated?: boolean;
+}) {
   const router = useRouter();
+  const pathname = usePathname();
   const { data: session } = useSession();
 
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
@@ -39,6 +46,10 @@ export function DoctorBookingPanel({ slots }: { slots: AvailabilitySlot[] }) {
 
   async function handleBookAppointment(e: React.FormEvent) {
     e.preventDefault();
+    if (!isAuthenticated) {
+      router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+      return;
+    }
     if (!selectedSlot || reason.trim().length < 5) return;
     try {
       setIsBooking(true);
@@ -128,32 +139,38 @@ export function DoctorBookingPanel({ slots }: { slots: AvailabilitySlot[] }) {
         <div className="animate-in fade-in slide-in-from-top-4 duration-300">
           <hr className="border-outline-variant/30 my-4" />
           <form onSubmit={handleBookAppointment} className="space-y-4">
-            <div>
-              <label
-                htmlFor="reason"
-                className="block text-sm font-semibold text-text-primary mb-1"
-              >
-                Reason for Visit <span className="text-error">*</span>
-              </label>
-              <textarea
-                id="reason"
-                required
-                minLength={5}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Briefly describe your symptoms or concern…"
-                className="w-full rounded-lg border border-outline-variant px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface min-h-[80px]"
-              />
-            </div>
+            {isAuthenticated && (
+              <div>
+                <label
+                  htmlFor="reason"
+                  className="block text-sm font-semibold text-text-primary mb-1"
+                >
+                  Reason for Visit <span className="text-error">*</span>
+                </label>
+                <textarea
+                  id="reason"
+                  required
+                  minLength={5}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Briefly describe your symptoms or concern…"
+                  className="w-full rounded-lg border border-outline-variant px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface min-h-[80px]"
+                />
+              </div>
+            )}
             {bookingError && <p className="text-xs text-error">{bookingError}</p>}
             <Button
               type="submit"
               className="w-full"
-              disabled={isBooking || reason.trim().length < 5}
+              disabled={isAuthenticated && (isBooking || reason.trim().length < 5)}
             >
-              {isBooking ? "Confirming…" : "Confirm Booking"}
+              {!isAuthenticated
+                ? "Sign In to Book"
+                : isBooking
+                  ? "Confirming…"
+                  : "Confirm Booking"}
             </Button>
-            {reason.trim().length < 5 && (
+            {isAuthenticated && reason.trim().length < 5 && (
               <p className="mt-2 text-xs text-on-surface-variant">
                 Add a brief reason for your visit (at least 5 characters) to
                 continue.

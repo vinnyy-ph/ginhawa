@@ -63,6 +63,15 @@ export function useDoctorDiscovery() {
     return Array.from(langs).filter(Boolean).sort();
   }, [doctors]);
 
+  const availableLocations = useMemo(() => {
+    const places = new Set<string>();
+    doctors.forEach((d) => {
+      if (d.city) places.add(d.city.trim());
+      if (d.region) places.add(d.region.trim());
+    });
+    return Array.from(places).filter(Boolean).sort();
+  }, [doctors]);
+
   const filteredAndSortedDoctors = useMemo(() => {
     let result = [...doctors];
 
@@ -73,13 +82,22 @@ export function useDoctorDiscovery() {
         (d) =>
           d.fullName.toLowerCase().includes(term) ||
           d.specialization.toLowerCase().includes(term) ||
-          (d.consultationFocusAreas && d.consultationFocusAreas.toLowerCase().includes(term))
+          (d.consultationFocusAreas && d.consultationFocusAreas.toLowerCase().includes(term)) ||
+          (d.city && d.city.toLowerCase().includes(term)) ||
+          (d.region && d.region.toLowerCase().includes(term))
       );
     }
 
     // Filter: Specialization
     if (filters.specialization && filters.specialization !== "any") {
       result = result.filter((d) => d.specialization === filters.specialization);
+    }
+
+    // Filter: Location (matches city or region)
+    if (filters.location && filters.location !== "any") {
+      result = result.filter(
+        (d) => d.city === filters.location || d.region === filters.location
+      );
     }
 
     // Filter: Languages
@@ -188,6 +206,7 @@ export function useDoctorDiscovery() {
     sort,
     setSort,
     availableSpecializations,
+    availableLocations,
     availableLanguages,
     clearFilters,
   };

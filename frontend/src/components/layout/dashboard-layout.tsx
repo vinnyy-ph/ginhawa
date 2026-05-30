@@ -49,7 +49,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
         patientName={patientName}
         avatarUrl={avatarUrl}
         profileCompletion={profileCompletion}
-        userName={session?.user?.name}
+        userName={patientName || session?.user?.name}
         userEmail={session?.user?.email}
         onLogout={onLogout}
       />

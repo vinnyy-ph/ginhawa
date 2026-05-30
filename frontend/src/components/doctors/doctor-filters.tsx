@@ -8,6 +8,7 @@ import { FilterPillGroup } from "./filter-pill-group";
 
 export interface FilterState {
   specialization: string;
+  location: string;
   feeRange: string;
   experience: string;
   languages: string[];
@@ -16,6 +17,7 @@ export interface FilterState {
 
 export const defaultFilters: FilterState = {
   specialization: "",
+  location: "",
   feeRange: "any",
   experience: "any",
   languages: [],
@@ -26,6 +28,7 @@ interface DoctorFiltersProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   availableSpecializations: string[];
+  availableLocations: string[];
   availableLanguages: string[];
 }
 
@@ -33,6 +36,7 @@ export function DoctorFilters({
   filters,
   onFiltersChange,
   availableSpecializations,
+  availableLocations,
   availableLanguages,
 }: DoctorFiltersProps) {
   const [open, setOpen] = useState(false);
@@ -112,6 +116,29 @@ export function DoctorFilters({
                 </div>
               </div>
             </div>
+
+            {/* Location */}
+            {availableLocations.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-bold text-text-primary">Location</h4>
+                <div className="relative">
+                  <select
+                    value={localFilters.location}
+                    onChange={(e) => setLocalFilters({ ...localFilters, location: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-surface-white border border-outline-variant rounded-lg text-sm text-text-primary appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50"
+                    aria-label="Filter by location"
+                  >
+                    <option value="">All Locations</option>
+                    {availableLocations.map((loc) => (
+                      <option key={loc} value={loc}>{loc}</option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                    <ChevronDownIcon className="w-4 h-4 text-on-surface-variant" />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Availability */}
             <FilterPillGroup

@@ -27,7 +27,7 @@ const optList = (s: string) => {
 
 export function ReviewStep({ nav }: { nav: OnboardingNavType }) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
   const { data, update } = useOnboarding();
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -119,6 +119,10 @@ export function ReviewStep({ nav }: { nav: OnboardingNavType }) {
       if (hasMedical) {
         await apiRequest('/patients/medical-history', { method: 'PATCH', body: medicalBody, token });
       }
+
+      // Refresh the auth session so the dashboard greeting shows the real name
+      // (the JWT cached at signup had no profile name yet).
+      await updateSession({ name: data.fullName });
 
       setShowToast(true);
       // Navigate home after the toast. Do NOT reset() the context here: clearing

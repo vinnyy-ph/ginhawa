@@ -120,6 +120,7 @@ export default function DoctorsDiscoveryPage() {
     sort,
     setSort,
     availableSpecializations,
+    availableLocations,
     availableLanguages,
     clearFilters,
   } = useDoctorDiscovery();
@@ -157,7 +158,7 @@ export default function DoctorsDiscoveryPage() {
                 type="search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by name, specialization, or condition..."
+                placeholder="Search by name, specialization, condition, or place..."
                 className="w-full pl-14 pr-6 py-5 rounded-2xl border border-outline-variant/40 bg-surface-white text-on-surface placeholder:text-on-surface-variant/50 text-lg shadow-lifted focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 aria-label="Search doctors"
               />
@@ -173,6 +174,7 @@ export default function DoctorsDiscoveryPage() {
                 filters={filters}
                 onFiltersChange={setFilters}
                 availableSpecializations={availableSpecializations}
+                availableLocations={availableLocations}
                 availableLanguages={availableLanguages}
               />
               

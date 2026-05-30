@@ -26,6 +26,16 @@ describe('RecommendationsService', () => {
       findFirst: jest.fn(),
     },
     patientMedicalHistory: { findUnique: jest.fn() },
+    specialization: {
+      findMany: jest
+        .fn()
+        .mockResolvedValue([
+          { name: 'Cardiology' },
+          { name: 'Dermatology' },
+          { name: 'Neurology' },
+          { name: 'General Practice' },
+        ]),
+    },
   };
 
   beforeEach(async () => {
