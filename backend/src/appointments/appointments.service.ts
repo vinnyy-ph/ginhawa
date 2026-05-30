@@ -12,6 +12,11 @@ import {
   SlotStatus,
   NotificationType,
 } from '@prisma/client';
+import {
+  isAllowedTransition,
+  buildStatusNotification,
+  paymentStatusFor,
+} from './appointments.helpers';
 
 @Injectable()
 export class AppointmentsService {
@@ -20,14 +25,40 @@ export class AppointmentsService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  async create(userId: string, createAppointmentDto: CreateAppointmentDto) {
-    const patientProfile = await this.prisma.patientProfile.findUnique({
+  private async getPatientProfileOrThrow(userId: string) {
+    const profile = await this.prisma.patientProfile.findUnique({
       where: { userId },
     });
-
-    if (!patientProfile) {
+    if (!profile) {
       throw new NotFoundException('Patient profile not found');
     }
+    return profile;
+  }
+
+  private async getDoctorProfileOrThrow(userId: string) {
+    const profile = await this.prisma.doctorProfile.findUnique({
+      where: { userId },
+    });
+    if (!profile) {
+      throw new NotFoundException('Doctor profile not found');
+    }
+    return profile;
+  }
+
+  /** Fire-and-forget notification; never blocks or fails the request. */
+  private notify(
+    userId: string,
+    type: NotificationType,
+    title: string,
+    message: string,
+  ): void {
+    this.notifications
+      .createNotification(userId, type, title, message)
+      .catch(() => null);
+  }
+
+  async create(userId: string, createAppointmentDto: CreateAppointmentDto) {
+    const patientProfile = await this.getPatientProfileOrThrow(userId);
 
     const appointment = await this.prisma.$transaction(async (tx) => {
       const slot = await tx.availabilitySlot.findUnique({
@@ -37,11 +68,9 @@ export class AppointmentsService {
       if (!slot) {
         throw new NotFoundException('Availability slot not found');
       }
-
       if (slot.status !== SlotStatus.AVAILABLE) {
         throw new BadRequestException('Slot is not available');
       }
-
       if (new Date(slot.startTime) < new Date()) {
         throw new BadRequestException('Cannot book a slot in the past');
       }
@@ -73,44 +102,32 @@ export class AppointmentsService {
         data: {
           appointmentId: newAppointment.id,
           amount: fee,
-          status: fee > 0 ? 'PAID' : 'WAIVED',
+          status: paymentStatusFor(fee),
         },
       });
 
       return newAppointment;
     });
 
-    // Notify doctor of new booking (fire-and-forget)
-    this.notifications
-      .createNotification(
-        appointment.doctor.userId,
-        NotificationType.APPOINTMENT_BOOKED,
-        'New Appointment Request',
-        `You have a new appointment request from ${patientProfile.fullName}.`,
-      )
-      .catch(() => null);
-
-    // Notify patient of booking confirmation
-    this.notifications
-      .createNotification(
-        userId,
-        NotificationType.APPOINTMENT_BOOKED,
-        'Appointment Requested',
-        `Your appointment with ${appointment.doctor.fullName} has been requested.`,
-      )
-      .catch(() => null);
+    // Notify doctor of the new booking, and the patient of their request.
+    this.notify(
+      appointment.doctor.userId,
+      NotificationType.APPOINTMENT_BOOKED,
+      'New Appointment Request',
+      `You have a new appointment request from ${patientProfile.fullName}.`,
+    );
+    this.notify(
+      userId,
+      NotificationType.APPOINTMENT_BOOKED,
+      'Appointment Requested',
+      `Your appointment with ${appointment.doctor.fullName} has been requested.`,
+    );
 
     return appointment;
   }
 
   async findAllForPatient(userId: string) {
-    const patientProfile = await this.prisma.patientProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!patientProfile) {
-      throw new NotFoundException('Patient profile not found');
-    }
+    const patientProfile = await this.getPatientProfileOrThrow(userId);
 
     return this.prisma.appointment.findMany({
       where: { patientId: patientProfile.id },
@@ -123,13 +140,7 @@ export class AppointmentsService {
   }
 
   async findDoctorsForPatient(userId: string) {
-    const patientProfile = await this.prisma.patientProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!patientProfile) {
-      throw new NotFoundException('Patient profile not found');
-    }
+    const patientProfile = await this.getPatientProfileOrThrow(userId);
 
     const appointments = await this.prisma.appointment.findMany({
       where: { patientId: patientProfile.id },
@@ -195,13 +206,7 @@ export class AppointmentsService {
   }
 
   async findAllForDoctor(userId: string) {
-    const doctorProfile = await this.prisma.doctorProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!doctorProfile) {
-      throw new NotFoundException('Doctor profile not found');
-    }
+    const doctorProfile = await this.getDoctorProfileOrThrow(userId);
 
     return this.prisma.appointment.findMany({
       where: { doctorId: doctorProfile.id },
@@ -215,13 +220,7 @@ export class AppointmentsService {
 
   // Distinct patients who have booked with this doctor, with light aggregates.
   async findPatientsForDoctor(userId: string) {
-    const doctorProfile = await this.prisma.doctorProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!doctorProfile) {
-      throw new NotFoundException('Doctor profile not found');
-    }
+    const doctorProfile = await this.getDoctorProfileOrThrow(userId);
 
     const appointments = await this.prisma.appointment.findMany({
       where: { doctorId: doctorProfile.id },
@@ -304,13 +303,7 @@ export class AppointmentsService {
   // One patient's full profile + every appointment with this doctor, including
   // the consultation record (medical record + prescriptions). Doctor-scoped.
   async findPatientHistoryForDoctor(userId: string, patientId: string) {
-    const doctorProfile = await this.prisma.doctorProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!doctorProfile) {
-      throw new NotFoundException('Doctor profile not found');
-    }
+    const doctorProfile = await this.getDoctorProfileOrThrow(userId);
 
     const patient = await this.prisma.patientProfile.findUnique({
       where: { id: patientId },
@@ -338,13 +331,7 @@ export class AppointmentsService {
   }
 
   async findOne(userId: string, appointmentId: string) {
-    const doctorProfile = await this.prisma.doctorProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!doctorProfile) {
-      throw new NotFoundException('Doctor profile not found');
-    }
+    const doctorProfile = await this.getDoctorProfileOrThrow(userId);
 
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
@@ -354,7 +341,6 @@ export class AppointmentsService {
     if (!appointment) {
       throw new NotFoundException('Appointment not found');
     }
-
     if (appointment.doctorId !== doctorProfile.id) {
       throw new ForbiddenException(
         'You do not have access to this appointment',
@@ -391,7 +377,7 @@ export class AppointmentsService {
       throw new NotFoundException('Appointment not found');
     }
 
-    // Authorization & Validation
+    // Authorization & validation
     if (role === 'DOCTOR') {
       if (appointment.doctor.userId !== userId) {
         throw new ForbiddenException(
@@ -413,19 +399,7 @@ export class AppointmentsService {
       throw new ForbiddenException('Unauthorized role');
     }
 
-    // Transition guard
-    type TransitionKey = `${string}:${string}:${string}`;
-    const allowed = new Set<TransitionKey>([
-      'DOCTOR:PENDING:CONFIRMED',
-      'DOCTOR:PENDING:CANCELLED',
-      'DOCTOR:CONFIRMED:CANCELLED',
-      'DOCTOR:CONFIRMED:COMPLETED',
-      'PATIENT:PENDING:CANCELLED',
-      'PATIENT:CONFIRMED:CANCELLED',
-    ]);
-
-    const key: TransitionKey = `${role}:${appointment.status}:${status}`;
-    if (!allowed.has(key)) {
+    if (!isAllowedTransition(role, appointment.status, status)) {
       throw new BadRequestException(
         `Invalid status transition: ${appointment.status} → ${status}`,
       );
@@ -450,55 +424,16 @@ export class AppointmentsService {
       },
     });
 
-    // Notify the other party about the status change
-    const doctorName = appointment.doctor.fullName;
-    const patientName = appointment.patient.fullName;
-
-    const statusMessages: Partial<
-      Record<
-        AppointmentStatus,
-        { title: string; message: string; targetUserId: string }
-      >
-    > = {
-      [AppointmentStatus.CONFIRMED]: {
-        title: 'Appointment Confirmed',
-        message: `Your appointment with ${doctorName} has been confirmed.`,
-        targetUserId: appointment.patient.userId,
-      },
-      [AppointmentStatus.CANCELLED]: {
-        title: 'Appointment Cancelled',
-        message:
-          role === 'DOCTOR'
-            ? `Your appointment with ${doctorName} has been cancelled.`
-            : `Patient ${patientName} has cancelled their appointment.`,
-        targetUserId:
-          role === 'DOCTOR'
-            ? appointment.patient.userId
-            : appointment.doctor.userId,
-      },
-      [AppointmentStatus.COMPLETED]: {
-        title: 'Appointment Completed',
-        message: `Your appointment with ${doctorName} is complete. Check your records for notes.`,
-        targetUserId: appointment.patient.userId,
-      },
-    };
-
-    const typeMap: Partial<Record<AppointmentStatus, NotificationType>> = {
-      [AppointmentStatus.CONFIRMED]: NotificationType.APPOINTMENT_CONFIRMED,
-      [AppointmentStatus.CANCELLED]: NotificationType.APPOINTMENT_CANCELLED,
-      [AppointmentStatus.COMPLETED]: NotificationType.APPOINTMENT_COMPLETED,
-    };
-
-    const notif = statusMessages[status];
-    if (notif && notif.targetUserId) {
-      this.notifications
-        .createNotification(
-          notif.targetUserId,
-          typeMap[status] ?? NotificationType.GENERAL,
-          notif.title,
-          notif.message,
-        )
-        .catch(() => null);
+    // Notify the other party about the status change.
+    const notif = buildStatusNotification(status, {
+      role,
+      doctorName: appointment.doctor.fullName,
+      patientName: appointment.patient.fullName,
+      patientUserId: appointment.patient.userId,
+      doctorUserId: appointment.doctor.userId,
+    });
+    if (notif) {
+      this.notify(notif.targetUserId, notif.type, notif.title, notif.message);
     }
 
     return updated;
@@ -588,7 +523,7 @@ export class AppointmentsService {
         data: {
           appointmentId: created.id,
           amount: fee,
-          status: fee > 0 ? 'PAID' : 'WAIVED',
+          status: paymentStatusFor(fee),
         },
       });
 
@@ -603,14 +538,12 @@ export class AppointmentsService {
       role === 'DOCTOR'
         ? `Your appointment with ${appointment.doctor.fullName} has been rescheduled to a new time slot.`
         : `Patient ${appointment.patient.fullName} has rescheduled their appointment.`;
-    this.notifications
-      .createNotification(
-        targetUserId,
-        NotificationType.APPOINTMENT_RESCHEDULED,
-        'Appointment Rescheduled',
-        message,
-      )
-      .catch(() => null);
+    this.notify(
+      targetUserId,
+      NotificationType.APPOINTMENT_RESCHEDULED,
+      'Appointment Rescheduled',
+      message,
+    );
 
     return newAppointment;
   }
