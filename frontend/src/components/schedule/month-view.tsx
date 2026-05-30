@@ -29,7 +29,7 @@ function toISO(y: number, m: number, d: number) {
 function slotColorClass(status: string) {
   if (status === "AVAILABLE") return "bg-primary/[0.12] text-primary"
   if (status === "BOOKED") return "bg-secondary-container/25 text-on-secondary-container"
-  return "bg-surface-container text-on-surface-variant"
+  return "bg-error/10 text-error"
 }
 
 const todayISO = new Date().toISOString().slice(0, 10)

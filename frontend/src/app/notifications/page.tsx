@@ -1,63 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { notificationHref } from "@/lib/notification-links";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { apiRequest } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import { BellIcon, CheckIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from '@/lib/datetime';
-import type { Notification } from "@/types/api";
+import { useNotifications } from "@/providers/notification-provider";
 
 export default function PatientNotificationsPage() {
-  const { data: session } = useSession();
   const router = useRouter();
-  const token = session?.user?.accessToken;
-
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchNotifications();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
-
-  async function fetchNotifications() {
-    if (!token) return;
-    try {
-      setLoading(true);
-      const data = await apiRequest<Notification[]>("/notifications", { token });
-      setNotifications(data);
-    } catch {
-      setError("Failed to load notifications.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function markAsRead(id: string) {
-    if (!token) return;
-    try {
-      // Optimistic update
-      setNotifications(prev =>
-        prev.map(n => n.id === id ? { ...n, readAt: new Date().toISOString() } : n)
-      );
-
-      await apiRequest(`/notifications/${id}/read`, {
-        method: 'PATCH',
-        token
-      });
-    } catch (err) {
-      console.error("Failed to mark as read", err);
-      // Revert on failure by refetching
-      fetchNotifications();
-    }
-  }
+  const { notifications, markAsRead } = useNotifications();
 
   async function markAllAsRead() {
     const unread = notifications.filter(n => !n.readAt);
@@ -96,15 +51,7 @@ export default function PatientNotificationsPage() {
         </div>
 
         {/* Content */}
-        {loading ? (
-          <div className="py-20 flex justify-center">
-            <Spinner size="lg" />
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 text-error p-6 rounded-lg border border-red-100 text-center">
-            {error}
-          </div>
-        ) : notifications.length === 0 ? (
+        {notifications.length === 0 ? (
           <div className="bg-surface-white rounded-xl shadow-soft p-12 text-center border border-outline-variant/30">
             <div className="w-20 h-20 rounded-full bg-surface-container mx-auto mb-6 flex items-center justify-center">
               <BellIcon className="w-10 h-10 text-on-surface-variant/50" />

@@ -12,6 +12,7 @@ import { CalendarIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import type { Appointment, AppointmentStatus } from "@/types/api";
 import { AppointmentCard } from "@/components/appointment-card/appointment-card";
+import { useNotifications } from "@/providers/notification-provider";
 
 type FilterTab = "All" | "Pending" | "Confirmed" | "Completed" | "Cancelled";
 
@@ -19,6 +20,7 @@ function DoctorAppointmentsContent() {
   const { data: session, status } = useSession();
   const token = session?.user?.accessToken;
 
+  const { appointmentTick } = useNotifications();
   const searchParams = useSearchParams();
   const statusParam = searchParams.get('status');
   const initialTab: FilterTab =
@@ -43,7 +45,7 @@ function DoctorAppointmentsContent() {
     }
     fetchAppointments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, status]);
+  }, [token, status, appointmentTick]);
 
   useEffect(() => {
     if (!token) return;

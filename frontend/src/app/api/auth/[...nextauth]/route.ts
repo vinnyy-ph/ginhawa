@@ -42,12 +42,17 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.name = user.name;
         token.role = user.role;
         token.accessToken = user.accessToken;
+      }
+      // Onboarding sets the profile name after signup; refresh the cached
+      // token via update() so the greeting shows the real name immediately.
+      if (trigger === 'update' && typeof session?.name === 'string') {
+        token.name = session.name;
       }
       return token;
     },

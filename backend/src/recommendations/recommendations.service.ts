@@ -4,19 +4,25 @@ import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { Type } from '@google/genai';
 import { GeminiService } from '../infrastructure/ai/gemini.service';
 
-const VALID_SPECIALIZATIONS = [
-  'Cardiology',
-  'Dermatology',
-  'Orthopedics',
-  'Neurology',
-  'Gastroenterology',
-  'Ophthalmology',
-  'Dentistry',
-  'Pediatrics',
-  'Gynecology',
-  'Psychiatry',
+// Routing signal for life-threatening symptoms — not a real specialization,
+// always offered alongside whatever specializations exist in the app.
+const EMERGENCY = 'EMERGENCY';
+
+// Used only if the specializations table is empty/unreachable.
+const FALLBACK_SPECIALIZATIONS = [
   'General Practice',
-  'EMERGENCY',
+  'Internal Medicine',
+  'Pediatrics',
+  'OB-GYN',
+  'Dermatology',
+  'Cardiology',
+  'Orthopedics',
+  'ENT',
+  'Psychiatry',
+  'Neurology',
+  'Ophthalmology',
+  'Surgery',
+  'Family Medicine',
 ];
 
 type PatientContext = {
@@ -36,9 +42,19 @@ export class RecommendationsService {
     private readonly gemini: GeminiService,
   ) {}
 
+  private async getSpecializationNames(): Promise<string[]> {
+    const rows = await this.prisma.specialization.findMany({
+      select: { name: true },
+      orderBy: { name: 'asc' },
+    });
+    const names = rows.map((r) => r.name);
+    return names.length > 0 ? names : FALLBACK_SPECIALIZATIONS;
+  }
+
   private buildPrompt(
     symptomInput: string,
     patientContext?: PatientContext,
+    specializationNames: string[] = FALLBACK_SPECIALIZATIONS,
   ): string {
     const mh = patientContext?.medicalHistory;
     const hasHistory =
@@ -66,24 +82,32 @@ ${historyBlock}
 Return ONLY valid JSON in this exact format, no markdown:
 { "specialization": "<name>", "explanation": "<2-3 sentence reasoning>" }
 
-Specialization must be one of: Cardiology, Dermatology, Orthopedics, Neurology, Gastroenterology, Ophthalmology, Dentistry, Pediatrics, Gynecology, Psychiatry, General Practice, EMERGENCY.
+Specialization must be EXACTLY one of these (these are the only specializations available in this app — do not invent or substitute others): ${specializationNames.join(', ')}, ${EMERGENCY}.
 
-Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain, stroke, difficulty breathing, heavy bleeding, unconscious, seizure, suicide, self-harm, poisoning).`;
+Use ${EMERGENCY} only if symptoms indicate life-threatening conditions (chest pain, stroke, difficulty breathing, heavy bleeding, unconscious, seizure, suicide, self-harm, poisoning).`;
   }
 
   private getAIRecommendationStream(
     symptomInput: string,
-    patientContext?: PatientContext,
+    patientContext: PatientContext | undefined,
+    specializationNames: string[],
   ): AsyncGenerator<string, { specialization: string; explanation: string }> {
     const schema = {
       type: Type.OBJECT,
       properties: {
-        specialization: { type: Type.STRING, enum: VALID_SPECIALIZATIONS },
+        specialization: {
+          type: Type.STRING,
+          enum: [...specializationNames, EMERGENCY],
+        },
         explanation: { type: Type.STRING },
       },
       required: ['specialization', 'explanation'],
     };
-    const prompt = this.buildPrompt(symptomInput, patientContext);
+    const prompt = this.buildPrompt(
+      symptomInput,
+      patientContext,
+      specializationNames,
+    );
     return this.gemini.generateJsonStream<{
       specialization: string;
       explanation: string;
@@ -140,6 +164,7 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
         })
       : null;
 
+    const specializationNames = await this.getSpecializationNames();
     const prisma = this.prisma;
     const getAIRecommendationStream = this.getAIRecommendationStream.bind(this);
     async function* generateStream() {
@@ -162,6 +187,7 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
       const streamGenerator = getAIRecommendationStream(
         createRecommendationDto.symptomInput,
         patientContext,
+        specializationNames,
       );
 
       const parsedResult = yield* streamGenerator;

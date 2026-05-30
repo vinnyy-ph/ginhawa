@@ -9,6 +9,7 @@ function setup(overrides: Partial<FilterState> = {}) {
       filters={{ ...defaultFilters, ...overrides }}
       onFiltersChange={onFiltersChange}
       availableSpecializations={['Cardiology', 'Pediatrics']}
+      availableLocations={['Cebu City', 'Metro Manila']}
       availableLanguages={['English', 'Tagalog']}
     />,
   );
@@ -22,6 +23,7 @@ describe('DoctorFilters', () => {
     setup();
     fireEvent.click(screen.getByRole('button', { name: /^Filters/ }));
     expect(screen.getByText('Specialization')).toBeInTheDocument();
+    expect(screen.getByText('Location')).toBeInTheDocument();
     expect(screen.getByText('Availability')).toBeInTheDocument();
     expect(screen.getByText('Consultation Fee')).toBeInTheDocument();
     expect(screen.getByText('Years of Experience')).toBeInTheDocument();

@@ -7,6 +7,7 @@ import { usePatientSidebarData } from '@/hooks/use-patient-sidebar-data';
 import { DashboardSidebar } from './dashboard-sidebar';
 import { MobileBottomNav } from './mobile-bottom-nav';
 import { MobileTopHeader } from './mobile-top-header';
+import { useNotifications } from '@/providers/notification-provider';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -19,8 +20,9 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const navItems = role === 'patient' ? patientNav : doctorNav;
   const mobileNavItems = role === 'patient' ? patientMobileNav : navItems.slice(0, 5);
 
-  const { patientName, avatarUrl, profileCompletion, upcomingCount, unreadCount } =
+  const { patientName, avatarUrl, profileCompletion, upcomingCount } =
     usePatientSidebarData(role);
+  const { unreadCount } = useNotifications();
 
   const getPatientBadge = (href: string): number => {
     if (href === '/appointments') return upcomingCount;
@@ -49,7 +51,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
         patientName={patientName}
         avatarUrl={avatarUrl}
         profileCompletion={profileCompletion}
-        userName={session?.user?.name}
+        userName={patientName || session?.user?.name}
         userEmail={session?.user?.email}
         onLogout={onLogout}
       />

@@ -47,7 +47,7 @@ function slotHeightPx(startTime: string, endTime: string): number {
 function slotBorderClass(status: string) {
   if (status === "AVAILABLE") return "bg-primary/15 text-primary border-l-2 border-primary"
   if (status === "BOOKED") return "bg-secondary-container/25 text-on-secondary-container border-l-2 border-secondary"
-  return "bg-surface-container text-on-surface-variant border-l-2 border-outline-variant"
+  return "bg-error/10 text-error border-l-2 border-error"
 }
 
 function formatHour(h: number) {
