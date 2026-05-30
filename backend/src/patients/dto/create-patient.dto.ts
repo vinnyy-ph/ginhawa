@@ -1,3 +1,8 @@
+/**
+ * DTO for POST /patients/profile — validated body for initial patient profile creation.
+ * `fullName`, `birthdate`, and `contactDetails` are required; all other fields are optional
+ * and can be supplied later via UpdatePatientDto.
+ */
 import {
   IsDateString,
   IsNotEmpty,

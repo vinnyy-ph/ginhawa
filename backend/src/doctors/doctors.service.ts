@@ -1,3 +1,10 @@
+/**
+ * Business logic for doctor profile management, search/discovery, and
+ * aggregated review-rating attachment.
+ *
+ * Owns the DoctorProfile and DoctorSpecialization records. Review records
+ * are read-only from this service — only their aggregate statistics are used.
+ */
 import {
   Injectable,
   ConflictException,
@@ -8,10 +15,19 @@ import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 
+/**
+ * Manages doctor profiles throughout their lifecycle: initial creation,
+ * upsert-based onboarding, profile updates, public discovery, and
+ * attaching live rating aggregates from the reviews table.
+ */
 @Injectable()
 export class DoctorsService {
   constructor(private prisma: PrismaService) {}
 
+  /**
+   * Create a new doctor profile for the given user.
+   * Throws `ConflictException` if a profile already exists for that user.
+   */
   async create(userId: string, data: CreateDoctorDto) {
     const existing = await this.prisma.doctorProfile.findUnique({
       where: { userId },
@@ -24,6 +40,15 @@ export class DoctorsService {
     });
   }
 
+  /**
+   * Create or update the doctor's profile in a single transaction, then sync
+   * the primary specialization join table entry.
+   *
+   * Preferred over `create` for the onboarding flow because it is idempotent —
+   * the same request body can be replayed without generating a conflict.
+   *
+   * @returns An object with `profileComplete: true` and the saved profile.
+   */
   async upsertProfile(
     userId: string,
     dto: import('./dto/create-doctor-profile.dto').CreateDoctorProfileDto,
@@ -64,6 +89,14 @@ export class DoctorsService {
     };
   }
 
+  /**
+   * Ensure exactly one `DoctorSpecialization` row is marked `isPrimary` for
+   * the given doctor, pointing to the specialization with `name`.
+   *
+   * Runs a delete-then-upsert inside the caller's transaction so the primary
+   * marker is always consistent even if the specialization is renamed or a
+   * previous primary still exists.
+   */
   private async syncPrimarySpecialization(
     tx: Prisma.TransactionClient,
     doctorId: string,
@@ -86,6 +119,7 @@ export class DoctorsService {
     });
   }
 
+  /** Find a doctor's own profile by their auth user ID. Throws `NotFoundException` if absent. */
   async findByUserId(userId: string) {
     const profile = await this.prisma.doctorProfile.findUnique({
       where: { userId },
@@ -96,6 +130,12 @@ export class DoctorsService {
     return profile;
   }
 
+  /**
+   * Partially update a doctor's profile. If `prcLicenseExpiry` is included,
+   * it is parsed from ISO string to a `Date` object (or `null` when explicitly
+   * cleared) before persisting. Re-syncs the primary specialization when
+   * `specialization` is part of the update.
+   */
   async update(userId: string, data: UpdateDoctorDto) {
     const profile = await this.findByUserId(userId);
     const updateData =
@@ -119,6 +159,11 @@ export class DoctorsService {
     });
   }
 
+  /**
+   * Return all active, verified doctor profiles with their availability slots
+   * and specializations, augmented with live rating aggregates. Used by ranking
+   * and recommendation engines that need the full profile graph.
+   */
   async findRankingCandidates() {
     const profiles = await this.prisma.doctorProfile.findMany({
       where: { isActive: true, isVerified: true },
@@ -130,6 +175,15 @@ export class DoctorsService {
     return this.attachRatings(profiles);
   }
 
+  /**
+   * Search active, verified doctors with optional name/specialization filters.
+   * Results are augmented with live rating aggregates; passing `sortBy='rating'`
+   * sorts descending by average rating.
+   *
+   * @param search - Case-insensitive substring match on `fullName`.
+   * @param specialization - Case-insensitive substring match on specialization name.
+   * @param sortBy - `'rating'` to sort by descending average rating; otherwise insertion order.
+   */
   async searchAll(search?: string, specialization?: string, sortBy?: string) {
     const where: Prisma.DoctorProfileWhereInput = {
       isActive: true,
@@ -166,6 +220,11 @@ export class DoctorsService {
     return withRatings;
   }
 
+  /**
+   * Batch-fetch visible review aggregates for a list of profiles and merge them
+   * in. Uses a single `groupBy` query regardless of list length; defaults to
+   * zero for doctors with no visible reviews.
+   */
   private async attachRatings<T extends { id: string }>(profiles: T[]) {
     if (profiles.length === 0) {
       return [] as (T & { avgRating: number; reviewCount: number })[];
@@ -188,6 +247,11 @@ export class DoctorsService {
     });
   }
 
+  /**
+   * Fetch a single doctor profile by DoctorProfile ID, including availability
+   * slots, specializations, and aggregated rating data.
+   * Throws `NotFoundException` if no matching active profile exists.
+   */
   async findById(id: string) {
     const profile = await this.prisma.doctorProfile.findUnique({
       where: { id },

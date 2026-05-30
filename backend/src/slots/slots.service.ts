@@ -1,3 +1,11 @@
+/**
+ * Business logic for doctor availability-slot management.
+ *
+ * All writes resolve the DoctorProfile from the JWT `userId` and enforce slot
+ * ownership. Overlap detection uses an open-interval comparison (`startTime < end
+ * AND endTime > start`) so adjacent slots (one ending exactly when the next begins)
+ * are allowed.
+ */
 import {
   Injectable,
   NotFoundException,
@@ -10,10 +18,22 @@ import { CreateSlotDto } from './dto/create-slot.dto';
 import { UpdateSlotDto } from './dto/update-slot.dto';
 import type { CreateBulkSlotsDto } from './dto/create-bulk-slots.dto';
 
+/**
+ * Manages the lifecycle of `AvailabilitySlot` records: single and bulk creation
+ * with overlap detection, public listing, partial updates, and safe deletion
+ * (blocked when the slot is currently BOOKED).
+ */
 @Injectable()
 export class SlotsService {
   constructor(private prisma: PrismaService) {}
 
+  /**
+   * Create a single availability slot for the authenticated doctor.
+   * Validates that `startTime < endTime` and that the new slot does not overlap
+   * any existing slot for this doctor.
+   *
+   * @throws `BadRequestException` if the time range is invalid or an overlap is detected.
+   */
   async create(userId: string, createSlotDto: CreateSlotDto) {
     const doctor = await this.prisma.doctorProfile.findUnique({
       where: { userId },
@@ -52,6 +72,16 @@ export class SlotsService {
     });
   }
 
+  /**
+   * Create multiple availability slots in one call, skipping any that are invalid
+   * or would overlap existing slots (or each other within the batch).
+   *
+   * Strategy: fetch all existing slots that touch the batch's bounding time range
+   * in a single query, then test each candidate against that set and the already-
+   * accepted batch members before accumulating. Uses `createMany` for efficiency.
+   *
+   * @returns `{ created, skipped }` counts.
+   */
   async createBulk(userId: string, slots: CreateBulkSlotsDto['slots']) {
     const doctor = await this.prisma.doctorProfile.findUnique({
       where: { userId },
@@ -111,6 +141,7 @@ export class SlotsService {
     };
   }
 
+  /** Return all slots for a doctor profile, ordered by start time ascending. */
   async findAllByDoctorProfileId(doctorProfileId: string) {
     return this.prisma.availabilitySlot.findMany({
       where: { doctorId: doctorProfileId },
@@ -118,6 +149,11 @@ export class SlotsService {
     });
   }
 
+  /**
+   * Partially update a slot owned by the authenticated doctor.
+   *
+   * @throws `ForbiddenException` if the slot belongs to a different doctor.
+   */
   async update(userId: string, slotId: string, updateSlotDto: UpdateSlotDto) {
     const doctor = await this.prisma.doctorProfile.findUnique({
       where: { userId },
@@ -145,6 +181,14 @@ export class SlotsService {
     });
   }
 
+  /**
+   * Delete an availability slot owned by the authenticated doctor.
+   * Refuses deletion if the slot is BOOKED — the caller must cancel the linked
+   * appointment first to free the slot before deleting it.
+   *
+   * @throws `BadRequestException` if the slot is currently BOOKED.
+   * @throws `ForbiddenException` if the slot belongs to a different doctor.
+   */
   async remove(userId: string, slotId: string) {
     const doctor = await this.prisma.doctorProfile.findUnique({
       where: { userId },

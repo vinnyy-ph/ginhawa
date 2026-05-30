@@ -1,3 +1,8 @@
+/**
+ * DTO for the internal doctor creation path (used programmatically, not via
+ * the onboarding API). Applies stricter `MaxLength` constraints compared to
+ * `CreateDoctorProfileDto` to match database column limits.
+ */
 import {
   IsString,
   IsOptional,
@@ -8,6 +13,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
+/** Validates a direct doctor profile creation payload (non-upsert path). */
 export class CreateDoctorDto {
   @IsString()
   @MaxLength(255)

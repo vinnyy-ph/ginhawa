@@ -1,3 +1,8 @@
+/**
+ * Business logic for telemedicine consultation sessions.
+ * Manages Daily.co video room lifecycle, live doctor notes, and
+ * AI-generated post-consultation summaries via the Gemini service.
+ */
 import {
   Injectable,
   NotFoundException,
@@ -6,6 +11,10 @@ import {
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { GeminiService } from '../infrastructure/ai/gemini.service';
 
+/**
+ * Service that owns consultation-session concerns: video room provisioning,
+ * live notes persistence, and AI summarization.
+ */
 @Injectable()
 export class ConsultationService {
   constructor(
@@ -13,6 +22,15 @@ export class ConsultationService {
     private readonly gemini: GeminiService,
   ) {}
 
+  /**
+   * Returns the Daily.co video room URL for an appointment, creating it on first
+   * access and caching the URL on the appointment record for subsequent calls.
+   * Doctors also receive the patient's medical context to inform the consultation;
+   * patients only receive the room URL and their own display name.
+   *
+   * @throws NotFoundException if the appointment does not exist.
+   * @throws ForbiddenException if the caller is neither the doctor nor the patient.
+   */
   async getOrCreateRoom(
     appointmentId: string,
     userId: string,
@@ -45,6 +63,7 @@ export class ConsultationService {
       ? appointment.doctor.fullName
       : appointment.patient.fullName;
 
+    // Patient context is only surfaced to the doctor to protect patient privacy.
     const patientContext = isDoctor
       ? {
           fullName: appointment.patient.fullName,
@@ -100,6 +119,13 @@ export class ConsultationService {
     return { roomUrl, userName, patientContext };
   }
 
+  /**
+   * Overwrites the live notes for an appointment.
+   * Only the appointment's own doctor may call this.
+   *
+   * @throws NotFoundException if the appointment does not exist.
+   * @throws ForbiddenException if the caller is not the appointment's doctor.
+   */
   async updateNotes(
     appointmentId: string,
     userId: string,
@@ -120,6 +146,14 @@ export class ConsultationService {
     });
   }
 
+  /**
+   * Sends the appointment's live notes to Gemini and returns a structured JSON
+   * summary containing separate doctor-facing (clinical) and patient-facing
+   * (plain-language) sections, along with extracted prescriptions and follow-up advice.
+   *
+   * @throws NotFoundException if the appointment does not exist.
+   * @throws ForbiddenException if the caller is not the appointment's doctor.
+   */
   async summarize(appointmentId: string, userId: string) {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },

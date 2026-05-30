@@ -1,3 +1,9 @@
+/**
+ * Business logic for managing patient medical records.
+ * Enforces ownership rules (only the appointment's doctor may create/amend a record),
+ * prevents duplicate records per appointment, validates follow-up appointment links,
+ * and fires an in-app notification to the patient on record creation.
+ */
 import {
   Injectable,
   NotFoundException,
@@ -11,6 +17,10 @@ import { NotificationType } from '@prisma/client';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
 
+/**
+ * Service responsible for the full lifecycle of medical records:
+ * creation, amendment, and role-scoped retrieval for doctors and patients.
+ */
 @Injectable()
 export class MedicalRecordsService {
   constructor(
@@ -18,6 +28,19 @@ export class MedicalRecordsService {
     private readonly notifications: NotificationsService,
   ) {}
 
+  /**
+   * Creates a medical record for a completed appointment.
+   * Enforces a one-record-per-appointment constraint and, when a follow-up
+   * appointment ID is supplied, validates that it belongs to the same patient
+   * and is not already referenced by another record.
+   * Notifies the patient asynchronously — notification failure is silently
+   * swallowed to avoid failing the primary write.
+   *
+   * @throws NotFoundException if the doctor profile or appointment is not found.
+   * @throws ForbiddenException if the caller is not the appointment's doctor.
+   * @throws ConflictException if a record already exists for this appointment.
+   * @throws BadRequestException if the follow-up appointment reference is invalid.
+   */
   async create(userId: string, createMedicalRecordDto: CreateMedicalRecordDto) {
     const doctorProfile = await this.prisma.doctorProfile.findUnique({
       where: { userId },
@@ -55,6 +78,7 @@ export class MedicalRecordsService {
       const followUp = await this.prisma.appointment.findUnique({
         where: { id: createMedicalRecordDto.followUpAppointmentId },
       });
+      // Follow-up must belong to the same patient to prevent cross-patient data leakage.
       if (!followUp || followUp.patientId !== appointment.patientId) {
         throw new BadRequestException('Invalid follow-up appointment');
       }
@@ -108,6 +132,14 @@ export class MedicalRecordsService {
     return record;
   }
 
+  /**
+   * Amends the free-text fields of an existing medical record.
+   * Note: structured prescriptions (PrescriptionItem rows) cannot be modified
+   * through this endpoint — only the legacy free-text `prescription` field.
+   *
+   * @throws NotFoundException if the doctor profile or record is not found.
+   * @throws ForbiddenException if the caller did not create the record.
+   */
   async update(userId: string, recordId: string, dto: UpdateMedicalRecordDto) {
     const doctorProfile = await this.prisma.doctorProfile.findUnique({
       where: { userId },
@@ -142,6 +174,11 @@ export class MedicalRecordsService {
     });
   }
 
+  /**
+   * Returns all medical records for the authenticated patient, newest-first.
+   *
+   * @throws NotFoundException if the patient profile does not exist.
+   */
   async findAllForPatient(userId: string) {
     const patientProfile = await this.prisma.patientProfile.findUnique({
       where: { userId },
@@ -164,6 +201,11 @@ export class MedicalRecordsService {
     });
   }
 
+  /**
+   * Returns all medical records created by the authenticated doctor, newest-first.
+   *
+   * @throws NotFoundException if the doctor profile does not exist.
+   */
   async findAllForDoctor(userId: string) {
     const doctorProfile = await this.prisma.doctorProfile.findUnique({
       where: { userId },

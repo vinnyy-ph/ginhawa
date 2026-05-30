@@ -1,3 +1,12 @@
+/**
+ * Business logic for appointment booking, status lifecycle management,
+ * rescheduling, and role-scoped history/queue views.
+ *
+ * Integrates with `NotificationsService` for fire-and-forget push notifications
+ * after every state-changing operation. All slot mutations (BOOKED ↔ AVAILABLE)
+ * and payment record creation are performed inside Prisma transactions to
+ * guarantee consistency.
+ */
 import {
   Injectable,
   NotFoundException,
@@ -18,6 +27,11 @@ import {
   paymentStatusFor,
 } from './appointments.helpers';
 
+/**
+ * Orchestrates the full appointment lifecycle: booking, status transitions,
+ * rescheduling, and cross-role history reads. Ownership checks are performed
+ * on every mutation to ensure a user can only affect their own appointments.
+ */
 @Injectable()
 export class AppointmentsService {
   constructor(
@@ -25,6 +39,7 @@ export class AppointmentsService {
     private readonly notifications: NotificationsService,
   ) {}
 
+  /** Resolve a patient profile by auth user ID, throwing `NotFoundException` if absent. */
   private async getPatientProfileOrThrow(userId: string) {
     const profile = await this.prisma.patientProfile.findUnique({
       where: { userId },
@@ -35,6 +50,7 @@ export class AppointmentsService {
     return profile;
   }
 
+  /** Resolve a doctor profile by auth user ID, throwing `NotFoundException` if absent. */
   private async getDoctorProfileOrThrow(userId: string) {
     const profile = await this.prisma.doctorProfile.findUnique({
       where: { userId },
@@ -57,6 +73,17 @@ export class AppointmentsService {
       .catch(() => null);
   }
 
+  /**
+   * Book a new appointment for the given patient user.
+   *
+   * Inside a transaction: validates the slot is AVAILABLE and in the future,
+   * marks it BOOKED, creates the appointment (status PENDING), and creates the
+   * payment record (PAID for non-zero fee, WAIVED for free consultations).
+   * After commit, notifies both doctor and patient via fire-and-forget.
+   *
+   * @throws `NotFoundException` if the slot does not exist.
+   * @throws `BadRequestException` if the slot is already taken or in the past.
+   */
   async create(userId: string, createAppointmentDto: CreateAppointmentDto) {
     const patientProfile = await this.getPatientProfileOrThrow(userId);
 
@@ -126,6 +153,7 @@ export class AppointmentsService {
     return appointment;
   }
 
+  /** Return all appointments for a patient, including doctor, slot, and payment details. */
   async findAllForPatient(userId: string) {
     const patientProfile = await this.getPatientProfileOrThrow(userId);
 
@@ -139,6 +167,12 @@ export class AppointmentsService {
     });
   }
 
+  /**
+   * Return the distinct doctors a patient has ever booked with, along with
+   * per-doctor aggregates (`totalVisits`, `upcomingCount`, `lastVisit`).
+   * Results are sorted by most recent past visit so the patient's most active
+   * care relationships appear first.
+   */
   async findDoctorsForPatient(userId: string) {
     const patientProfile = await this.getPatientProfileOrThrow(userId);
 
@@ -205,6 +239,7 @@ export class AppointmentsService {
     });
   }
 
+  /** Return all appointments in the doctor's queue, including patient, slot, and payment details. */
   async findAllForDoctor(userId: string) {
     const doctorProfile = await this.getDoctorProfileOrThrow(userId);
 
@@ -330,6 +365,12 @@ export class AppointmentsService {
     return { patient, appointments };
   }
 
+  /**
+   * Fetch a single appointment by ID, verifying the calling doctor owns it.
+   *
+   * @throws `NotFoundException` if the appointment does not exist.
+   * @throws `ForbiddenException` if the appointment belongs to a different doctor.
+   */
   async findOne(userId: string, appointmentId: string) {
     const doctorProfile = await this.getDoctorProfileOrThrow(userId);
 
@@ -350,6 +391,18 @@ export class AppointmentsService {
     return appointment;
   }
 
+  /**
+   * Transition an appointment to a new status, enforcing role-based ownership
+   * and the allowed transition matrix from `appointments.helpers`.
+   *
+   * When cancelling, the underlying slot is freed back to AVAILABLE so it can be
+   * rebooked. Notifies the other party (doctor notifies patient, patient notifies
+   * doctor) via fire-and-forget after the DB write commits.
+   *
+   * @throws `BadRequestException` if the transition is not permitted or a patient
+   *   attempts to set a status other than CANCELLED.
+   * @throws `ForbiddenException` if the caller does not own the appointment.
+   */
   async updateStatus(
     userId: string,
     role: string,
@@ -439,6 +492,18 @@ export class AppointmentsService {
     return updated;
   }
 
+  /**
+   * Move an appointment to a new time slot. Only PENDING or CONFIRMED appointments
+   * can be rescheduled. The new slot must belong to the same doctor and be AVAILABLE.
+   *
+   * Atomically: marks the original appointment RESCHEDULED, frees its slot, marks
+   * the new slot BOOKED, creates a replacement appointment (status PENDING), and
+   * creates a new payment record. Notifies the other party after the transaction.
+   *
+   * @throws `BadRequestException` if the slot belongs to a different doctor, is
+   *   taken, is in the past, or the appointment is not in a reschedulable state.
+   * @throws `ForbiddenException` if the caller does not own the appointment.
+   */
   async reschedule(
     userId: string,
     role: string,

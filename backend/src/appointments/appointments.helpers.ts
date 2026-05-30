@@ -1,3 +1,9 @@
+/**
+ * Pure helper utilities for appointment business rules.
+ *
+ * Keeps transition logic and notification building out of the service so they
+ * can be unit-tested in isolation. No Prisma or NestJS dependencies here.
+ */
 import { AppointmentStatus, NotificationType } from '@prisma/client';
 
 // Allowed status transitions, keyed `ROLE:FROM:TO`. A doctor drives the
@@ -11,6 +17,7 @@ const ALLOWED_TRANSITIONS = new Set<string>([
   'PATIENT:CONFIRMED:CANCELLED',
 ]);
 
+/** Returns `true` if the role is permitted to move an appointment from `from` to `to`. */
 export function isAllowedTransition(
   role: string,
   from: AppointmentStatus,
@@ -19,6 +26,10 @@ export function isAllowedTransition(
   return ALLOWED_TRANSITIONS.has(`${role}:${from}:${to}`);
 }
 
+/**
+ * Derive initial payment status from the consultation fee.
+ * Free consultations (fee === 0) are immediately WAIVED so no payment is outstanding.
+ */
 export function paymentStatusFor(fee: number): 'PAID' | 'WAIVED' {
   return fee > 0 ? 'PAID' : 'WAIVED';
 }

@@ -1,3 +1,11 @@
+/**
+ * DTO for PATCH /patients/medical-history — structured clinical data for the
+ * patient's medical history record. All fields are optional; only supplied
+ * fields are written (upsert semantics).
+ *
+ * Array fields (allergies, chronicConditions, currentMedications) replace the
+ * entire stored array on each update — there is no append/remove granularity.
+ */
 import { IsString, IsOptional, IsArray } from 'class-validator';
 
 export class UpdateMedicalHistoryDto {

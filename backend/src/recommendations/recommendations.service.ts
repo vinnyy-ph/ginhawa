@@ -39,11 +39,25 @@ type PatientContext = {
   };
 };
 
+/** AI extraction output: the search criteria plus triage flags/explanation. */
 type RawCriteria = MatchCriteria & {
   emergency: boolean;
   explanation: string;
 };
 
+/**
+ * Recommendation engine. Bridges the AI layer (Gemini) and the deterministic
+ * ranker (DoctorRankingService) to turn a patient's free text into doctor
+ * suggestions. Provides two flows:
+ *
+ *  - `createStream` — legacy symptom-triage: streams `{ specialization,
+ *    explanation }` token-by-token for the original recommendation widget.
+ *  - `match` — context-aware matching: extracts structured criteria, then
+ *    ranks real doctors and returns them in one JSON response.
+ *
+ * Every recommendation is persisted to `RecommendationLog` for the patient's
+ * history (best-effort — a logging failure never fails the request).
+ */
 @Injectable()
 export class RecommendationsService {
   constructor(
@@ -53,6 +67,11 @@ export class RecommendationsService {
     private readonly ranking: DoctorRankingService,
   ) {}
 
+  /**
+   * Live specialization list from the DB (so the AI only ever suggests
+   * specialties the app actually has), falling back to a static list if the
+   * table is empty or unreachable.
+   */
   private async getSpecializationNames(): Promise<string[]> {
     const rows = await this.prisma.specialization.findMany({
       select: { name: true },
@@ -62,6 +81,11 @@ export class RecommendationsService {
     return names.length > 0 ? names : FALLBACK_SPECIALIZATIONS;
   }
 
+  /**
+   * Builds the triage prompt for `createStream`. Injects optional patient
+   * context (recent specialties, prior symptoms, medical history) to personalize
+   * the result, and constrains the answer to the app's real specialization list.
+   */
   private buildPrompt(
     symptomInput: string,
     patientContext?: PatientContext,
@@ -125,6 +149,15 @@ Use ${EMERGENCY} only if symptoms indicate life-threatening conditions (chest pa
     }>(prompt, { schema });
   }
 
+  /**
+   * Legacy symptom-triage flow: returns an async generator that streams the
+   * AI's `{ specialization, explanation }` JSON token-by-token.
+   *
+   * If the same patient already asked the identical question, the cached answer
+   * is replayed instead of re-calling the model (and still logged, to preserve
+   * an accurate history). Anonymous callers pass `userId = null` and get no
+   * personalization or caching.
+   */
   async createStream(
     userId: string | null,
     createRecommendationDto: CreateRecommendationDto,
@@ -219,6 +252,11 @@ Use ${EMERGENCY} only if symptoms indicate life-threatening conditions (chest pa
     return generateStream();
   }
 
+  /**
+   * Loads personalization context for a signed-in patient: their last 5
+   * recommendations and their medical history. Returns `{ patientId: null }`
+   * for guests or users without a patient profile (no context to add).
+   */
   private async resolvePatientContext(userId: string | null): Promise<{
     patientId: string | null;
     patientContext?: PatientContext;
@@ -255,6 +293,12 @@ Use ${EMERGENCY} only if symptoms indicate life-threatening conditions (chest pa
     };
   }
 
+  /**
+   * Builds the prompt for `match`. Unlike `buildPrompt`, this asks the model to
+   * both infer a specialization AND extract explicit filters (city, region,
+   * minYears, minRating) from preference-style requests, returning a single
+   * structured object.
+   */
   private buildMatchPrompt(
     symptomInput: string,
     patientContext: PatientContext | undefined,
@@ -294,6 +338,11 @@ specialization must be EXACTLY one of these (these are the only specializations 
 Set emergency true ONLY for life-threatening symptoms (chest pain, stroke, difficulty breathing, heavy bleeding, unconscious, seizure, suicide, self-harm, poisoning).`;
   }
 
+  /**
+   * Calls Gemini with a JSON response schema and returns the raw extracted
+   * criteria (specialization may still be free-form/EMERGENCY here — see
+   * `normalizeCriteria`).
+   */
   private async extractCriteria(
     symptomInput: string,
     patientContext: PatientContext | undefined,
@@ -320,6 +369,12 @@ Set emergency true ONLY for life-threatening symptoms (chest pain, stroke, diffi
     return this.gemini.generateJson<RawCriteria>(prompt, { schema });
   }
 
+  /**
+   * Sanitizes raw AI output into trustworthy ranking criteria: drops a
+   * specialization the app doesn't actually have (or the EMERGENCY sentinel),
+   * which lets the ranker fall back to the other signals rather than matching
+   * on a hallucinated specialty.
+   */
   private normalizeCriteria(
     raw: RawCriteria,
     specializationNames: string[],
@@ -340,6 +395,14 @@ Set emergency true ONLY for life-threatening symptoms (chest pain, stroke, diffi
     };
   }
 
+  /**
+   * Context-aware matching flow.
+   *
+   * Steps: load patient context → extract criteria via AI → log the result
+   * (best-effort) → short-circuit to an emergency response if flagged →
+   * otherwise fetch the verified-doctor pool, rank it, and return the top 20
+   * with their match scores/reasons.
+   */
   async match(
     userId: string | null,
     dto: CreateRecommendationDto,
@@ -353,6 +416,7 @@ Set emergency true ONLY for life-threatening symptoms (chest pain, stroke, diffi
       patientContext,
       specializationNames,
     );
+    // Treat either the explicit flag or an EMERGENCY specialization as emergency.
     const emergency =
       raw.emergency || raw.specialization?.toUpperCase() === EMERGENCY;
     const criteria = this.normalizeCriteria(raw, specializationNames);
@@ -372,6 +436,8 @@ Set emergency true ONLY for life-threatening symptoms (chest pain, stroke, diffi
       console.error('Failed to save recommendation log to database', error);
     }
 
+    // Emergencies don't get doctor suggestions — the UI shows a "seek
+    // emergency care" screen instead of booking options.
     if (emergency) {
       return {
         explanation: raw.explanation,
@@ -399,6 +465,10 @@ Set emergency true ONLY for life-threatening symptoms (chest pain, stroke, diffi
     };
   }
 
+  /**
+   * Returns a patient's recommendation history, newest first.
+   * @throws NotFoundException if the user has no patient profile.
+   */
   async findAllForPatient(userId: string) {
     const patientProfile = await this.prisma.patientProfile.findUnique({
       where: { userId },
