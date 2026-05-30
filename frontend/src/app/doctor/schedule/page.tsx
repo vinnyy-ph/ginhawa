@@ -29,7 +29,6 @@ export default function DoctorSchedulePage() {
   const [patientNames, setPatientNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Weekly template state
@@ -99,7 +98,6 @@ export default function DoctorSchedulePage() {
   async function handleUpdateStatus(id: string, status: SlotStatus) {
     if (!token || !profile) return;
     try {
-      setUpdatingId(id);
       setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, status } : s)));
       await apiRequest(`/doctors/slots/${id}`, {
         method: "PATCH",
@@ -112,14 +110,13 @@ export default function DoctorSchedulePage() {
       setToastMessage("Failed to update slot. Changes reverted.");
       await fetchSlots(profile.id);
     } finally {
-      setUpdatingId(null);
+      // Reset state if needed
     }
   }
 
   async function handleDeleteSlot(id: string) {
     if (!token || !profile) return;
     try {
-      setUpdatingId(id);
       await apiRequest(`/doctors/slots/${id}`, { method: "DELETE", token });
       setSlots((prev) => prev.filter((s) => s.id !== id));
       setToastMessage("Slot deleted");
@@ -127,8 +124,6 @@ export default function DoctorSchedulePage() {
       console.error(err);
       setToastMessage("Failed to delete slot. Please try again.");
       await fetchSlots(profile.id);
-    } finally {
-      setUpdatingId(null);
     }
   }
 

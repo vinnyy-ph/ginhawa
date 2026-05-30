@@ -145,7 +145,7 @@ export default function DoctorsDiscoveryPage() {
             </div>
 
             {/* Search bar inside hero */}
-            <div className="relative mt-5 max-w-2xl">
+            <div className="relative mt-5">
               <div className="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none">
                 <MagnifyingGlassIcon
                   className="w-6 h-6 text-on-surface-variant/60"
