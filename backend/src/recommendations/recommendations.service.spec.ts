@@ -324,10 +324,18 @@ describe('RecommendationsService', () => {
       const candidates = [{ id: 'doc-1', avgRating: 4, reviewCount: 2 }];
       mockDoctorsService.findRankingCandidates.mockResolvedValue(candidates);
       mockRankingService.rank.mockReturnValue([
-        { id: 'doc-1', avgRating: 4, reviewCount: 2, matchScore: 1, matchReason: 'Dentistry' },
+        {
+          id: 'doc-1',
+          avgRating: 4,
+          reviewCount: 2,
+          matchScore: 1,
+          matchReason: 'Dentistry',
+        },
       ]);
 
-      const result = await service.match(null, { symptomInput: 'dentist in Manila 5 years' });
+      const result = await service.match(null, {
+        symptomInput: 'dentist in Manila 5 years',
+      });
 
       expect(result.emergency).toBe(false);
       expect(result.explanation).toBe('A dentist suits your request.');
@@ -335,7 +343,11 @@ describe('RecommendationsService', () => {
       expect(result.doctors).toHaveLength(1);
       expect(result.doctors[0].matchReason).toBe('Dentistry');
       expect(mockRankingService.rank).toHaveBeenCalledWith(
-        expect.objectContaining({ specialization: 'Dentistry', city: 'Manila', minYears: 5 }),
+        expect.objectContaining({
+          specialization: 'Dentistry',
+          city: 'Manila',
+          minYears: 5,
+        }),
         candidates,
       );
     });
@@ -353,7 +365,9 @@ describe('RecommendationsService', () => {
       mockPrismaService.patientProfile.findUnique.mockResolvedValue(null);
       mockPrismaService.recommendationLog.create.mockResolvedValue({});
 
-      const result = await service.match(null, { symptomInput: 'crushing chest pain' });
+      const result = await service.match(null, {
+        symptomInput: 'crushing chest pain',
+      });
 
       expect(result.emergency).toBe(true);
       expect(result.doctors).toEqual([]);
@@ -371,7 +385,9 @@ describe('RecommendationsService', () => {
         explanation: 'ok',
       });
       mockPrismaService.patientProfile.findUnique.mockResolvedValue(null);
-      mockPrismaService.recommendationLog.create.mockRejectedValue(new Error('db down'));
+      mockPrismaService.recommendationLog.create.mockRejectedValue(
+        new Error('db down'),
+      );
       mockDoctorsService.findRankingCandidates.mockResolvedValue([]);
       mockRankingService.rank.mockReturnValue([]);
 

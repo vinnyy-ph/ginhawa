@@ -16,13 +16,20 @@ describe('RecommendationsController', () => {
       controllers: [RecommendationsController],
       providers: [{ provide: RecommendationsService, useValue: mockService }],
     }).compile();
-    controller = module.get<RecommendationsController>(RecommendationsController);
+    controller = module.get<RecommendationsController>(
+      RecommendationsController,
+    );
     jest.clearAllMocks();
   });
 
   describe('match', () => {
     it('passes the authenticated user id to the service', async () => {
-      const payload = { explanation: 'x', criteria: {}, emergency: false, doctors: [] };
+      const payload = {
+        explanation: 'x',
+        criteria: {},
+        emergency: false,
+        doctors: [],
+      };
       mockService.match.mockResolvedValue(payload);
 
       const result = await controller.match(

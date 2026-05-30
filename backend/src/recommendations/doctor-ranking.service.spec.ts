@@ -37,7 +37,11 @@ describe('DoctorRankingService', () => {
 
   it('ranks an exact match above a partial match', () => {
     const exact = doctor({ id: 'exact' });
-    const wrongCity = doctor({ id: 'wrong', city: 'Cebu', region: 'Central Visayas' });
+    const wrongCity = doctor({
+      id: 'wrong',
+      city: 'Cebu',
+      region: 'Central Visayas',
+    });
     const ranked = service.rank(
       { ...base, specialization: 'Dentistry', city: 'Manila' },
       [wrongCity, exact],
@@ -58,7 +62,12 @@ describe('DoctorRankingService', () => {
     // Only specialization is asked; an exact-spec doctor scores 1.0 even with
     // no experience/rating data, because absent criteria do not penalize.
     const ranked = service.rank({ ...base, specialization: 'Dentistry' }, [
-      doctor({ id: 'd', yearsOfExperience: null, avgRating: 0, reviewCount: 0 }),
+      doctor({
+        id: 'd',
+        yearsOfExperience: null,
+        avgRating: 0,
+        reviewCount: 0,
+      }),
     ]);
     expect(ranked[0].matchScore).toBe(1);
   });
@@ -77,7 +86,10 @@ describe('DoctorRankingService', () => {
   it('breaks score ties by rating then experience', () => {
     const a = doctor({ id: 'a', specialization: 'Cardiology', avgRating: 4.9 });
     const b = doctor({ id: 'b', specialization: 'Cardiology', avgRating: 4.1 });
-    const ranked = service.rank({ ...base, specialization: 'Cardiology' }, [b, a]);
+    const ranked = service.rank({ ...base, specialization: 'Cardiology' }, [
+      b,
+      a,
+    ]);
     expect(ranked[0].id).toBe('a');
   });
 
@@ -103,6 +115,8 @@ describe('DoctorRankingService', () => {
   });
 
   it('returns an empty array for an empty candidate pool', () => {
-    expect(service.rank({ ...base, specialization: 'Dentistry' }, [])).toEqual([]);
+    expect(service.rank({ ...base, specialization: 'Dentistry' }, [])).toEqual(
+      [],
+    );
   });
 });

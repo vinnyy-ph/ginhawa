@@ -240,9 +240,9 @@ Use EMERGENCY only if symptoms indicate life-threatening conditions (chest pain,
         mh.chronicConditions.length > 0 ||
         mh.currentMedications.length > 0);
     const historyBlock = hasHistory
-      ? `- Allergies: ${mh!.allergies.join(', ') || 'none'}
-- Chronic conditions: ${mh!.chronicConditions.join(', ') || 'none'}
-- Current medications: ${mh!.currentMedications.join(', ') || 'none'}
+      ? `- Allergies: ${mh.allergies.join(', ') || 'none'}
+- Chronic conditions: ${mh.chronicConditions.join(', ') || 'none'}
+- Current medications: ${mh.currentMedications.join(', ') || 'none'}
 `
       : '';
     const contextBlock = patientContext
@@ -333,7 +333,12 @@ Set emergency true ONLY for life-threatening symptoms (chest pain, stroke, diffi
     }
 
     if (emergency) {
-      return { explanation: raw.explanation, criteria, emergency: true, doctors: [] };
+      return {
+        explanation: raw.explanation,
+        criteria,
+        emergency: true,
+        doctors: [],
+      };
     }
 
     const candidates = await this.doctors.findRankingCandidates();
@@ -346,7 +351,12 @@ Set emergency true ONLY for life-threatening symptoms (chest pain, stroke, diffi
       matchReason: d.matchReason,
     }));
 
-    return { explanation: raw.explanation, criteria, emergency: false, doctors };
+    return {
+      explanation: raw.explanation,
+      criteria,
+      emergency: false,
+      doctors,
+    };
   }
 
   async findAllForPatient(userId: string) {
