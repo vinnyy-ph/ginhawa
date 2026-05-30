@@ -53,6 +53,17 @@ export class RecommendationsController {
     }
   }
 
+  @Post('match')
+  @OptionalJwt()
+  @UseGuards(JwtAuthGuard)
+  async match(
+    @Request() req: { user?: { id?: string } },
+    @Body() createRecommendationDto: CreateRecommendationDto,
+  ) {
+    const userId = req.user?.id ?? null;
+    return this.recommendationsService.match(userId, createRecommendationDto);
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PATIENT')
